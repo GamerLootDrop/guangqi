@@ -3,509 +3,345 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>东方心流 · 国风情绪解压馆</title>
+    <title>乾坤心流 · 东方传统哲学与情绪生态平台</title>
     <style>
-        /* 全局古典美学样式 */
         * { box-sizing: border-box; }
         body {
-            background-color: #F4EFE6; /* 宣纸色 */
-            color: #2C2620; /* 墨色 */
+            background-color: #F2EFE9; /* 宣纸古色 */
+            color: #2B2520; /* 徽墨色 */
             font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            margin: 0; padding: 0;
+            display: flex; flex-direction: column; align-items: center;
             min-height: 100vh;
         }
         
-        /* 顶部招牌 */
+        /* 头部大格局招牌 */
         .header {
-            text-align: center;
-            padding: 30px 20px 15px 20px;
-            width: 100%;
-            max-width: 500px;
+            text-align: center; padding: 40px 20px 20px 20px; width: 100%; max-width: 800px;
         }
-        .header h1 {
-            color: #8C251E; /* 朱砂红 */
-            margin: 0 0 10px 0;
-            font-size: 24px;
-            letter-spacing: 3px;
-        }
-        .header p {
-            color: #6E6458;
-            font-size: 14px;
-            margin: 0;
-            line-height: 1.6;
-        }
+        .header h1 { color: #8C251E; margin: 0 0 10px 0; font-size: 28px; letter-spacing: 4px; }
+        .header p { color: #6E6458; font-size: 15px; margin: 0; line-height: 1.8; }
 
-        /* 切换标签栏 */
-        .tabs {
-            display: flex;
-            width: 90%;
-            max-width: 450px;
-            border-bottom: 2px solid #D5CBB6;
-            margin-bottom: 20px;
-        }
-        .tab-btn {
-            flex: 1;
-            background: none;
-            border: none;
-            padding: 12px 0;
-            font-size: 16px;
-            color: #6E6458;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-        }
-        .tab-btn.active {
-            color: #8C251E;
-            border-bottom: 3px solid #8C251E;
-            margin-bottom: -2px;
-        }
-
-        /* 核心内容容器 */
-        .content-card {
-            width: 90%;
-            max-width: 450px;
-            background: #FAF8F5;
+        /* 导航栏：四大核心功能板块 */
+        .nav-bar {
+            display: flex; width: 95%; max-width: 800px; background: #E6E1D4;
+            border-radius: 8px; margin-bottom: 25px; overflow: hidden;
             border: 1px solid #D5CBB6;
-            border-radius: 12px;
-            padding: 25px 20px;
-            box-shadow: 0 4px 20px rgba(44,38,32,0.06);
-            min-height: 380px;
-            display: none;
-            position: relative;
+        }
+        .nav-btn {
+            flex: 1; background: none; border: none; padding: 15px 5px;
+            font-size: 15px; color: #5C5142; cursor: pointer; font-weight: bold;
+            transition: all 0.3s; text-align: center;
+        }
+        .nav-btn.active { background: #8C251E; color: #FFF; }
+
+        /* 主体卡片容器 */
+        .main-container { width: 95%; max-width: 800px; margin-bottom: 5px; }
+        .content-card {
+            background: #FAF8F5; border: 1px solid #D5CBB6; border-radius: 12px;
+            padding: 30px 25px; box-shadow: 0 6px 25px rgba(44,38,32,0.05);
+            display: none; min-height: 450px;
         }
         .content-card.active { display: block; }
 
-        /* === 功能一：赛博解压样式 === */
-        .zen-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
+        /* 通用组件 */
+        .btn-prime {
+            background: #8C251E; color: #FFF; border: none; padding: 12px 35px;
+            font-size: 16px; border-radius: 6px; cursor: pointer; font-weight: bold;
+            box-shadow: 0 3px 8px rgba(140,37,30,0.2); transition: all 0.2s;
         }
-        /* 电子木鱼 */
-        .muyu-box {
-            position: relative;
-            margin: 20px 0;
-            cursor: pointer;
-            transition: transform 0.1s;
+        .btn-prime:active { transform: scale(0.98); }
+        .section-title {
+            font-size: 18px; color: #8C251E; border-left: 4px solid #8C251E;
+            padding-left: 10px; margin: 0 0 20px 0; font-weight: bold;
         }
-        .muyu-box:active { transform: scale(0.92); }
-        .muyu-icon {
-            width: 120px;
-            height: 120px;
-            background: #3A332A;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #F4EFE6;
-            font-size: 40px;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.4);
-            border: 4px solid #8C251E;
+
+        /* ================= 板块一：赛博静心 ================= */
+        .zen-layout { display: flex; flex-direction: column; align-items: center; }
+        .muyu-box { position: relative; margin: 25px 0; cursor: pointer; }
+        .muyu-sphere {
+            width: 130px; height: 130px; background: #3A332A; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: #F4EFE6; font-size: 45px; border: 4px solid #8C251E;
+            box-shadow: inset 0 0 25px rgba(0,0,0,0.5); transition: transform 0.05s;
         }
-        /* 悬浮文字动画 */
+        .muyu-box:active .muyu-sphere { transform: scale(0.95); }
         .float-text {
-            position: absolute;
-            color: #8C251E;
-            font-weight: bold;
-            font-size: 18px;
-            animation: floatUp 0.8s ease-out forwards;
-            pointer-events: none;
-            white-space: nowrap;
+            position: absolute; color: #8C251E; font-weight: bold; font-size: 18px;
+            animation: floatUp 0.8s ease-out forwards; pointer-events: none;
         }
         @keyframes floatUp {
             0% { opacity: 1; transform: translateY(0) scale(1); }
-            100% { opacity: 0; transform: translateY(-80px) scale(1.2); }
+            100% { opacity: 0; transform: translateY(-90px) scale(1.3); }
         }
+        .burner { width: 100px; height: 45px; background: #8A7B66; border-radius: 0 0 25px 25px; margin: 20px auto 0 auto; position: relative; border-top: 5px solid #5C5142; }
+        .stick { width: 4px; height: 65px; background: #A06450; position: absolute; bottom: 40px; left: 48px; display: none; transform-origin: bottom; }
+        .stick.burning { display: block; animation: burnDown 10s linear forwards; }
+        @keyframes burnDown { 0% { transform: scaleY(1); } 100% { transform: scaleY(0.1); background: #4A4A4A; } }
 
-        /* 赛博上香 */
-        .incense-section {
-            margin-top: 30px;
-            border-top: 1px dashed #D5CBB6;
-            padding-top: 20px;
-            width: 100%;
+        /* ================= 板块二：乾坤八字智能生成 ================= */
+        .form-group { margin-bottom: 18px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #5C5142; }
+        .form-input {
+            width: 100%; padding: 12px; border: 1px solid #D5CBB6; border-radius: 6px;
+            background: #FFF; font-size: 15px; color: #2B2520;
         }
-        .burner {
-            width: 80px;
-            height: 40px;
-            background: #8A7B66;
-            border-radius: 0 0 20px 20px;
-            margin: 20px auto 0 auto;
-            position: relative;
-            border-top: 5px solid #5C5142;
+        .bazi-result-panel {
+            background: #FFF; border: 1px solid #E6E1D4; border-radius: 8px; padding: 20px;
+            margin-top: 25px; text-align: left; display: none;
         }
-        .incense-stick {
-            width: 4px;
-            height: 60px;
-            background: #A06450;
-            position: absolute;
-            bottom: 35px;
-            left: 38px;
-            display: none;
-            transform-origin: bottom;
+        .bazi-grid { display: flex; justify-content: space-between; margin: 15px 0; }
+        .bazi-pillar {
+            background: #F4EFE6; border: 1px solid #D5CBB6; flex: 1; margin: 0 4px;
+            text-align: center; padding: 10px 0; border-radius: 4px;
         }
-        .incense-stick.burning {
-            display: block;
-            animation: burnDown 15s linear forwards;
-        }
-        .smoke {
-            position: absolute;
-            top: -15px;
-            left: -8px;
-            color: #CCC;
-            font-size: 12px;
-            opacity: 0;
-            display: none;
-        }
-        .incense-stick.burning .smoke {
-            display: block;
-            animation: waveSmoke 2s ease-in-out infinite;
-        }
-        @keyframes burnDown {
-            0% { transform: scaleY(1); background: #A06450; }
-            100% { transform: scaleY(0.1); background: #4A4A4A; }
-        }
-        @keyframes waveSmoke {
-            0%, 100% { opacity: 0; transform: translateY(0) translateX(0); }
-            50% { opacity: 0.6; transform: translateY(-20px) translateX(5px); }
-        }
+        .pillar-title { font-size: 12px; color: #8A7B66; margin-bottom: 5px; }
+        .pillar-val { font-size: 20px; font-weight: bold; color: #8C251E; }
 
-        /* === 功能二：心流测评样式 === */
-        .quiz-intro, .question-box, .result-box { display: none; }
-        .quiz-intro.active, .question-box.active, .result-box.active { display: block; }
+        /* ================= 板块三：福地文创商城 ================= */
+        .mall-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        .product-card { background: #FFF; border: 1px solid #E6E1D4; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; }
+        .product-img { width: 100%; height: 160px; background: #E6E1D4; display: flex; align-items: center; justify-content: center; font-size: 40px; color: #8A7B66; }
+        .product-info { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .product-title { font-size: 16px; font-weight: bold; margin: 0 0 8px 0; }
+        .product-price { color: #8C251E; font-size: 18px; font-weight: bold; margin-bottom: 12px; }
+
+        /* ================= 板块四：名师驻扎与心理咨询 ================= */
+        .master-card {
+            background: #FFF; border: 1px solid #E6E1D4; border-radius: 8px; padding: 20px;
+            margin-bottom: 15px; display: flex; align-items: center; position: relative;
+        }
+        .master-avatar { width: 65px; height: 65px; background: #8C251E; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #FFF; font-size: 24px; font-weight: bold; margin-right: 20px; }
+        .master-avatar.psy { background: #4A7C59; }
+        .master-details { text-align: left; flex-grow: 1; }
+        .master-name { font-size: 18px; font-weight: bold; margin: 0 0 5px 0; }
+        .master-tag { display: inline-block; padding: 2px 8px; font-size: 11px; border-radius: 10px; background: #F4EFE6; color: #8A7B66; margin-right: 5px; }
+        .master-intro { font-size: 13px; color: #6E6458; margin-top: 8px; line-height: 1.4; }
         
-        .quiz-title {
-            font-size: 18px;
-            color: #8C251E;
-            margin-bottom: 15px;
-            font-weight: bold;
+        /* 弹窗样式 */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000;
         }
-        .option-btn {
-            width: 100%;
-            background: #FFF;
-            border: 1px solid #D5CBB6;
-            padding: 14px;
-            margin-bottom: 12px;
-            border-radius: 8px;
-            text-align: left;
-            cursor: pointer;
-            font-size: 15px;
-            transition: background 0.2s;
-        }
-        .option-btn:hover { background: #F4EFE6; border-color: #8C251E; }
-        
-        /* 结果与引流卡片（核心钩子） */
-        .result-box { text-align: center; }
-        .badge {
-            background: #8C251E;
-            color: #FFF;
-            padding: 6px 15px;
-            border-radius: 20px;
-            display: inline-block;
-            font-size: 18px;
-            margin-bottom: 15px;
-            letter-spacing: 1px;
-        }
-        .result-text {
-            font-size: 15px;
-            line-height: 1.8;
-            color: #554A3F;
-            text-align: left;
-            background: #FFF;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #8C251E;
-            margin-bottom: 20px;
-        }
-        .lock-banner {
-            background: #FFF0EF;
-            border: 1px solid #FCD2D0;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 15px;
-        }
-        .lock-banner h4 { color: #8C251E; margin: 0 0 8px 0; font-size: 15px; }
-        .lock-banner p { font-size: 13px; color: #666; margin: 0 0 12px 0; line-height: 1.5; }
-        
-        /* 通用古风按钮 */
-        .btn-prime {
-            background: #8C251E;
-            color: #FFF;
-            border: none;
-            padding: 12px 30px;
-            font-size: 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            letter-spacing: 1px;
-            font-weight: bold;
-            box-shadow: 0 2px 6px rgba(140,37,30,0.3);
-        }
-        .btn-prime:active { background: #6E1B16; }
-        
-        .wechat-box {
-            background: #F4EFE6;
-            padding: 10px;
-            border-radius: 4px;
-            font-weight: bold;
-            color: #8C251E;
-            margin: 10px 0;
-            font-size: 16px;
-            border: 1px dashed #8C251E;
-        }
+        .modal-body { background: #FAF8F5; padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; border: 2px solid #8C251E; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>☯ 东方心流解压馆</h1>
-        <p>红尘喧嚣，内耗丛生。在此借道家智慧，<br>敲赛博木鱼，测五行心流，寻心灵清静。</p>
+        <h1>☯ 乾坤心流综合生态平台</h1>
+        <p>破除传统桎梏，联合全国名山正统道教IP与资深心理咨询师。<br>打造集“赛博静心、八字探源、文创结缘、名师导滞”于一体的数智化国潮空间。</p>
     </div>
 
-    <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('zen')">赛博静心局</button>
-        <button class="tab-btn" onclick="switchTab('quiz')">心流性格测评</button>
+    <div class="nav-bar">
+        <button class="nav-btn active" onclick="switchSection('zen')">赛博静心</button>
+        <button class="nav-btn" onclick="switchSection('bazi')">乾坤八字</button>
+        <button class="nav-btn" onclick="switchSection('mall')">福地文创</button>
+        <button class="nav-btn" onclick="switchSection('masters')">寻道求真</button>
     </div>
 
-    <div id="zen-card" class="content-card active">
-        <div class="zen-container">
-            <p style="font-size:14px; color:#6E6458; margin:0 0 10px 0;">【功德木鱼】点击积攒清静，消除焦虑</p>
-            <div id="counter" style="font-size: 18px; font-weight: bold; color: #8C251E;">今日已解压：0 次</div>
-            
-            <div class="muyu-box" id="muyu" onclick="clickMuyu()">
-                <div class="muyu-icon">☯</div>
+    <div class="main-container">
+        
+        <div id="section-zen" class="content-card active">
+            <h2 class="section-title">功德解压空间</h2>
+            <div class="zen-layout">
+                <div style="font-size: 16px; font-weight: bold; color: #8C251E; margin-bottom: 10px;" id="zen-count">今日静心值：0</div>
+                <div class="muyu-box" onclick="tapMuyu()">
+                    <div class="muyu-sphere">☯</div>
+                </div>
+                <div style="width:100%; border-top:1px dashed #D5CBB6; margin-top:20px; padding-top:20px;">
+                    <button class="btn-prime" id="incense-btn" onclick="burnIncense()">供奉心香一炷</button>
+                    <div class="burner"><div class="stick" id="stick-obj"></div></div>
+                    <p id="incense-txt" style="font-size:13px; color:#8A7B66; margin-top:10px;"></p>
+                </div>
             </div>
-            
-            <div class="incense-section">
-                <p style="font-size:14px; color:#6E6458; margin:0 0 10px 0;">【心香一炷】燃香静心，屏气凝神</p>
-                <button class="btn-prime" id="burn-btn" onclick="lightIncense()" style="padding:8px 20px; font-size:14px;">敬供一炷香</button>
-                <div class="burner">
-                    <div class="incense-stick" id="stick">
-                        <div class="smoke">~ 袅袅青烟 ~</div>
+        </div>
+
+        <div id="section-bazi" class="content-card">
+            <h2 class="section-title">传统八字心流探源</h2>
+            <p style="font-size:13px; color:#6E6458; margin-top:-15px; margin-bottom:20px;">输入生辰干支，免锁直接导出全套能量解析及五行流年报告。</p>
+            <div class="form-group">
+                <label>缘主姓名</label>
+                <input type="text" id="bazi-name" class="form-input" placeholder="请输入您的姓名">
+            </div>
+            <div class="form-group">
+                <label>出生日期（公历）</label>
+                <input type="date" id="bazi-date" class="form-input">
+            </div>
+            <div class="form-group">
+                <label>出生时辰</label>
+                <select id="bazi-time" class="form-input">
+                    <option value="子">子时 (23:00-01:00)</option><option value="丑">丑时 (01:00-03:00)</option>
+                    <option value="寅">寅时 (03:00-05:00)</option><option value="卯">卯时 (05:00-07:00)</option>
+                    <option value="辰">辰时 (07:00-09:00)</option><option value="巳">巳时 (09:00-11:00)</option>
+                    <option value="午">午时 (11:00-13:00)</option><option value="未">未时 (13:00-15:00)</option>
+                    <option value="申">申时 (15:00-17:00)</option><option value="酉">酉时 (17:00-19:00)</option>
+                    <option value="戌">戌时 (19:00-21:00)</option><option value="亥">亥时 (21:00-23:00)</option>
+                </select>
+            </div>
+            <button class="btn-prime" onclick="generateBazi()">立即无漏测算</button>
+
+            <div class="bazi-result-panel" id="bazi-output">
+                <h3 style="color:#8C251E; margin:0 0 10px 0;" id="out-title"></h3>
+                <div class="bazi-grid">
+                    <div class="bazi-pillar"><div class="pillar-title">年柱</div><div class="pillar-val" id="p-year">丙戌</div></div>
+                    <div class="bazi-pillar"><div class="pillar-title">月柱</div><div class="pillar-val" id="p-month">庚寅</div></div>
+                    <div class="bazi-pillar"><div class="pillar-title">日柱</div><div class="pillar-val" id="p-day">壬申</div></div>
+                    <div class="bazi-pillar"><div class="pillar-title">时柱</div><div class="pillar-val" id="p-time">乙巳</div></div>
+                </div>
+                <div style="background:#F4EFE6; padding:15px; border-radius:6px; font-size:14px; line-height:1.7;">
+                    <b style="color:#8C251E;">☯ 局势判词：</b><span id="out-analysis"></span><br><br>
+                    <b style="color:#4A7C59;">💡 后天化解方案：</b><span id="out-advice"></span>
+                </div>
+            </div>
+        </div>
+
+        <div id="section-mall" class="content-card">
+            <h2 class="section-title">福地美学国潮文创</h2>
+            <div class="mall-grid">
+                <div class="product-card">
+                    <div class="product-img">📿</div>
+                    <div class="product-info">
+                        <div class="product-title">名山香灰静心手串（辟邪除烦）</div>
+                        <div class="product-price">￥199.00</div>
+                        <button class="btn-prime" style="padding:6px; font-size:13px;" onclick="triggerAction('购买手串')">在线结缘</button>
                     </div>
                 </div>
-                <p id="incense-status" style="font-size:12px; color:#8A7B66; margin-top:10px; min-height: 18px;"></p>
+                <div class="product-card">
+                    <div class="product-img">🪵</div>
+                    <div class="product-info">
+                        <div class="product-title">老道长手工监制·天然古坛沉香</div>
+                        <div class="product-price">￥128.00</div>
+                        <button class="btn-prime" style="padding:6px; font-size:13px;" onclick="triggerAction('购买沉香')">在线结缘</button>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <div class="product-img">☕</div>
+                    <div class="product-info">
+                        <div class="product-title">本草草本·道医调理养生茶包</div>
+                        <div class="product-price">￥68.00</div>
+                        <button class="btn-prime" style="padding:6px; font-size:13px;" onclick="triggerAction('购买茶包')">在线结缘</button>
+                    </div>
+                </div>
             </div>
+        </div>
+
+        <div id="section-masters" class="content-card">
+            <h2 class="section-title">全国正统高道 & 资深心理咨询师集群</h2>
+            <p style="font-size:13px; color:#6E6458; margin-top:-15px; margin-bottom:20px;">打破信息壁垒，由平台严选正统持证道职人员与心理学专家，一对一提供情绪疏导与人生陪聊。</p>
+            
+            <div class="master-card">
+                <div class="master-avatar">道</div>
+                <div class="master-details">
+                    <div class="master-name">张至诚 道长</div>
+                    <div><span class="master-tag">正一派三十代弟子</span><span class="master-tag">擅长易理疏导</span></div>
+                    <div class="master-intro">驻扎于祖庭龙虎山修行，精通易理。擅长用传统哲学化解青年缘主面临的职业迷茫与婚恋精神内耗。</div>
+                </div>
+                <button class="btn-prime" style="padding:8px 15px; font-size:13px; position:absolute; right:20px; top:20px;" onclick="triggerAction('预约张道长服务')">向他倾诉</button>
+            </div>
+
+            <div class="master-card">
+                <div class="master-avatar psy">师</div>
+                <div class="master-details">
+                    <div class="master-name">林清音 老师</div>
+                    <div><span class="master-tag">国家二级心理咨询师</span><span class="master-tag">认知行为疗法CBT</span></div>
+                    <div class="master-intro">12年执业经验，擅长整合东方道家唯物正因思想与西方现代CBT心理疗法，精准击碎深夜焦虑与重度精神内耗。</div>
+                </div>
+                <button class="btn-prime" style="padding:8px 15px; font-size:13px; position:absolute; right:20px; top:20px;" onclick="triggerAction('预约林老师咨询')">预约咨询</button>
+            </div>
+            
+            <p style="font-size:12px; color:#8A7B66; text-align:center; margin-top:30px;">（⚠️ 入驻提示：全国正统道长、持有心理咨询资质老师，请联系平台运营团队提交资料审核入驻）</p>
         </div>
     </div>
 
-    <div id="quiz-card" class="content-card">
-        <div id="quiz-intro" class="quiz-intro active" style="text-align: center; padding-top: 30px;">
-            <h3 style="color:#8C251E; margin-bottom:15px;">东方五行情绪象限探寻</h3>
-            <p style="font-size:14px; color:#6E6458; line-height:1.8; margin-bottom:30px;">
-                本测验融合古法易理与现代深度心理学，<br>
-                精准剖析你当下的精神内耗核心，<br>
-                并指引最适合你的道家“破局心流”。
-            </p>
-            <button class="btn-prime" onclick="startQuiz()">开启探索</button>
-        </div>
-
-        <div id="question-box" class="question-box">
-            <div id="progress" style="font-size:12px; color:#8A7B66; margin-bottom:10px;">问题 1 / 4</div>
-            <div class="quiz-title" id="question-title">加载中...</div>
-            <div id="options-container"></div>
-        </div>
-
-        <div id="result-box" class="result-box">
-            <p style="font-size:13px; color:#8A7B66; margin:0;">你的核心精神象限为</p>
-            <div class="badge" id="result-tag">【水润·包容心流】</div>
-            
-            <div class="result-text" id="result-desc">
-                加载中...
-            </div>
-            
-            <div class="lock-banner">
-                <h4>🔒 核心破局方案已被道长锁定</h4>
-                <p>由于古法调理因人而异，为防生搬硬套，更深层的【流年阻碍、具体化解法、专属静心符印】需结合真人乾坤骨相。</p>
-                <p style="font-weight: bold; color: #2C2620;">👇 复制下方道长微信，免费领取3000字专属调理报告：</p>
-                <div class="wechat-box" id="wechat-id">daozhang8888</div>
-                <button class="btn-prime" onclick="copyWeChat()" style="padding:6px 15px; font-size:13px; background:#4A7C59; box-shadow:none;">一键复制微信号</button>
-            </div>
+    <div class="modal" id="biz-modal">
+        <div class="modal-body">
+            <h3 style="color:#8C251E; margin-top:0;" id="modal-title">结缘提示</h3>
+            <p style="font-size:14px; color:#5C5142; line-height:1.6;" id="modal-desc"></p>
+            <p style="font-weight:bold; color:#8C251E; font-size:16px; background:#F4EFE6; padding:10px; border-radius:4px; border:1px dashed #8C251E;">微信公域：daozhang8888</p>
+            <button class="btn-prime" onclick="closeModal()" style="margin-top:15px; background:#4A7C59;">已知晓，前往沟通</button>
         </div>
     </div>
 
     <script>
-        // 核心切换逻辑
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.content-card').forEach(card => card.classList.remove('active'));
-            
-            if(tab === 'zen') {
-                event.target.classList.add('active');
-                document.getElementById('zen-card').classList.add('active');
-            } else {
-                document.querySelectorAll('.tab-btn')[1].classList.add('active');
-                document.getElementById('quiz-card').classList.add('active');
-            }
+        // 核心选项卡切换
+        function switchSection(id) {
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('section-' + id).classList.add('active');
         }
 
-        // --- 木鱼与香逻辑 ---
-        let clickCount = 0;
-        const phrases = ["焦虑-1", "功德+1", "顺遂+1", "破除内耗", "心神安定", "执念渐消"];
-        
-        function clickMuyu() {
-            clickCount++;
-            document.getElementById('counter').innerText = `今日已解压：${clickCount} 次`;
-            
-            // 创造漂浮文字
-            const muyu = document.getElementById('muyu');
-            const text = document.createElement('div');
-            text.className = 'float-text';
-            text.innerText = phrases[Math.floor(Math.random() * phrases.length)];
-            
-            // 随机漂浮位置
-            text.style.left = (Math.random() * 40 + 30) + '%';
-            text.style.top = '10px';
-            
-            muyu.appendChild(text);
-            setTimeout(() => text.remove(), 800);
+        // 木鱼和香
+        let mCount = 0;
+        const txts = ["内耗渐消", "智慧圆满", "杂念退散", "财运顺遂", "灵台清明"];
+        function tapMuyu() {
+            mCount++;
+            document.getElementById('zen-count').innerText = `今日静心值：${mCount}`;
+            const box = event.currentTarget;
+            const el = document.createElement('div');
+            el.className = 'float-text';
+            el.innerText = txts[Math.floor(Math.random() * txts.length)];
+            el.style.left = (Math.random() * 40 + 30) + '%';
+            el.style.top = '10px';
+            box.appendChild(el);
+            setTimeout(() => el.remove(), 800);
         }
-
-        function lightIncense() {
-            const stick = document.getElementById('stick');
-            const status = document.getElementById('incense-status');
-            const btn = document.getElementById('burn-btn');
-            
-            btn.disabled = true;
-            btn.innerText = "香火御供中...";
-            stick.classList.add('burning');
-            status.innerText = "清香已燃，定心安神。静候浮躁消散...";
-            
+        function burnIncense() {
+            const btn = document.getElementById('incense-btn');
+            const stick = document.getElementById('stick-obj');
+            const txt = document.getElementById('incense-txt');
+            btn.disabled = true; stick.classList.add('burning');
+            txt.innerText = "清香已奉，青烟绕梁。请闭目冥想10秒中，静纳天地灵气...";
             setTimeout(() => {
-                stick.classList.remove('burning');
-                status.innerText = "一炷清香燃尽，杂念已随烟消。";
-                btn.disabled = false;
-                btn.innerText = "敬供一炷香";
-            }, 15000); // 15秒模拟
+                stick.classList.remove('burning'); btn.disabled = false;
+                txt.innerText = "一炷心香燃尽，负面磁场已随烟尘消散。";
+            }, 10000);
         }
 
-        // --- 测评逻辑设计 ---
-        const questions = [
-            {
-                title: "1. 当面对突如其来的压力和连轴转的内耗时，你通常的下意识反应是？",
-                options: [
-                    { text: "极为焦虑，死磕硬熬，停不下来", score: "火" },
-                    { text: "感到迷茫无力，想逃避，间歇性躺平", score: "水" },
-                    { text: "情绪压抑在心里，外表平静但极其内耗", score: "土" },
-                    { text: "迅速理智分析，试图用计划掌控一切", score: "金" }
-                ]
-            },
-            {
-                title: "2. 深夜独处、闭上眼睛时，最容易让你感到揪心和焦虑的是？",
-                options: [
-                    { text: "对未知前途和财务状况的恐慌", score: "金" },
-                    { text: "复杂的人际关系或情感纠葛纠缠", score: "水" },
-                    { text: "觉得自己碌碌无为、虚度光阴的自责", score: "火" },
-                    { text: "身体疲惫却大脑兴奋，持续失眠", score: "土" }
-                ]
-            },
-            {
-                title: "3. 如果用一种自然意象形容你理想中的精神状态，你更向往？",
-                options: [
-                    { text: "高山笃定：泰山崩于前而面不改色", score: "土" },
-                    { text: "如水随缘：顺流而下，不争不抢", score: "水" },
-                    { text: "烈火燎原：永远充满激情与破局的力量", score: "火" },
-                    { text: "利刃出鞘：极其锋利，斩断所有阻碍", score: "金" }
-                ]
-            },
-            {
-                title: "4. 你目前最渴望在哪个维度获得改变命运的“破局力量”？",
-                options: [
-                    { text: "财运与事业：不再为碎银几两极度内耗", score: "金" },
-                    { text: "心境与情绪：获得真正的钝感力与快乐", score: "水" },
-                    { text: "行动力提升：彻底杀灭拖延症与精神瘫痪", score: "火" },
-                    { text: "贵人与人缘：小人退散，各方关系顺遂", score: "土" }
-                ]
-            }
-        ];
-
-        let currentQuestionIndex = 0;
-        let scores = { "火": 0, "水": 0, "土": 0, "金": 0 };
-
-        function startQuiz() {
-            document.getElementById('quiz-intro').classList.remove('active');
-            document.getElementById('question-box').classList.add('active');
-            showQuestion();
-        }
-
-        function showQuestion() {
-            const q = questions[currentQuestionIndex];
-            document.getElementById('progress').innerText = `问题 ${currentQuestionIndex + 1} / ${questions.length}`;
-            document.getElementById('question-title').innerText = q.title;
+        // 八字算法逻辑（纯前端核心运算，直接完全吐出结果）
+        function generateBazi() {
+            const name = document.getElementById('bazi-name').value || "缘主";
+            const date = document.getElementById('bazi-date').value;
+            if(!date) { alert("请选择您的出生日期"); return; }
             
-            const container = document.getElementById('options-container');
-            container.innerHTML = '';
+            // 模拟高阶天干地支转化
+            const tg = ["甲","乙","丙","丁","戊","己","庚","辛","壬","癸"];
+            const dz = ["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"];
             
-            q.options.forEach(opt => {
-                const btn = document.createElement('button');
-                btn.className = 'option-btn';
-                btn.innerText = opt.text;
-                btn.onclick = () => selectOption(opt.score);
-                container.appendChild(btn);
-            });
-        }
+            document.getElementById('p-year').innerText = tg[Math.floor(Math.random()*10)] + dz[Math.floor(Math.random()*12)];
+            document.getElementById('p-month').innerText = tg[Math.floor(Math.random()*10)] + dz[Math.floor(Math.random()*12)];
+            const dayTg = tg[Math.floor(Math.random()*10)];
+            document.getElementById('p-day').innerText = dayTg + dz[Math.floor(Math.random()*12)];
+            document.getElementById('p-time').innerText = tg[Math.floor(Math.random()*10)] + document.getElementById('bazi-time').value;
 
-        function selectOption(score) {
-            scores[score]++;
-            currentQuestionIndex++;
-            
-            if(currentQuestionIndex < questions.length) {
-                showQuestion();
+            // 依据日干给出无锁权威解说
+            let analysis = "", advice = "";
+            if(["甲","乙"].includes(dayTg)) {
+                analysis = `本命属木。身处木火通明之象，聪明绝顶但近期火多水干。代表由于思虑过多、对完美主义的偏执，导致了近期极重的‘精神瘫痪’与执行力受阻。`;
+                advice = `宜‘以水滋木’。当下切忌急躁突围，应当放权或进行心理断舍离。建议每日清晨诵读道家《清静经》，或通过本平台林清音老师进行认知行为疏导。`;
+            } else if(["丙","丁"].includes(dayTg)) {
+                analysis = `本命属火。烈火燎原，性格刚直暴躁。近期运势逢‘金水相激’，内心欲望与现实阻碍发生严重对撞。表面上风平浪静，深夜其实焦虑到失眠。`;
+                advice = `宜‘借土泄火’。你目前不需要任何人教你做大道理，你需要的是脚踏实地的承载力。可通过佩戴本商城‘香灰静心手串’沉降浮躁磁场，或者向张至诚道长寻求高维指引。`;
             } else {
-                showResult();
+                analysis = `本命干支五行调和，但命带‘孤辰寡宿’。近期在人际交往、职场贵人或情感链接上遇到了极其严重的‘冷暴力’或信任危机，导致极其孤独内耗。`;
+                advice = `命理虽有小阻，但运势大盘极稳。此乃黎明前的黑夜。切勿自我怀疑。多行赛博静心，稳住自身能量场，小人自会退散。`;
             }
+
+            document.getElementById('out-title').innerText = `【${name}】的乾坤本命乾坤法象报告`;
+            document.getElementById('out-analysis').innerHTML = analysis;
+            document.getElementById('out-advice').innerHTML = advice;
+            document.getElementById('bazi-output').style.display = 'block';
         }
 
-        const resultDatabase = {
-            "水": {
-                tag: "【水润·包容心流】",
-                desc: "💡 <b>近期心境：</b>你目前的能量极度内敛，属于典型的‘精神反刍者’。极易因为别人的一句话、一个眼神想大半天，精神消耗极大。<br><br>☯ <b>道家批注：</b>上善若水。你本身具备极强的韧性，但近期‘水淤不流’，导致情绪积压。急需道长为你指出如何在上游疏通源头，斩断杂念..."
-            },
-            "火": {
-                tag: "【火舞·焦虑心流】",
-                desc: "💡 <b>近期心境：</b>你目前处于焦躁的‘兵荒马乱期’。目标感很强，渴望破局，但往往伴随严重的拖延或三分钟热度。越急越做不好，陷入死循环。<br><br>☯ <b>道家批注：</b>火烈易燥。你体内的气机目前被虚火裹挟，心神不安。需要‘以水济火’。道长为你准备的化解方案将重点指导如何定心、迅速找回恐怖执行力..."
-            },
-            "金": {
-                tag: "【金锐·锋芒内耗】",
-                desc: "💡 <b>近期心境：</b>你是一个极其清醒且有完美主义倾向的人。但也正因如此，你对现状的容忍度极低，常常对当下的财务、事业进度感到深度恐慌。<br><br>☯ <b>道家批注：</b>金多流变。过度的理性变成了限制你的牢笼。你需要的是钝感力。如何借传统易理消解‘完美主义枷锁’，正是道长要对你说的核心..."
-            },
-            "土": {
-                tag: "【土厚..承载内耗】",
-                desc: "💡 <b>近期心境：</b>你近期承受了太多不属于你的压力。你习惯性地去照顾别人的感受，承担过多责任，导致自己的精神世界早已沉重不堪、极度疲惫。<br><br>☯ <b>道家批注：</b>土厚物滞。你承载了太多红尘负累。急需给精神‘卸载’。添加微信后，道长会单独为你解惑如何立起护身屏障，拒绝外界精神污染..."
-            }
-        };
-
-        function showResult() {
-            document.getElementById('question-box').classList.remove('active');
-            document.getElementById('result-box').classList.add('active');
-            
-            // 找出得分最高的五行属性
-            let maxType = "水";
-            let maxScore = -1;
-            for(let key in scores) {
-                if(scores[key] > maxScore) {
-                    maxScore = scores[key];
-                    maxType = key;
-                }
-            }
-            
-            const res = resultDatabase[maxType];
-            document.getElementById('result-tag').innerText = res.tag;
-            document.getElementById('result-desc').innerHTML = res.desc;
+        // 统一转化弹窗控制
+        function triggerAction(actionName) {
+            const modal = document.getElementById('biz-modal');
+            document.getElementById('modal-title').innerText = `【${actionName}】专属通道`;
+            document.getElementById('modal-desc').innerText = `由于目前正处于平台冷启动内测阶段，为了提供最正统的非机读定制化服务，当前的[${actionName}]功能将由平台官方微信私域承接。请复制下方微信号前往添加，专属道长与心理客服将立即为您服务。`;
+            modal.style.display = 'flex';
         }
-
-        // 一键复制微信号
-        function copyWeChat() {
-            const wcId = document.getElementById('wechat-id').innerText;
-            navigator.clipboard.writeText(wcId).then(() => {
-                alert("👍 微信号已复制成功！\n快去微信添加道长，获取你的3000字深度报告吧！");
-            }).catch(err => {
-                alert("复制失败，请手动长按微信号进行复制");
-            });
-        }
+        function closeModal() { document.getElementById('biz-modal').style.display = 'none'; }
     </script>
 </body>
 </html>
