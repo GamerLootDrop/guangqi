@@ -7,22 +7,20 @@
     <style>
         * { box-sizing: border-box; }
         body {
-            background-color: #1A1613; /* 升级为高逼格的深夜静心暗色调 */
-            color: #E6E1D4; /* 宣纸白文字 */
+            background-color: #1A1613; 
+            color: #E6E1D4; 
             font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", serif;
             margin: 0; padding: 0;
             display: flex; flex-direction: column; align-items: center;
             min-height: 100vh;
             overflow-x: hidden;
-            transition: background 1.5s ease; /* 用于呼吸功能背景渐变 */
+            transition: background 1.5s ease; 
         }
         
-        /* 头部大格局 */
         .header { text-align: center; padding: 35px 20px 15px 20px; width: 100%; max-width: 600px; }
         .header h1 { color: #D4AF37; margin: 0 0 10px 0; font-size: 26px; letter-spacing: 4px; text-shadow: 0 2px 10px rgba(212,175,55,0.3); }
         .header p { color: #A09586; font-size: 13px; margin: 0; line-height: 1.6; }
 
-        /* 高级暗金导航栏 */
         .nav-bar {
             display: flex; width: 92%; max-width: 500px; background: #2A241F;
             border-radius: 30px; margin-bottom: 20px; padding: 5px;
@@ -35,7 +33,6 @@
         }
         .nav-btn.active { background: #8C251E; color: #FFF; box-shadow: 0 2px 8px rgba(140,37,30,0.4); }
 
-        /* 主体卡片 */
         .main-container { width: 92%; max-width: 500px; margin-bottom: 30px; }
         .content-card {
             background: #251F1A; border: 1px solid #3A3129; border-radius: 16px;
@@ -45,7 +42,6 @@
         .content-card.active { display: block; }
         .section-title { font-size: 18px; color: #D4AF37; margin: 0 0 15px 0; text-align: center; letter-spacing: 1px; }
 
-        /* 通用高级按钮 */
         .btn-prime {
             background: linear-gradient(135deg, #8C251E, #B3362D); color: #FFF; border: none; 
             padding: 12px 30px; font-size: 15px; border-radius: 25px; cursor: pointer; font-weight: bold;
@@ -53,11 +49,10 @@
         }
         .btn-prime:active { transform: scale(0.98); }
 
-        /* ================= 核心升级一：交互式呼吸太极球 ================= */
+        /* ================= 灵魂呼吸太极球 ================= */
         .zen-layout { display: flex; flex-direction: column; align-items: center; text-align: center; }
         .breath-guide { font-size: 16px; color: #D4AF37; font-weight: bold; margin-bottom: 20px; min-height: 24px; }
         
-        /* 呼吸大太极球 */
         .taiji-container {
             width: 160px; height: 160px; position: relative; margin: 20px 0;
             cursor: pointer; display: flex; align-items: center; justify-content: center;
@@ -68,33 +63,29 @@
             box-shadow: 0 0 30px rgba(212,175,55,0.2);
             transition: all 0.5s ease;
         }
-        /* 经典太极双眼（简化精美版） */
         .taiji-sphere::before { content: ''; position: absolute; width: 80px; height: 80px; background: #E6E1D4; border-radius: 50%; top: 0; left: 40px; }
         .taiji-sphere::after { content: ''; position: absolute; width: 80px; height: 80px; background: #2B2520; border-radius: 50%; bottom: 0; left: 40px; }
         .taiji-dot-1 { position: absolute; width: 20px; height: 20px; background: #2B2520; border-radius: 50%; top: 30px; left: 70px; z-index: 5; }
         .taiji-dot-2 { position: absolute; width: 20px; height: 20px; background: #E6E1D4; border-radius: 50%; bottom: 30px; left: 70px; z-index: 5; }
         
-        /* 自动慢速自旋 */
         .taiji-rotate { animation: spin 20s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
-        /* 模拟扩缩呼吸动画 */
-        .breathing-anim { animation: breathScale 8s ease-in-out infinite; }
+        .breathing-anim { animation: breathScale 4s ease-in-out infinite; }
         @keyframes breathScale {
             0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(212,175,55,0.2); }
-            50% { transform: scale(1.22); box-shadow: 0 0 50px rgba(212,175,55,0.6); }
+            50% { transform: scale(1.25); box-shadow: 0 0 60px rgba(212,175,55,0.7); }
         }
         
-        /* 涟漪动效 */
         .ripple {
             position: absolute; border: 2px solid #D4AF37; border-radius: 50%;
-            animation: ripAnim 1s ease-out forwards; pointer-events: none;
+            animation: ripAnim 1.2s ease-out forwards; pointer-events: none;
         }
         @keyframes ripAnim {
             0% { width: 160px; height: 160px; opacity: 1; }
-            100% { width: 300px; height: 300px; opacity: 0; }
+            100% { width: 320px; height: 320px; opacity: 0; }
         }
 
-        /* ================= 核心升级二：动态五行能量沙盘 ================= */
+        /* ================= 五行能量沙盘 ================= */
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 6px; font-size: 13px; color: #A09586; }
         .form-input {
@@ -102,18 +93,15 @@
             background: #1F1914; color: #FFF; font-size: 14px;
         }
         
-        /* 五行沙盘视觉区 */
         .sandplay-box {
             background: #1F1914; border: 1px solid #3A3129; border-radius: 12px;
             padding: 15px; margin-top: 20px; display: none; text-align: center;
         }
-        /* 五行条形能量波动图 */
         .wuxing-container { display: flex; justify-content: space-around; margin: 25px 0 15px 0; height: 140px; align-items: flex-end; }
         .wuxing-bar-wrapper { display: flex; flex-direction: column; align-items: center; width: 15%; }
         .wuxing-bar { width: 100%; background: #3A3129; border-radius: 6px 6px 0 0; transition: height 1.5s cubic-bezier(0.1, 1, 0.1, 1); height: 10px; position: relative; }
         .wuxing-name { font-size: 13px; font-weight: bold; margin-top: 8px; }
         
-        /* 属性极度偏离时的暴躁动画特效 */
         .bar-fire.danger { background: linear-gradient(to top, #8C251E, #FF4500); animation: fireVibrate 0.15s infinite alternate; }
         @keyframes fireVibrate { 0% { transform: translateX(-1px); } 100% { transform: translateX(1px); } }
         .bar-fire.healed { background: linear-gradient(to top, #D4AF37, #FFF) !important; animation: none !important; }
@@ -123,14 +111,13 @@
             padding: 12px; margin-top: 15px; display: none;
         }
 
-        /* ================= 核心升级三：实时功德祈福墙 ================= */
+        /* ================= 实时功德祈福墙 ================= */
         .wish-input-section { display: flex; gap: 10px; margin-bottom: 15px; }
         .bless-wall {
             background: #1F1914; border: 1px solid #3A3129; border-radius: 12px;
             height: 280px; overflow-y: auto; padding: 12px; display: grid;
             grid-template-columns: repeat(2, 1fr); gap: 10px; align-content: flex-start;
         }
-        /* 祈福木牌样式 */
         .bless-tag {
             background: linear-gradient(135deg, #3A2A1F, #261B13);
             border: 1px solid #6E5339; border-radius: 6px; padding: 8px 10px;
@@ -145,7 +132,6 @@
             font-weight: bold;
         }
 
-        /* 名师驻扎版块简约优化 */
         .master-card {
             background: #1F1914; border: 1px solid #3A3129; border-radius: 10px; padding: 15px;
             margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;
@@ -154,7 +140,6 @@
         .master-name { font-size: 16px; font-weight: bold; color: #D4AF37; }
         .master-desc { font-size: 12px; color: #A09586; margin-top: 4px; }
         
-        /* 弹窗 */
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000;
@@ -166,7 +151,7 @@
 
     <div class="header">
         <h1>☯ 乾坤心流数智空间</h1>
-        <p>拒绝空洞长文，全功能动态体验：<br>借传统易理调和五行磁场，入深度吐纳平复当下浮躁。</p>
+        <p>全景声学动态体验：<br>借传统易理调和五行磁场，入深度吐纳平复当下浮躁。</p>
     </div>
 
     <div class="nav-bar">
@@ -181,18 +166,18 @@
         <div id="tab-breath" class="content-card active">
             <h2 class="section-title">道家意念吐纳疗愈</h2>
             <div class="zen-layout">
-                <div class="breath-guide" id="breath-txt">🧘 点击下方按钮，开启15秒深度洗心之旅</div>
+                <div class="breath-guide" id="breath-txt">🧘 点击下方按钮，开启声音共振洗心之旅</div>
                 
-                <div class="taiji-container" id="taiji-box">
+                <div class="taiji-container" id="taiji-box" onclick="tapTaijiSound()">
                     <div class="taiji-sphere taiji-rotate" id="taiji-core">
                         <div class="taiji-dot-1"></div><div class="taiji-dot-2"></div>
                     </div>
                 </div>
                 
                 <p style="font-size:12px; color:#A09586; margin: 15px 0 25px 0; line-height:1.6;">
-                    基于现代CBT行为心理学与道家内修气功。随着太极法球的规律扩缩，调整您的呼吸频率，能瞬间降低因内耗引起的交感神经过度兴奋。
+                    【体验提示】：点击上方的太极图可敲击“道医颂钵”；点击下方按钮将用意念声波引导您进行深度呼吸。
                 </p>
-                <button class="btn-prime" id="breath-btn" onclick="startBreathingSession()">开启深度心灵洗涤</button>
+                <button class="btn-prime" id="breath-btn" onclick="startBreathingSession()">开启深度声波洗心</button>
             </div>
         </div>
 
@@ -200,7 +185,7 @@
             <h2 class="section-title">本命干支能量雷达沙盘</h2>
             <div class="form-group">
                 <label>缘主芳名</label>
-                <input type="text" id="bz-name" class="form-input" placeholder="输入姓名（测得更准）">
+                <input type="text" id="bz-name" class="form-input" placeholder="输入姓名">
             </div>
             <div class="form-group">
                 <label>生辰八字（公历生日）</label>
@@ -210,7 +195,6 @@
 
             <div class="sandplay-box" id="sandplay-output">
                 <h4 style="color:#D4AF37; margin:0;" id="sandplay-title"></h4>
-                
                 <div class="wuxing-container">
                     <div class="wuxing-bar-wrapper"><div class="wuxing-bar" id="b-mu" style="background:#4A7C59;"></div><div class="wuxing-name" style="color:#4A7C59;">木</div></div>
                     <div class="wuxing-bar-wrapper"><div class="wuxing-bar bar-fire" id="b-huo"></div><div class="wuxing-name" style="color:#FF4500;">火</div></div>
@@ -218,33 +202,26 @@
                     <div class="wuxing-bar-wrapper"><div class="wuxing-bar" id="b-jin" style="background:#E6E1D4;"></div><div class="wuxing-name" style="color:#E6E1D4;">金</div></div>
                     <div class="wuxing-bar-wrapper"><div class="wuxing-bar" id="b-shui" style="background:#4169E1;"></div><div class="wuxing-name" style="color:#4169E1;">水</div></div>
                 </div>
-                
                 <p style="font-size:13px; text-align:left; line-height:1.6; background:#2A241F; padding:12px; border-radius:6px; border-left:3px solid #FF4500;" id="sandplay-desc"></p>
-                
                 <div class="heal-zone" id="heal-box">
                     <p style="font-size:13px; font-weight:bold; color:#FF4500; margin:0 0 10px 0;">⚡ 警报：火毒灼烧灵台！</p>
-                    <button class="btn-prime" style="background:linear-gradient(135deg, #4169E1, #1E90FF); font-size:13px; padding:8px;" onclick="triggerWuxingHeal()">👇 注入【无上真水】法门进行线上调和</button>
+                    <button class="btn-prime" style="background:linear-gradient(135deg, #4169E1, #1E90FF); font-size:13px; padding:8px;" onclick="triggerWuxingHeal()">👇 注入【无上真水】清心音波</button>
                 </div>
             </div>
         </div>
 
         <div id="tab-wall" class="content-card">
             <h2 class="section-title">全景线上祈福功德墙</h2>
-            <p style="font-size:12px; color:#A09586; margin-top:-10px; margin-bottom:15px; text-align:center;">红尘过客留名，凡墙上挂印者，皆得福报流转。</p>
-            
             <div class="wish-input-section">
-                <input type="text" id="wish-txt" class="form-input" style="padding:10px;" placeholder="写下你的心中所求（如：保佑暴富、断绝内耗）" maxlength="15">
+                <input type="text" id="wish-txt" class="form-input" style="padding:10px;" placeholder="写下你的心中所求" maxlength="15">
                 <button class="btn-prime" style="width:100px; padding:10px; font-size:13px;" onclick="addWishTag()">挂牌祈福</button>
             </div>
-            
             <div class="bless-wall" id="wall-container">
                 <div class="bless-tag">王*：斩断内耗，大厂上岸</div>
                 <div class="bless-tag">张*强：全家身体安康顺遂</div>
                 <div class="bless-tag gold">★ 匿名缘主：2026年暴富发大财</div>
                 <div class="bless-tag">李*雪：烂桃花退散，正缘速来</div>
-                <div class="bless-tag">M*ark：睡眠变好，不焦虑</div>
             </div>
-            
             <button class="btn-prime" style="margin-top:15px; background:linear-gradient(135deg, #D4AF37, #AA7C11);" onclick="openWechatModal('升华专属金色永久祈福牌')">✨ 申请龙虎山法坛正统线下开光大福牌</button>
         </div>
 
@@ -264,11 +241,6 @@
                 </div>
                 <button class="btn-prime" style="width:90px; padding:8px 12px; font-size:12px;" onclick="openWechatModal('预约林老师咨询')">心理导滞</button>
             </div>
-            <div style="border-top:1px dashed #3A3129; margin-top:25px; padding-top:20px; text-align:center;">
-                <h4 style="color:#D4AF37; margin:0 0 10px 0;">福地美学文创结缘</h4>
-                <p style="font-size:12px; color:#A09586; margin:0 0 15px 0;">严选历代名山香灰手工制静心手串，沉降负磁场。</p>
-                <button class="btn-prime" style="background:#3A3129; border:1px solid #4A3E35;" onclick="openWechatModal('在线结缘美学香灰手串')">查看文创商城</button>
-            </div>
         </div>
 
     </div>
@@ -278,13 +250,76 @@
             <h3 style="color:#D4AF37; margin-top:0;" id="modal-title">专属通道</h3>
             <p style="font-size:13px; color:#A09586; line-height:1.6;" id="modal-desc"></p>
             <p style="font-weight:bold; color:#FFF; font-size:16px; background:#8C251E; padding:10px; border-radius:6px; letter-spacing:1px;">微信号：daozhang8888</p>
-            <p style="font-size:11px; color:#8A7B66;">(长按或复制上方微信号，在微信添加即可对话真人)</p>
-            <button class="btn-prime" onclick="closeModal()" style="margin-top:15px; background:#4A7C59; box-shadow:none;">复制并关闭</button>
+            <button class="btn-prime" onclick="closeModal()" style="margin-top:15px; background:#4A7C59; box-shadow:none;">已知晓</button>
         </div>
     </div>
 
     <script>
-        // Tab页面流畅切换
+        // ==================== 🔊 纯前端核心声学合成器 ====================
+        let audioCtx = null;
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        // 模拟法磬/玄学颂钵：高纯度正弦波慢衰减
+        function playSingingBowl(freq = 280, duration = 2.5) {
+            initAudio();
+            if(!audioCtx) return;
+            
+            let osc = audioCtx.createOscillator();
+            let gainNode = audioCtx.createGain();
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            // 微微泛音，听起来更厚重幽远
+            osc.frequency.exponentialRampToValueAtTime(freq * 0.98, audioCtx.currentTime + duration);
+
+            gainNode.gain.setValueAtTime(0.25, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        // 模拟意念动态呼吸嗡鸣音
+        let breathOsc = null;
+        let breathGain = null;
+        function startBreathTone() {
+            initAudio();
+            if(!audioCtx) return;
+            
+            breathOsc = audioCtx.createOscillator();
+            breathGain = audioCtx.createGain();
+            
+            breathOsc.type = 'triangle'; // 三角波比正弦波更具颗粒感和冥想厚度
+            breathOsc.frequency.setValueAtTime(96, audioCtx.currentTime); // 极低沉的底噪
+            breathGain.gain.setValueAtTime(0.01, audioCtx.currentTime);
+            
+            breathOsc.connect(breathGain);
+            breathGain.connect(audioCtx.destination);
+            breathOsc.start();
+        }
+        function rampBreathTone(targetFreq, targetVol, duration) {
+            if(!audioCtx || !breathOsc || !breathGain) return;
+            breathOsc.frequency.linearRampToValueAtTime(targetFreq, audioCtx.currentTime + duration);
+            breathGain.gain.linearRampToValueAtTime(targetVol, audioCtx.currentTime + duration);
+        }
+        function stopBreathTone() {
+            if(breathGain) {
+                breathGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+                setTimeout(() => {
+                    try { breathOsc.stop(); } catch(e){}
+                    breathOsc = null; breathGain = null;
+                }, 500);
+            }
+        }
+
+        // ==================== 🎮 互动控制逻辑 ====================
         function switchTab(tabId) {
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
@@ -292,7 +327,19 @@
             document.getElementById('tab-' + tabId).classList.add('active');
         }
 
-        // ================= 逻辑一：灵魂呼吸功能实现 =================
+        // 点击太极法球，现场敲击古磬颂钵
+        function tapTaijiSound() {
+            playSingingBowl(320, 2.0); // 发出320Hz的清脆梵音
+            
+            // 触发涟漪动画
+            const box = document.getElementById('taiji-box');
+            const rip = document.createElement('div');
+            rip.className = 'ripple';
+            box.appendChild(rip);
+            setTimeout(() => rip.remove(), 1200);
+        }
+
+        // 深度声波吸心吐纳交互
         let breathInterval;
         function startBreathingSession() {
             const btn = document.getElementById('breath-btn');
@@ -301,70 +348,79 @@
             const body = document.body;
             
             btn.disabled = true;
-            btn.innerText = "意念洗心调理中...";
-            
-            // 切换为极度丝滑的扩缩呼吸动画，核心开始发光
+            btn.innerText = "音波洗心共振中...";
             core.classList.remove('taiji-rotate');
             core.classList.add('breathing-anim');
             
-            let seconds = 0;
-            txt.innerText = "💨 缓缓呼气... 放空大脑的所有焦虑...";
-            body.style.backgroundColor = "#0F1A1C"; // 网页色调变为深邃治愈蓝绿
+            // 开启低频意念引流音
+            startBreathTone();
             
+            let cycle = 0;
+            // 初始吸气状态
+            txt.innerText = "✨ 深深吸气... 聆听频率上升，让清明之气充盈灵台...";
+            body.style.backgroundColor = "#1C1412"; 
+            rampBreathTone(135, 0.12, 2.0); // 频率升高的吸气声
+
             breathInterval = setInterval(() => {
-                seconds += 4;
-                if(seconds === 4) {
-                    txt.innerText = "✨ 深深吸气... 让天地清明之气充盈灵台...";
-                    body.style.backgroundColor = "#1C1412"; // 变为温暖暗红
-                    createRipple();
-                } else if(seconds === 8) {
-                    txt.innerText = "💨 缓缓呼气... 排出体内积压的负面磁场...";
+                cycle++;
+                if(cycle === 1) {
+                    txt.innerText = "💨 缓缓呼气... 聆听频率沉降，排出积压的负面磁场...";
                     body.style.backgroundColor = "#0F1A1C";
-                    createRipple();
-                } else if(seconds >= 12) {
+                    rampBreathTone(85, 0.03, 2.0); // 频率降低的呼气声
+                } else if(cycle === 2) {
+                    txt.innerText = "✨ 第二轮：深深吸气... 感受灵台正在被声波洗涤...";
+                    body.style.backgroundColor = "#1C1412"; 
+                    rampBreathTone(140, 0.12, 2.0);
+                } else if(cycle === 3) {
+                    txt.innerText = "💨 缓缓呼气... 杂念彻底消散...";
+                    body.style.backgroundColor = "#0F1A1C";
+                    rampBreathTone(80, 0.02, 2.0);
+                } else if(cycle >= 4) {
                     clearInterval(breathInterval);
-                    txt.innerText = "🧘 调理圆满。灵台已清，焦虑退散。";
+                    txt.innerText = "🧘 调理圆满。磬音回响，浮躁已退。";
                     core.classList.remove('breathing-anim');
                     core.classList.add('taiji-rotate');
-                    body.style.backgroundColor = "#1A1613"; // 恢复常态
+                    body.style.backgroundColor = "#1A1613";
+                    
+                    stopBreathTone(); // 停掉呼吸音
+                    playSingingBowl(190, 4.0); // 最后来一记超大沉闷的收尾法磬声
+                    
                     btn.disabled = false;
                     btn.innerText = "再次开启深度洗心";
                 }
-            }, 4000);
-        }
-        function createRipple() {
-            const box = document.getElementById('taiji-box');
-            const rip = document.createElement('div');
-            rip.className = 'ripple';
-            box.appendChild(rip);
-            setTimeout(() => rip.remove(), 1000);
+            }, 2000);
         }
 
-        // ================= 逻辑二：五行能量沙盘动态演化 =================
+        // 五行能量沙盘
         function calcWuxingSandplay() {
             const name = document.getElementById('bz-name').value || "缘主";
             const date = document.getElementById('bz-date').value;
             if(!date) { alert("请选择您的出生日期"); return; }
             
+            // 生成时发出一声警报般沉闷的撞击声
+            playSingingBowl(150, 1.5);
+            
             document.getElementById('sandplay-output').style.display = 'block';
             document.getElementById('sandplay-title').innerText = `【${name}】的五行气机沙盘`;
             
-            // 模拟生成不均衡的极端数据：让火属性严重超标，制造内耗痛点
             setTimeout(() => {
                 document.getElementById('b-mu').style.height = '35%';
-                document.getElementById('b-huo').style.height = '95%'; // 火极其亢奋
+                document.getElementById('b-huo').style.height = '95%'; 
                 document.getElementById('b-huo').classList.add('danger');
                 document.getElementById('b-tu').style.height = '40%';
                 document.getElementById('b-jin').style.height = '20%';
-                document.getElementById('b-shui').style.height = '10%'; // 水极度干涸
+                document.getElementById('b-shui').style.height = '10%'; 
                 
-                document.getElementById('sandplay-desc').innerHTML = `⚠️ <b>沙盘断词：</b>极度罕见的‘火多水干’异象！您当前的离火能量超过90%，疯狂灼烧情绪，这是您近期面临<b>重度失眠、间歇性拖延、精神极度反刍</b>的命理根源！`;
+                document.getElementById('sandplay-desc').innerHTML = `⚠️ <b>沙盘断词：</b>离火能量高达95%！疯狂灼烧您的情绪与睡眠，这是您近期面临<b>重度精神反刍、深夜焦虑</b>的命理根源！`;
                 document.getElementById('heal-box').style.display = 'block';
             }, 100);
         }
-        // 五行线上模拟调和交互
+
+        // 注入真水音波调和
         function triggerWuxingHeal() {
-            // 视觉逆转：火降下去，水涨上来，火停止抖动变成金色
+            // 发出一声极其高频清脆、像泉水一样的化解音效
+            playSingingBowl(600, 3.0);
+            
             const fire = document.getElementById('b-huo');
             const water = document.getElementById('b-shui');
             
@@ -373,34 +429,34 @@
             fire.classList.add('healed');
             water.style.height = '70%';
             
-            document.getElementById('sandplay-desc').innerHTML = `✅ <b>调和成功：</b>已为您在线注入‘壬水法象’，暴躁火毒已被暂时压制，情绪磁场趋于平衡。建议配合真人法坛进行长期固本调理。`;
+            document.getElementById('sandplay-desc').innerHTML = `✅ <b>调和成功：</b>已注入‘真水清心音波’，亢奋的离火毒素已被暂时压制，情绪大盘恢复平稳。`;
             document.getElementById('heal-box').style.display = 'none';
         }
 
-        // ================= 逻辑三：祈福墙动态挂牌 =================
+        // 祈福墙挂牌（挂牌时清脆一响）
         function addWishTag() {
             const input = document.getElementById('wish-txt');
             const text = input.value.trim();
             if(!text) { alert("请写下您的祈福愿望"); return; }
             
+            playSingingBowl(440, 0.8); // 挂牌成功挂上的清脆金属声
+            
             const wall = document.getElementById('wall-container');
             const tag = document.createElement('div');
-            tag.className = 'bless-tag gold'; // 新生成的发金光
+            tag.className = 'bless-tag gold'; 
             tag.innerText = `缘主：${text}`;
             
-            // 插入到最前面
             wall.insertBefore(tag, wall.firstChild);
             input.value = '';
-            
-            // 自动向下滚动到顶部
             wall.scrollTop = 0;
         }
 
         // 商务引导弹窗控制
         function openWechatModal(title) {
+            playSingingBowl(300, 0.5);
             const modal = document.getElementById('biz-modal');
             document.getElementById('modal-title').innerText = title;
-            document.getElementById('modal-desc').innerText = `您好，当前【${title}】涉及线下真实法坛开光及真人一对一定制化心理解惑。为了确保效果真实，平台统一由官方客服私域对接，请添加下方微信号获取后续服务。`;
+            document.getElementById('modal-desc').innerText = `您好，当前【${title}】涉及线下真实法坛开光及真人一对一深度解惑。请添加官方微信客服添加后续服务。`;
             modal.style.display = 'flex';
         }
         function closeModal() { document.getElementById('biz-modal').style.display = 'none'; }
