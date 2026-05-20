@@ -5,120 +5,134 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>三清大殿 · 乾坤灵境</title>
     <style>
-        /* ==================== 🪐 全局沉浸式空间 ==================== */
+        /* ==================== 🪐 全局视口防溢出 ==================== */
         * { box-sizing: border-box; }
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
-            overflow: hidden; background-color: #050302;
+            overflow: hidden; background-color: #0c0806;
             font-family: "Noto Serif CJK SC", "SimSun", serif;
             user-select: none;
+            /* 激活三维空间感知 */
+            perspective: 1000px;
         }
 
-        /* 🌌 核心：把真实的道观图片作为全屏背景 */
-        .temple-photo-bg {
+        /* 🌌 视差容器：这是让画面动起来的关键 */
+        .parallax-container {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            overflow: hidden; z-index: 1;
+        }
+
+        /* 🖼️ 优化后的超清大殿背景层 */
+        .temple-photo-bg {
+            position: absolute; 
+            /* 故意让背景图比视口大一圈（四周各多出10%），防止鼠标晃动时边缘露白 */
+            top: -10%; left: -10%; width: 120%; height: 120%;
             background: url('bg.jpg') no-repeat center center;
             background-size: cover;
-            /* 画面暗化滤镜，增强神秘感和深邃度，同时让控制台文字更清晰 */
-            filter: brightness(0.75) contrast(1.1);
+            /* 图像平滑渲染，解决你提到的模糊问题 */
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+            /* 暗调烘托与对比度优化 */
+            filter: brightness(0.8) contrast(1.1) saturate(0.95);
+            /* 极其平滑的动态跟随过渡 */
+            transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            will-change: transform;
             z-index: 1;
         }
 
-        /* 🌫️ 氛围营造：大殿香炉内动态飘散的半透明烟雾 */
+        /* 🌫️ 真实环境微动烟雾层 */
         .incense-smoke-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 50% 65%, rgba(255,255,255,0.04), transparent 55%);
+            background: radial-gradient(circle at 50% 60%, rgba(255,255,255,0.05), transparent 60%);
             mix-blend-mode: screen; pointer-events: none; z-index: 2;
-            animation: smokeDrift 10s ease-in-out infinite alternate;
+            animation: smokeDrift 12s ease-in-out infinite alternate;
         }
         @keyframes smokeDrift {
-            0% { transform: scale(1) translate(0, 0); opacity: 0.3; }
-            100% { transform: scale(1.15) translate(-15px, -25px); opacity: 0.7; }
+            0% { transform: scale(1) translate(0, 0); opacity: 0.4; filter: blur(2px); }
+            100% { transform: scale(1.1) translate(-20px, -30px); opacity: 0.7; filter: blur(5px); }
         }
 
-        /* ==================== ☯️ 页面上方悬浮的动态太极发光盘 ==================== */
+        /* ==================== ☯️ 完美融入环境的中央法盘 ==================== */
         .floating-taichi-aura {
-            position: absolute; top: 38%; left: 50%; transform: translate(-50%, -50%);
-            width: 150px; height: 150px; z-index: 10; pointer-events: none;
+            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
+            width: 160px; height: 160px; z-index: 10; pointer-events: none;
+            /* 让法盘也带有淡淡的立体悬浮阴影 */
+            filter: drop-shadow(0 0 30px rgba(254, 235, 191, 0.45));
+            transition: transform 0.1s linear;
         }
         .taichi-disk-svg {
             width: 100%; height: 100%;
-            background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.1) 75%), 
-                        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="none" stroke="%23bda16a" stroke-width="2"/><path d="M50 2A48 48 0 0 1 50 98A24 24 0 0 1 50 50A24 24 0 0 0 50 2" fill="%23110c0a"/><path d="M50 2A48 48 0 0 0 50 98A24 24 0 0 0 50 50A24 24 0 0 1 50 2" fill="%23faf6ee"/><circle cx="50" cy="26" r="6" fill="%23faf6ee"/><circle cx="50" cy="74" r="6" fill="%23110c0a"/></svg>') no-repeat center center;
+            background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 80%), 
+                        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="none" stroke="%23bda16a" stroke-width="1.5"/><path d="M50 2A48 48 0 0 1 50 98A24 24 0 0 1 50 50A24 24 0 0 0 50 2" fill="%23140e0b"/><path d="M50 2A48 48 0 0 0 50 98A24 24 0 0 0 50 50A24 24 0 0 1 50 2" fill="%23fdfaf4"/><circle cx="50" cy="26" r="5" fill="%23fdfaf4"/><circle cx="50" cy="74" r="5" fill="%23140e0b"/></svg>') no-repeat center center;
             background-size: contain; border-radius: 50%;
-            box-shadow: 0 0 35px rgba(254, 235, 191, 0.5);
-            animation: slowSpin 25s linear infinite;
+            animation: slowSpin 30s linear infinite;
         }
         @keyframes slowSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-        /* ==================== 🎛️ 磨砂玻璃效果的半透明控制台（对应图二） ==================== */
+        /* ==================== 🎛️ 悬浮高档磨砂中控台 ==================== */
         .glass-console-panel {
             position: absolute; bottom: 8vh; left: 50%; transform: translateX(-50%);
-            width: 85vw; max-width: 420px; z-index: 20;
-            /* 极度关键：半透明底色 + 磨砂玻璃滤镜，透出背后的精美木纹 */
-            background: rgba(18, 13, 10, 0.75);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(189, 161, 106, 0.35); border-top: 3px solid #bda16a;
-            border-radius: 8px; padding: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+            width: 88vw; max-width: 420px; z-index: 20;
+            background: rgba(15, 11, 9, 0.78);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(189, 161, 106, 0.3); border-top: 3px solid #bda16a;
+            border-radius: 8px; padding: 18px; 
+            box-shadow: 0 30px 70px rgba(0,0,0,0.95), inset 0 1px 0 rgba(255,255,255,0.05);
         }
 
-        /* 控制台标题古风设计 */
-        .panel-header { text-align: center; margin-bottom: 12px; }
-        .panel-header h2 { margin: 0; font-size: 19px; color: #f3e1b9; letter-spacing: 6px; font-weight: bold; text-shadow: 0 2px 4px #000; }
-        .panel-header p { margin: 4px 0 0 0; font-size: 11px; color: #a69580; letter-spacing: 2px; opacity: 0.6; }
+        .panel-header { text-align: center; margin-bottom: 14px; }
+        .panel-header h2 { margin: 0; font-size: 20px; color: #f3e1b9; letter-spacing: 6px; font-weight: bold; text-shadow: 0 2px 4px #000; }
+        .panel-header p { margin: 4px 0 0 0; font-size: 11px; color: #a69580; letter-spacing: 2px; opacity: 0.7; }
 
-        /* 功能卡片页签 */
-        .tab-menu-row { width: 100%; display: flex; gap: 6px; margin-bottom: 12px; }
+        .tab-menu-row { width: 100%; display: flex; gap: 6px; margin-bottom: 14px; }
         .tab-item-btn {
-            flex: 1; background: rgba(5, 4, 3, 0.6); border: 1px solid rgba(189, 161, 106, 0.25);
-            color: #bfae9c; padding: 8px 0; font-size: 12px; font-weight: bold;
-            cursor: pointer; border-radius: 3px; transition: all 0.2s;
+            flex: 1; background: rgba(5, 4, 3, 0.5); border: 1px solid rgba(189, 161, 106, 0.2);
+            color: #bfae9c; padding: 9px 0; font-size: 12px; font-weight: bold;
+            cursor: pointer; border-radius: 3px; transition: all 0.2s; font-family: inherit;
         }
         .tab-item-btn.active {
             background: linear-gradient(135deg, #7c1f17, #a62d22); color: #fff; border-color: #bda16a;
-            box-shadow: inset 0 0 8px rgba(255,255,255,0.2);
         }
         
         .tab-content-pane { width: 100%; display: none; }
         .tab-content-pane.active { display: block; }
 
-        /* 金色宽扁的主操作按钮 */
         .gold-action-btn {
             background: linear-gradient(135deg, #a67f3c, #f7e4be); color: #1c130e;
-            border: none; width: 100%; padding: 12px; font-size: 13px; font-weight: bold;
-            border-radius: 3px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            letter-spacing: 3px; font-family: inherit;
+            border: none; width: 100%; padding: 13px; font-size: 13px; font-weight: bold;
+            border-radius: 3px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+            letter-spacing: 3px; font-family: inherit; transition: all 0.1s;
         }
-        .gold-action-btn:active { transform: scale(0.98); }
+        .gold-action-btn:active { transform: scale(0.97); filter: brightness(0.9); }
         
-        /* 愿望文本框 */
         .wish-input-element {
-            width: 100%; padding: 9px; background: rgba(5, 4, 3, 0.8);
+            width: 100%; padding: 10px; background: rgba(5, 4, 3, 0.85);
             border: 1px solid #4a3b2c; color: #fff; text-align: center;
-            font-size: 12px; border-radius: 3px; margin-bottom: 10px; outline: none;
+            font-size: 12px; border-radius: 3px; margin-bottom: 12px; outline: none; font-family: inherit;
         }
 
-        /* 祈愿文字在空中飘过的特效 */
         .ethereal-toast {
-            position: absolute; color: #f7e4be; font-size: 14px; font-weight: bold;
-            pointer-events: none; left: 50%; top: 22%; transform: translateX(-50%);
-            animation: riseAndFade 2.5s ease-out forwards;
-            text-shadow: 0 2px 8px #000, 0 0 10px rgba(254, 235, 191, 0.6); z-index: 100;
+            position: absolute; color: #f7e4be; font-size: 15px; font-weight: bold;
+            pointer-events: none; left: 50%; top: 25%; transform: translateX(-50%);
+            animation: riseAndFade 2.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+            text-shadow: 0 2px 10px #000, 0 0 15px rgba(254, 235, 191, 0.7); z-index: 100;
         }
         @keyframes riseAndFade {
-            0% { transform: translate(-50%, 30px); opacity: 0; }
-            15% { opacity: 1; }
-            100% { transform: translate(-50%, -40px); opacity: 0; }
+            0% { transform: translate(-50%, 40px); opacity: 0; }
+            12% { opacity: 1; }
+            100% { transform: translate(-50%, -50px); opacity: 0; }
         }
     </style>
 </head>
 <body>
 
-    <div class="temple-photo-bg"></div>
-    <div class="incense-smoke-layer"></div>
+    <div class="parallax-container">
+        <div class="temple-photo-bg" id="dynamic-bg"></div>
+        <div class="incense-smoke-layer"></div>
+    </div>
 
-    <div class="floating-taichi-aura">
+    <div class="floating-taichi-aura" id="dynamic-taichi">
         <div class="taichi-disk-svg"></div>
     </div>
 
@@ -147,17 +161,32 @@
     </div>
 
     <script>
+        const bg = document.getElementById('dynamic-bg');
+        const taichi = document.getElementById('dynamic-taichi');
+
+        // 🏎️ 核心交互：监听鼠标或触控轨迹，计算3D视差位移
+        document.addEventListener('mousemove', (e) => {
+            const moveX = (e.clientX - window.innerWidth / 2) / (window.innerWidth / 2);
+            const moveY = (e.clientY - window.innerHeight / 2) / (window.innerHeight / 2);
+            
+            // 背景图反向轻微移动并带有微弱旋转，拉深空间感
+            bg.style.transform = `translate(${moveX * -25}px, ${moveY * -25}px) scale(1.02) rotateX(${moveY * -1}deg) rotateY(${moveX * 1}deg)`;
+            
+            // 太极法盘作为前景，正向稍微移动，形成前后错落的 3D 立体视觉
+            taichi.style.transform = `translate(calc(-50% + ${moveX * 15}px), calc(-50% + ${moveY * 15}px))`;
+        });
+
+        // 以下为基础互动逻辑
         let breathTimer = null;
         let breathState = 0; 
         let audioCtx = null;
 
-        // 🔊 生成道观中空灵沉静的铜磬音频
         function playBellSound(frequency) {
             try {
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 let now = audioCtx.currentTime;
                 let components = [frequency, frequency * 1.52, frequency * 1.95];
-                let volumes = [0.2, 0.07, 0.02];
+                let volumes = [0.25, 0.08, 0.03];
                 
                 components.forEach((f, i) => {
                     let osc = audioCtx.createOscillator();
@@ -165,11 +194,11 @@
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(f, now);
                     gainNode.gain.setValueAtTime(volumes[i], now);
-                    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 4.5);
+                    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 5);
                     osc.connect(gainNode);
                     gainNode.connect(audioCtx.destination);
                     osc.start(now);
-                    osc.stop(now + 4.5);
+                    osc.stop(now + 5);
                 });
             } catch(e) {}
         }
@@ -207,10 +236,9 @@
             toast.className = 'ethereal-toast';
             toast.innerText = msg;
             document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 2500);
+            setTimeout(() => toast.remove(), 2800);
         }
 
-        // 解锁 Web Audio
         document.addEventListener('click', () => {
             if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
         });
