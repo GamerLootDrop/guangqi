@@ -8,96 +8,45 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
-            background-color: #0c0906; color: #f7ede2;
+            background-color: #050403; color: #f7ede2;
             font-family: "Noto Serif CJK SC", "SimSun", serif;
             overflow: hidden; user-select: none;
         }
 
-        /* 幽邃神圣的大殿主光晕 */
-        #temple-viewport {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;
-            background: 
-                radial-gradient(circle at 50% 38%, #261e16 0%, #0a0805 85%),
-                repeating-linear-gradient(rgba(243, 225, 185, 0.01) 0px, rgba(243, 225, 185, 0.01) 1px, transparent 1px, transparent 10px);
-            opacity: 0; transition: opacity 1s ease;
+        /* 大殿视口容器 */
+        #temple-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
         }
 
-        /* 大殿玄天匾额 */
+        /* 核心全景画布（绘制神龛、梁柱、烛火、香烟） */
+        #temple-canvas {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2;
+        }
+
+        /* 顶部悬浮匾额 */
         .temple-tablet {
-            position: absolute; top: 6%; text-align: center; width: 100%; z-index: 10; pointer-events: none;
+            position: relative; margin-top: 5vh; text-align: center; z-index: 10; pointer-events: none;
         }
-        .temple-tablet h1 { margin: 0; font-size: 26px; color: #f3e1b9; letter-spacing: 12px; font-weight: bold; text-shadow: 0 4px 20px rgba(0,0,0,0.9); }
-        .temple-tablet p { margin: 10px 0 0 0; font-size: 13px; color: #a69580; letter-spacing: 3px; opacity: 0.8; }
+        .temple-tablet h1 { margin: 0; font-size: 26px; color: #f3e1b9; letter-spacing: 12px; font-weight: bold; text-shadow: 0 4px 15px rgba(0,0,0,0.9); }
+        .temple-tablet p { margin: 8px 0 0 0; font-size: 13px; color: #a69580; letter-spacing: 2px; opacity: 0.8; }
 
-        /* 特效图层（全屏袅袅青烟与虚空常明微尘） */
-        #incense-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
-
-        /* 混元法盘 */
-        #taiji-altar {
-            position: absolute; top: 38%; left: 50%;
-            transform: translate(-50%, -50%); z-index: 3; cursor: pointer;
+        /* ==================== 🪵 实木雕花香案控制台 ==================== */
+        .altar-panel {
+            position: relative; margin-bottom: 4vh;
+            width: 90%; max-width: 440px; z-index: 10;
+            background: linear-gradient(to top, #140e0a 0%, #261b13 100%);
+            border: 2px solid #543913; border-top: 4px solid #d4b26f;
+            border-radius: 6px; padding: 18px 20px 20px 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.95);
+            backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
         }
-        .taiji-disc {
-            width: 160px; height: 160px;
-            background: linear-gradient(135deg, #ebe6da 50%, #181310 50%);
-            border-radius: 50%; border: 4px solid #735118;
-            box-shadow: 0 0 60px rgba(115,81,24,0.5), inset 0 0 20px rgba(255,255,255,0.1);
-            position: relative; animation: cosmicRotation 50s linear infinite;
-        }
-        @keyframes cosmicRotation { 100% { transform: rotate(360deg); } }
-        .taiji-disc::before { content: ''; position: absolute; width: 80px; height: 80px; background: #ebe6da; border-radius: 50%; top: 0; left: 40px; }
-        .taiji-disc::after { content: ''; position: absolute; width: 80px; height: 80px; background: #181310; border-radius: 50%; bottom: 0; left: 40px; }
-        .t-eye-black { position: absolute; width: 20px; height: 20px; background: #181310; border-radius: 50%; top: 30px; left: 70px; z-index: 6; }
-        .t-eye-white { position: absolute; width: 20px; height: 20px; background: #ebe6da; border-radius: 50%; bottom: 30px; left: 70px; z-index: 6; }
-        
-        .breath-ring {
-            position: absolute; width: 180px; height: 180px; top: -10px; left: -10px;
-            border: 2px solid rgba(243, 225, 185, 0.25); border-radius: 50%;
-            box-shadow: 0 0 30px rgba(243, 225, 185, 0.1); animation: haloPulse 3s infinite alternate; pointer-events: none;
-        }
-        @keyframes haloPulse { 0% { transform: scale(0.95); opacity: 0.3; } 100% { transform: scale(1.05); opacity: 0.9; } }
-
-        /* ==================== 🪵 红木镶金法案平台 ==================== */
-        .altar-station {
-            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
-            width: 92%; max-width: 440px; z-index: 8;
-            background: linear-gradient(to top, #110d0a 0%, #1f1712 100%);
-            border: 2px solid #735118; border-top: 4px solid #f3e1b9;
-            border-radius: 8px; padding: 24px 20px 20px 20px;
-            box-shadow: 0 30px 80px rgba(0,0,0,0.95);
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            display: flex; flex-direction: column; align-items: center;
-        }
-
-        /* 高精度 Inline SVG 宣德香炉容器（打破次元，完美端坐于法案正中） */
-        .classical-burner {
-            margin-top: -65px; margin-bottom: 20px;
-            position: relative; z-index: 9; cursor: pointer;
-            filter: drop-shadow(0 12px 15px rgba(0,0,0,0.7));
-            transition: transform 0.2s;
-        }
-        .classical-burner:active { transform: scale(0.96); }
-        
-        /* 炉中挺立的三支至诚线香 */
-        .joss-sticks { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 12; }
-        .stick {
-            width: 3px; height: 35px; background: #5c3023; opacity: 0.3; transition: all 0.6s ease;
-            position: relative; transform-origin: bottom center;
-        }
-        .stick.burning { opacity: 1; background: #824736; }
-        .stick.burning::after { 
-            content: ''; position: absolute; top: -1px; left: -2px; width: 7px; height: 7px; 
-            background: #ff7700; border-radius: 50%; 
-            box-shadow: 0 0 12px #ff3300, 0 0 4px #ffcc00; 
-            animation: stickGlow 1.2s infinite alternate; 
-        }
-        @keyframes stickGlow { 0% { transform: scale(0.8); opacity: 0.7; } 100% { transform: scale(1.2); opacity: 1; } }
 
         /* 选项卡按钮 */
-        .altar-tabs { width: 100%; display: flex; gap: 8px; margin-bottom: 16px; }
+        .altar-tabs { width: 100%; display: flex; gap: 8px; margin-bottom: 14px; }
         .tab-item {
             flex: 1; background: rgba(12, 9, 7, 0.8); border: 1px solid #4a3b2c;
-            color: #9c8c7a; padding: 12px 0; font-size: 13px; font-weight: bold;
+            color: #9c8c7a; padding: 11px 0; font-size: 13px; font-weight: bold;
             cursor: pointer; border-radius: 4px; transition: all 0.2s;
         }
         .tab-item.active {
@@ -105,84 +54,49 @@
             color: #fcf9f2; border-color: #f3e1b9; box-shadow: 0 0 15px rgba(124, 34, 26, 0.4);
         }
         
-        .altar-content { width: 100%; min-height: 60px; display: none; }
+        .altar-content { width: 100%; min-height: 50px; display: none; }
         .altar-content.active { display: block; }
 
         .gold-action-btn {
             background: linear-gradient(135deg, #9a7432, #f3e1b9); color: #17110a;
-            border: none; width: 100%; padding: 14px; font-size: 15px; font-weight: bold;
-            border-radius: 4px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            border: none; width: 100%; padding: 13px; font-size: 15px; font-weight: bold;
+            border-radius: 4px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            transition: transform 0.1s;
         }
+        .gold-action-btn:active { transform: scale(0.98); }
         
         .wish-input {
-            width: 100%; padding: 12px; background: rgba(10, 8, 7, 0.9);
+            width: 100%; padding: 11px; background: rgba(10, 8, 7, 0.9);
             border: 1px solid #4a3b2c; color: #fff; text-align: center;
             font-size: 14px; border-radius: 4px; margin-bottom: 10px; outline: none;
         }
         .wish-input:focus { border-color: #f3e1b9; }
 
-        /* 功德、静心文字空中正中升起 */
+        /* 飘浮文字 */
         .merit-float {
             position: absolute; color: #f3e1b9; font-size: 18px; font-weight: bold;
-            pointer-events: none; left: 50%;
-            animation: meritRise 2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+            pointer-events: none; left: 50%; top: 40%;
+            animation: meritRise 2.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
             text-shadow: 0 2px 5px rgba(0,0,0,0.9), 0 0 10px rgba(243,225,185,0.4); z-index: 15;
         }
         @keyframes meritRise {
-            0% { transform: translate(-50%, 0) scale(0.9); opacity: 0; }
+            0% { transform: translate(-50%, 0) scale(0.8); opacity: 0; }
             15% { opacity: 1; }
-            100% { transform: translate(-50%, -130px) scale(1.1); opacity: 0; }
+            100% { transform: translate(-50%, -120px) scale(1.1); opacity: 0; }
         }
     </style>
 </head>
 <body>
 
-    <div id="temple-viewport">
-        
+    <div id="temple-container">
         <div class="temple-tablet">
             <h1>三清大殿 · 乾坤灵境</h1>
-            <p>☯ 叩击混元法盘 · 听磬荡涤内耗 ☯</p>
+            <p>☯ 虔诚敬奉 · 静心沐神 ☯</p>
         </div>
 
-        <div id="taiji-altar" onclick="hitAltarGong()">
-            <div class="breath-ring"></div>
-            <div class="taiji-disc">
-                <div class="t-eye-black"></div><div class="t-eye-white"></div>
-            </div>
-        </div>
+        <canvas id="temple-canvas"></canvas>
 
-        <canvas id="incense-canvas"></canvas>
-
-        <div class="altar-station">
-            
-            <div class="classical-burner" onclick="burnIncense()">
-                <div class="joss-sticks">
-                    <div class="stick" id="stick1"></div>
-                    <div class="stick" id="stick2"></div>
-                    <div class="stick" id="stick3"></div>
-                </div>
-                <svg viewBox="0 0 160 100" width="150" height="94" style="display: block;">
-                    <defs>
-                        <linearGradient id="goldGlow" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#9a7432" />
-                            <stop offset="50%" stop-color="#f3e1b9" />
-                            <stop offset="100%" stop-color="#735118" />
-                        </linearGradient>
-                        <linearGradient id="bronzeBody" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stop-color="#4a3b2c" />
-                            <stop offset="100%" stop-color="#1c130c" />
-                        </linearGradient>
-                    </defs>
-                    <path d="M 22 35 C 5 15, 5 55, 22 65 C 17 55, 17 25, 22 35 Z" fill="url(#goldGlow)"/>
-                    <path d="M 138 35 C 155 15, 155 55, 138 65 C 143 55, 143 25, 138 35 Z" fill="url(#goldGlow)"/>
-                    <ellipse cx="80" cy="52" rx="58" ry="28" fill="url(#bronzeBody)" stroke="url(#goldGlow)" stroke-width="2"/>
-                    <ellipse cx="80" cy="26" rx="52" ry="9" fill="#281c12" stroke="url(#goldGlow)" stroke-width="2.5"/>
-                    <path d="M 38 74 L 32 92 L 48 78 Z" fill="url(#goldGlow)"/>
-                    <path d="M 122 74 L 128 92 L 112 78 Z" fill="url(#goldGlow)"/>
-                    <path d="M 80 80 L 80 95 L 86 80 Z" fill="url(#goldGlow)"/>
-                </svg>
-            </div>
-
+        <div class="altar-panel">
             <div class="altar-tabs">
                 <button class="tab-item active" onclick="switchAisle('aisle-incense', 0)">敬奉心香</button>
                 <button class="tab-item" onclick="switchAisle('aisle-breath', 1)">功态吐纳</button>
@@ -190,200 +104,329 @@
             </div>
 
             <div id="aisle-incense" class="altar-content active">
-                <button class="gold-action-btn" onclick="burnIncense()">虔诚上香 · 鸣磬静心</button>
+                <button class="gold-action-btn" onclick="actionBurnIncense()">敬奉清香 · 鸣磬静心</button>
             </div>
             <div id="aisle-breath" class="altar-content">
                 <button class="gold-action-btn" id="breath-toggle-btn" onclick="toggleBreathMode()">随大殿磁场引导开始吐纳</button>
             </div>
             <div id="aisle-wish" class="altar-content">
-                <input type="text" id="wish-box" class="wish-input" placeholder="案前写下所求疏文（如：断绝内耗）" maxlength="16">
+                <input type="text" id="wish-box" class="wish-input" placeholder="案前静心写下所求疏文（如：断绝内耗）" maxlength="16">
                 <button class="gold-action-btn" onclick="submitWishAltar()">化疏文归于烟霞</button>
             </div>
-
         </div>
     </div>
 
     <script>
-        const viewport = document.getElementById('temple-viewport');
-        const canvas = document.getElementById('incense-canvas');
+        const canvas = document.getElementById('temple-canvas');
         const ctx = canvas.getContext('2d');
 
-        // 统一且完全校对的全局动画动力学变量
-        let breathMode = false; 
+        // 状态变量
+        let breathMode = false;
         let breathTicker = 0;
-        let smokeParticles = []; 
-        let floatingDust = [];
+        let isIncenseBurning = false;
+        let candleFlicker = 0;
 
-        // 初始化画幅与常明微尘
-        function initCanvas() {
-            canvas.width = window.innerWidth; 
+        // 粒子阵列
+        let smokeParticles = [];
+        let dustParticles = [];
+
+        // 核心坐标参数（自适应算力布局）
+        let layout = {};
+
+        function updateLayout() {
+            canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-            floatingDust = [];
-            // 生成殿中常明福报微尘粒子（调大尺寸，确保肉眼极易捕捉）
-            for(let i=0; i<30; i++) {
-                floatingDust.push({
+
+            // 基于视口精确计算神龛、柱子、香案的位置
+            layout = {
+                centerX: canvas.width / 2,
+                shrineTop: canvas.height * 0.18,
+                shrineWidth: Math.min(canvas.width * 0.75, 460),
+                shrineHeight: canvas.height * 0.42,
+                tableTop: canvas.height * 0.58,
+                tableWidth: Math.min(canvas.width * 0.85, 520),
+                tableHeight: 35,
+                burnerY: canvas.height * 0.56,
+                burnerW: 100,
+                burnerH: 50
+            };
+
+            // 初始化常明微尘
+            dustParticles = [];
+            for(let i=0; i<40; i++) {
+                dustParticles.push({
                     x: Math.random() * canvas.width,
-                    y: Math.random() * (canvas.height * 0.75),
-                    r: Math.random() * 1.5 + 1.0, // 2-5px直径，清晰可见
+                    y: Math.random() * canvas.height,
+                    r: Math.random() * 1.5 + 0.5,
                     alpha: Math.random() * 0.4 + 0.1,
-                    vx: (Math.random() - 0.5) * 0.1,
-                    vy: Math.random() * 0.05 + 0.03
+                    speedY: Math.random() * 0.05 + 0.02,
+                    driftX: (Math.random() - 0.5) * 0.05
                 });
             }
         }
-        window.addEventListener('resize', initCanvas);
-        initCanvas();
-        setTimeout(() => viewport.style.opacity = "1", 100);
 
-        // ==================== 🔊 纯净 Web Audio 铜磬共鸣（带全面Try-Catch容错机制） ====================
-        let audioCtx = null;
-        function setupAudio() { 
-            try {
-                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
-            } catch(e) { console.log("音频引擎初始化延迟"); }
-        }
+        // ==================== 🏛️ 场景重绘引擎：纯手工渲染大殿神龛 ====================
+        function drawTempleScene() {
+            // 1. 深色神秘基底大殿背景
+            let bgGrad = ctx.createRadialGradient(layout.centerX, layout.shrineTop + 100, 50, layout.centerX, layout.shrineTop + 100, canvas.height * 0.8);
+            bgGrad.addColorStop(0, '#2d1f15');
+            bgGrad.addColorStop(0.5, '#0f0b08');
+            bgGrad.addColorStop(1, '#050403');
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        function playGongSound(freq, mode="磬") {
-            setupAudio(); 
-            if (!audioCtx) return;
-            try {
-                let time = audioCtx.currentTime;
-                if(mode === "磬") {
-                    let freqs = [freq, freq * 1.52, freq * 1.99, freq * 2.42];
-                    let gains = [0.25, 0.12, 0.05, 0.02];
-                    freqs.forEach((f, i) => {
-                        let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
-                        osc.type = 'sine'; osc.frequency.setValueAtTime(f, time);
-                        osc.frequency.exponentialRampToValueAtTime(f * 0.99, time + 4.0);
-                        gain.gain.setValueAtTime(gains[i], time); gain.gain.exponentialRampToValueAtTime(0.0001, time + 4.0);
-                        osc.connect(gain); gain.connect(audioCtx.destination);
-                        osc.start(time); osc.stop(time + 4.0);
-                    });
-                } else {
-                    let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
-                    osc.type = 'sine'; osc.frequency.setValueAtTime(300, time);
-                    gain.gain.setValueAtTime(0.05, time); gain.gain.exponentialRampToValueAtTime(0.001, time + 0.2);
-                    osc.connect(gain); gain.connect(audioCtx.destination);
-                    osc.start(time); osc.stop(time + 0.2);
-                }
-            } catch(err) { console.log("音频未获浏览器交互授权，已自动跳过声音"); }
-        }
+            // 2. 绘制大殿左/右朱红主承重柱
+            let pillarW = Math.max(canvas.width * 0.06, 24);
+            let leftPillarX = layout.centerX - layout.shrineWidth/2 - pillarW;
+            let rightPillarX = layout.centerX + layout.shrineWidth/2;
+            
+            let pillarGradL = ctx.createLinearGradient(leftPillarX, 0, leftPillarX + pillarW, 0);
+            pillarGradL.addColorStop(0, '#4a120e'); pillarGradL.addColorStop(0.3, '#8a251e'); pillarGradL.addColorStop(1, '#2d0a07');
+            ctx.fillStyle = pillarGradL;
+            ctx.fillRect(leftPillarX, 0, pillarW, canvas.height);
 
-        // ==================== 核心交互逻辑 ====================
-        function hitAltarGong() {
-            playGongSound(210, "磬"); 
-            spawnFloatText("清静无为 ☯️");
-            triggerSmokeBlast();
-        }
+            let pillarGradR = ctx.createLinearGradient(rightPillarX, 0, rightPillarX + pillarW, 0);
+            pillarGradR.addColorStop(0, '#4a120e'); pillarGradR.addColorStop(0.3, '#8a251e'); pillarGradR.addColorStop(1, '#2d0a07');
+            ctx.fillStyle = pillarGradR;
+            ctx.fillRect(rightPillarX, 0, pillarW, canvas.height);
 
-        function burnIncense() {
-            playGongSound(210, "磬");
-            document.getElementById('stick1').classList.add('burning');
-            document.getElementById('stick2').classList.add('burning');
-            document.getElementById('stick3').classList.add('burning');
-            spawnFloatText("心香氤氲 荡涤尘劳");
-            triggerSmokeBlast();
-        }
+            // 3. 绘制神龛主体背景框架
+            ctx.fillStyle = '#17110c';
+            ctx.strokeStyle = '#543d1c';
+            ctx.lineWidth = 3;
+            ctx.fillRect(layout.centerX - layout.shrineWidth/2, layout.shrineTop, layout.shrineWidth, layout.shrineHeight);
+            ctx.strokeRect(layout.centerX - layout.shrineWidth/2, layout.shrineTop, layout.shrineWidth, layout.shrineHeight);
 
-        function triggerSmokeBlast() {
-            let bRect = document.querySelector('.classical-burner').getBoundingClientRect();
-            // 在矢量宣德炉口核心区域喷发袅袅大烟霞粒子
-            generateSmoke(bRect.left + bRect.width / 2, bRect.top + 26, 25, 'templeSmoke');
-        }
+            // 4. 绘制金黄色层叠帷幔 (福德帘幔)
+            ctx.fillStyle = '#9e7631';
+            // 顶层横帘
+            ctx.fillRect(layout.centerX - layout.shrineWidth/2, layout.shrineTop, layout.shrineWidth, 24);
+            // 左右垂幔褶皱效果
+            ctx.fillStyle = '#7a5a22';
+            ctx.beginPath();
+            ctx.moveTo(layout.centerX - layout.shrineWidth/2, layout.shrineTop + 24);
+            ctx.lineTo(layout.centerX - layout.shrineWidth/2 + 35, layout.shrineTop + 24);
+            ctx.lineTo(layout.centerX - layout.shrineWidth/2, layout.shrineTop + layout.shrineHeight * 0.7);
+            ctx.fill();
 
-        function spawnFloatText(txt) {
-            let el = document.createElement('div');
-            el.className = 'merit-float'; el.innerText = txt;
-            el.style.top = '36%'; // 精准聚焦在法盘附近浮现
-            document.body.appendChild(el);
-            setTimeout(() => el.remove(), 2000);
-        }
+            ctx.beginPath();
+            ctx.moveTo(layout.centerX + layout.shrineWidth/2, layout.shrineTop + 24);
+            ctx.lineTo(layout.centerX + layout.shrineWidth/2 - 35, layout.shrineTop + 24);
+            ctx.lineTo(layout.centerX + layout.shrineWidth/2, layout.shrineTop + layout.shrineHeight * 0.7);
+            ctx.fill();
 
-        function toggleBreathMode() {
-            const btn = document.getElementById('breath-toggle-btn');
-            const ring = document.querySelector('.breath-ring');
-            breathMode = !breathMode;
+            // 5. 神龛中央：神圣混元太极法相
+            ctx.save();
+            let taijiScale = 1;
             if (breathMode) {
-                btn.innerText = "结束吐纳调理 · 平复气场";
-                btn.style.background = "linear-gradient(135deg, #1c364d, #278ea5)"; btn.style.color = "#FFF";
-                ring.style.animation = "haloPulse 2s infinite alternate, breathAnimState 4s ease-in-out infinite";
-                breathTicker = 0;
-            } else {
-                btn.innerText = "随大殿磁场引导开始吐纳";
-                btn.style.background = "linear-gradient(135deg, #9a7432, #f3e1b9)"; btn.style.color = "#17110a";
-                ring.style.animation = "haloPulse 3s infinite alternate";
+                // 呼吸模式下法相产生微弱的佛光震荡
+                taijiScale = 1 + Math.sin(breathTicker) * 0.03;
+            }
+            ctx.translate(layout.centerX, layout.shrineTop + layout.shrineHeight * 0.45);
+            ctx.scale(taijiScale, taijiScale);
+            
+            // 法相背光法圈
+            let haloGlow = ctx.createRadialGradient(0, 0, 35, 0, 0, 75);
+            haloGlow.addColorStop(0, 'rgba(235, 194, 113, 0.3)');
+            haloGlow.addColorStop(1, 'rgba(235, 194, 113, 0)');
+            ctx.fillStyle = haloGlow;
+            ctx.beginPath(); ctx.arc(0, 0, 75, 0, Math.PI*2); ctx.fill();
+
+            // 太极双鱼盘
+            ctx.rotate(candleFlicker * 0.002); // 极缓慢旋转
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#d4b26f';
+            ctx.fillStyle = '#fff';
+            // 简易太极意象绘制
+            ctx.fillStyle = '#ebe6da';
+            ctx.beginPath(); ctx.arc(0, 0, 42, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = '#1c1612';
+            ctx.beginPath(); ctx.arc(0, 0, 42, Math.PI*0.5, Math.PI*1.5); ctx.fill();
+            // 鱼眼交错
+            ctx.beginPath(); ctx.arc(0, -21, 21, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#ebe6da';
+            ctx.beginPath(); ctx.arc(0, 21, 21, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(0, -21, 6, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#1c1612';
+            ctx.beginPath(); ctx.arc(0, 21, 6, 0, Math.PI*2); ctx.fill();
+            ctx.restore();
+
+            // 6. 绘制神前实木大案台面
+            let tableGrad = ctx.createLinearGradient(layout.centerX - layout.tableWidth/2, layout.tableTop, layout.centerX + layout.tableWidth/2, layout.tableTop);
+            tableGrad.addColorStop(0, '#2b1a11'); tableGrad.addColorStop(0.5, '#422a1d'); tableGrad.addColorStop(1, '#2b1a11');
+            ctx.fillStyle = tableGrad;
+            ctx.fillRect(layout.centerX - layout.tableWidth/2, layout.tableTop, layout.tableWidth, layout.tableHeight);
+            ctx.fillStyle = '#baa17b'; // 案台包边金线
+            ctx.fillRect(layout.centerX - layout.tableWidth/2, layout.tableTop, layout.tableWidth, 3);
+
+            // 7. 案台两侧：长明红烛与跃动火苗
+            candleFlicker += 1;
+            let flickerY = Math.sin(candleFlicker * 0.15) * 1.5;
+            let leftCandleX = layout.centerX - layout.tableWidth * 0.38;
+            let rightCandleX = layout.centerX + layout.tableWidth * 0.38;
+            
+            // 左红烛
+            ctx.fillStyle = '#a61c12';
+            ctx.fillRect(leftCandleX - 5, layout.tableTop - 50, 10, 50);
+            // 左火苗光晕与烛芯
+            ctx.fillStyle = '#ff3300';
+            ctx.fillRect(leftCandleX - 1, layout.tableTop - 54, 2, 4);
+            let fireGradL = ctx.createRadialGradient(leftCandleX, layout.tableTop - 58 + flickerY, 0, leftCandleX, layout.tableTop - 58 + flickerY, 12);
+            fireGradL.addColorStop(0, '#ffeed4'); fireGradL.addColorStop(0.4, '#ff9900'); fireGradL.addColorStop(1, 'rgba(255,51,0,0)');
+            ctx.fillStyle = fireGradL;
+            ctx.beginPath(); ctx.arc(leftCandleX, layout.tableTop - 58 + flickerY, 12, 0, Math.PI*2); ctx.fill();
+
+            // 右红烛
+            ctx.fillStyle = '#a61c12';
+            ctx.fillRect(rightCandleX - 5, layout.tableTop - 50, 10, 50);
+            // 右火苗光晕与烛芯
+            ctx.fillStyle = '#ff3300';
+            ctx.fillRect(rightCandleX - 1, layout.tableTop - 54, 2, 4);
+            let fireGradR = ctx.createRadialGradient(rightCandleX, layout.tableTop - 58 - flickerY, 0, rightCandleX, layout.tableTop - 58 - flickerY, 12);
+            fireGradR.addColorStop(0, '#ffeed4'); fireGradR.addColorStop(0.4, '#ff9900'); fireGradR.addColorStop(1, 'rgba(255,51,0,0)');
+            ctx.fillStyle = fireGradR;
+            ctx.beginPath(); ctx.arc(rightCandleX, layout.tableTop - 58 - flickerY, 12, 0, Math.PI*2); ctx.fill();
+
+            // 8. 案台正中央：高规格青铜大方鼎炉
+            ctx.fillStyle = '#211a14';
+            ctx.strokeStyle = '#d4b26f';
+            ctx.lineWidth = 2;
+            // 炉身
+            ctx.fillRect(layout.centerX - layout.burnerW/2, layout.burnerY, layout.burnerW, layout.burnerH);
+            ctx.strokeRect(layout.centerX - layout.burnerW/2, layout.burnerY, layout.burnerW, layout.burnerH);
+            // 炉耳
+            ctx.strokeRect(layout.centerX - layout.burnerW/2 - 6, layout.burnerY + 6, 6, 16);
+            ctx.strokeRect(layout.centerX + layout.burnerW/2, layout.burnerY + 6, 6, 16);
+            // 炉足
+            ctx.fillRect(layout.centerX - layout.burnerW/2 + 8, layout.burnerY + layout.burnerH, 10, 12);
+            ctx.fillRect(layout.centerX + layout.burnerW/2 - 18, layout.burnerY + layout.burnerH, 10, 12);
+            // 鎏金饕餮纹饰条
+            ctx.fillStyle = '#9e7631';
+            ctx.fillRect(layout.centerX - layout.burnerW/2 + 10, layout.burnerY + 14, layout.burnerW - 20, 8);
+
+            // 9. 如果上香，画出三支立香
+            if (isIncenseBurning) {
+                ctx.fillStyle = '#824736';
+                ctx.fillRect(layout.centerX - 6, layout.burnerY - 25, 2, 25);
+                ctx.fillRect(layout.centerX, layout.burnerY - 28, 2, 28);
+                ctx.fillRect(layout.centerX + 6, layout.burnerY - 25, 2, 25);
+                
+                // 香头红光点
+                ctx.fillStyle = '#ff5500';
+                ctx.shadowColor = '#ff5500'; ctx.shadowBlur = 4;
+                ctx.fillRect(layout.centerX - 6, layout.burnerY - 26, 2, 2);
+                ctx.fillRect(layout.centerX, layout.burnerY - 29, 2, 2);
+                ctx.fillRect(layout.centerX + 6, layout.burnerY - 26, 2, 2);
+                ctx.shadowBlur = 0; // 恢复
             }
         }
 
-        // 注入平稳呼吸核心动画帧
-        let styleSheet = document.createElement("style");
-        styleSheet.textContent = "@keyframes breathAnimState { 0%, 100% { transform: scale(1) } 50% { transform: scale(1.16) } }";
-        document.head.appendChild(styleSheet);
-
-        function switchAisle(aisleId, idx) {
-            document.querySelectorAll('.tab-item').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.altar-content').forEach(c => c.classList.remove('active'));
-            document.querySelectorAll('.tab-item')[idx].classList.add('active');
-            document.getElementById(aisleId).classList.add('active');
-            playGongSound(0, "click");
+        // ==================== 🔊 纯净 Web Audio 铜磬共鸣 ====================
+        let audioCtx = null;
+        function playGongSound(freq) {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                let time = audioCtx.currentTime;
+                let freqs = [freq, freq * 1.52, freq * 1.99, freq * 2.42];
+                let gains = [0.22, 0.10, 0.04, 0.01];
+                freqs.forEach((f, i) => {
+                    let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(f, time);
+                    gain.gain.setValueAtTime(gains[i], time); gain.gain.exponentialRampToValueAtTime(0.0001, time + 4.5);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(time); osc.stop(time + 4.5);
+                });
+            } catch(e) {}
         }
 
-        function submitWishAltar() {
-            let field = document.getElementById('wish-box');
-            let txt = field.value.trim();
-            if (!txt) { alert("请先在案前写下心中所求疏文"); return; }
-            playGongSound(320, "磬");
-            spawnFloatText("疏文呈递 🏮");
-            // 横向流动的烟霞横幅
-            generateSmoke(canvas.width + 10, canvas.innerHeight * 0.22 + Math.random() * 60, 1, 'shuwenScroll', txt);
-            field.value = '';
-        }
-
-        // ==================== ✨ 电影级复合光晕粒子循环（绝不死锁） ====================
+        // ==================== 粒子逻辑 ====================
         function generateSmoke(x, y, count, type, text="") {
             for(let i=0; i<count; i++) {
                 smokeParticles.push({
                     x: x, y: y,
-                    vx: type === 'shuwenScroll' ? -1.4 : (Math.random() - 0.5) * 1.6,
-                    vy: type === 'shuwenScroll' ? 0 : -Math.random() * 1.2 - 0.5,
+                    vx: type === 'shuwen' ? -1.3 : (Math.random() - 0.5) * 1.5,
+                    vy: type === 'shuwen' ? 0 : -Math.random() * 1.0 - 0.4,
                     alpha: 1,
-                    // 调高尺寸，配合柔和渐变滤镜，营造极其高逼真的滚滚青烟感
-                    size: type === 'shuwenScroll' ? 14 : Math.random() * 8 + 6, 
-                    decay: type === 'shuwenScroll' ? 0.002 : Math.random() * 0.009 + 0.006,
+                    size: type === 'shuwen' ? 14 : Math.random() * 8 + 5,
+                    decay: type === 'shuwen' ? 0.0025 : Math.random() * 0.007 + 0.005,
                     type: type,
                     text: `🏮 缘主疏文：${text}`
                 });
             }
         }
 
-        function altarRenderLoop() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // 1. 渲染大殿常明福报微尘
-            for(let i=0; i<floatingDust.length; i++) {
-                let dust = floatingDust[i];
-                dust.y -= dust.vy;
-                if(dust.y < -10) dust.y = canvas.height * 0.75;
+        function actionBurnIncense() {
+            playGongSound(210);
+            isIncenseBurning = true;
+            spawnFloatText("心香三柱 · 供奉神明 ☯️");
+            generateSmoke(layout.centerX, layout.burnerY, 30, 'smoke');
+        }
+
+        function submitWishAltar() {
+            let field = document.getElementById('wish-box');
+            let txt = field.value.trim();
+            if (!txt) return;
+            playGongSound(300);
+            spawnFloatText("疏文焚化 · 达于玄天 🏮");
+            generateSmoke(canvas.width + 10, canvas.height * 0.28 + Math.random()*40, 1, 'shuwen', txt);
+            field.value = '';
+        }
+
+        function toggleBreathMode() {
+            const btn = document.getElementById('breath-toggle-btn');
+            breathMode = !breathMode;
+            if (breathMode) {
+                btn.innerText = "结束吐纳调理 · 平复气场";
+                btn.style.background = "linear-gradient(135deg, #1c364d, #278ea5)"; btn.style.color = "#FFF";
+            } else {
+                btn.innerText = "随大殿磁场引导开始吐纳";
+                btn.style.background = "linear-gradient(135deg, #9a7432, #f3e1b9)"; btn.style.color = "#17110a";
+            }
+        }
+
+        function spawnFloatText(txt) {
+            let el = document.createElement('div');
+            el.className = 'merit-float'; el.innerText = txt;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 2500);
+        }
+
+        function switchAisle(id, idx) {
+            document.querySelectorAll('.tab-item').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.altar-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab-item')[idx].classList.add('active');
+            document.getElementById(id).classList.add('active');
+        }
+
+        // ==================== ✨ 主动态动力学渲染循环 ====================
+        function mainRenderLoop() {
+            // 1. 绘制大殿核心全景场景
+            drawTempleScene();
+
+            // 2. 渲染常明金尘微粒
+            for(let i=0; i<dustParticles.length; i++) {
+                let d = dustParticles[i];
+                d.y -= d.speedY; d.x += d.driftX;
+                if(d.y < 0) d.y = canvas.height;
                 ctx.save();
-                ctx.globalAlpha = dust.alpha;
-                ctx.globalCompositeOperation = 'screen';
+                ctx.globalAlpha = d.alpha;
                 ctx.fillStyle = '#f3e1b9';
-                ctx.beginPath(); ctx.arc(dust.x, dust.y, dust.r, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI*2); ctx.fill();
                 ctx.restore();
             }
 
-            // 2. 彻底排查修复：绝不使用错乱变量名，平滑驱动吐纳文案切换
+            // 3. 驱动呼吸引导状态文案
             if (breathMode) {
-                breathTicker += 0.025;
+                breathTicker += 0.03;
                 const btn = document.getElementById('breath-toggle-btn');
-                if (Math.sin(breathTicker) > 0) { 
-                    btn.innerText = "✨ 吸气... 汲取虚空灵境纯净磁场"; 
-                } else { 
-                    btn.innerText = "💨 呼气... 卸下胸中积压焦虑杂念"; 
+                if (Math.sin(breathTicker) > 0) {
+                    btn.innerText = "✨ 吸气... 汲取大殿纯净灵气";
+                } else {
+                    btn.innerText = "💨 呼气... 排出体内积压焦虑";
                 }
             }
 
-            // 3. 渲染高级立体渐变青烟与横幅
+            // 4. 渲染香火烟霞与疏文
             for (let i = smokeParticles.length - 1; i >= 0; i--) {
                 let p = smokeParticles[i];
                 p.x += p.vx; p.y += p.vy; p.alpha -= p.decay;
@@ -391,30 +434,30 @@
 
                 ctx.save();
                 ctx.globalAlpha = p.alpha;
-                
-                if(p.type === 'shuwenScroll') {
-                    // 横向文疏
+                if(p.type === 'shuwen') {
                     ctx.fillStyle = '#f3e1b9';
                     ctx.font = '15px "Noto Serif CJK SC", "SimSun"';
-                    ctx.shadowColor = '#000'; ctx.shadowBlur = 6;
+                    ctx.shadowColor = '#000'; ctx.shadowBlur = 4;
                     ctx.fillText(p.text, p.x, p.y);
                 } else {
-                    // 电影级体积感软烟雾：使用复合滤镜和径向渐变
                     ctx.globalCompositeOperation = 'screen';
-                    let smokeGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
-                    smokeGrad.addColorStop(0, 'rgba(243, 225, 185, 0.45)');
-                    smokeGrad.addColorStop(0.3, 'rgba(197, 160, 89, 0.2)');
-                    smokeGrad.addColorStop(1, 'rgba(197, 160, 89, 0)');
-                    ctx.fillStyle = smokeGrad;
+                    let radGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
+                    radGrad.addColorStop(0, 'rgba(243, 225, 185, 0.4)');
+                    radGrad.addColorStop(0.4, 'rgba(197, 160, 89, 0.15)');
+                    radGrad.addColorStop(1, 'rgba(197, 160, 89, 0)');
+                    ctx.fillStyle = radGrad;
                     ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
                 }
                 ctx.restore();
             }
-            requestAnimationFrame(altarRenderLoop);
+
+            requestAnimationFrame(mainRenderLoop);
         }
-        
-        // 启动主渲染循环
-        requestAnimationFrame(altarRenderLoop);
+
+        // 初始化并启动
+        window.addEventListener('resize', updateLayout);
+        updateLayout();
+        requestAnimationFrame(mainRenderLoop);
     </script>
 </body>
 </html>
