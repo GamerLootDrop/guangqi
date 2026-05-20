@@ -4,81 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>三清大殿 · 乾坤灵境</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.css" />
     <style>
-        /* ==================== 🪐 全局视口防溢出 ==================== */
         * { box-sizing: border-box; }
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
-            overflow: hidden; background-color: #0c0806;
+            overflow: hidden; background-color: #050302;
             font-family: "Noto Serif CJK SC", "SimSun", serif;
             user-select: none;
-            /* 激活三维空间感知 */
-            perspective: 1000px;
         }
 
-        /* 🌌 视差容器：这是让画面动起来的关键 */
-        .parallax-container {
+        /* 🌌 3D 虚拟现实渲染视口 */
+        #viewer-3d-stage {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            overflow: hidden; z-index: 1;
-        }
-
-        /* 🖼️ 优化后的超清大殿背景层 */
-        .temple-photo-bg {
-            position: absolute; 
-            /* 故意让背景图比视口大一圈（四周各多出10%），防止鼠标晃动时边缘露白 */
-            top: -10%; left: -10%; width: 120%; height: 120%;
-            background: url('bg.jpg') no-repeat center center;
-            background-size: cover;
-            /* 图像平滑渲染，解决你提到的模糊问题 */
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-            /* 暗调烘托与对比度优化 */
-            filter: brightness(0.8) contrast(1.1) saturate(0.95);
-            /* 极其平滑的动态跟随过渡 */
-            transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            will-change: transform;
             z-index: 1;
         }
 
-        /* 🌫️ 真实环境微动烟雾层 */
-        .incense-smoke-layer {
+        /* 🌫️ 空间中叠加的流动香烟薄雾（增强动态空气感） */
+        .ambient-smoke-env {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 50% 60%, rgba(255,255,255,0.05), transparent 60%);
+            background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.03), transparent 70%);
             mix-blend-mode: screen; pointer-events: none; z-index: 2;
-            animation: smokeDrift 12s ease-in-out infinite alternate;
+            animation: smokeDrift 14s ease-in-out infinite alternate;
         }
         @keyframes smokeDrift {
-            0% { transform: scale(1) translate(0, 0); opacity: 0.4; filter: blur(2px); }
-            100% { transform: scale(1.1) translate(-20px, -30px); opacity: 0.7; filter: blur(5px); }
+            0% { transform: scale(1) translate(0, 0); opacity: 0.3; filter: blur(3px); }
+            100% { transform: scale(1.1) translate(-20px, -15px); opacity: 0.6; filter: blur(6px); }
         }
 
-        /* ==================== ☯️ 完美融入环境的中央法盘 ==================== */
-        .floating-taichi-aura {
-            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
-            width: 160px; height: 160px; z-index: 10; pointer-events: none;
-            /* 让法盘也带有淡淡的立体悬浮阴影 */
-            filter: drop-shadow(0 0 30px rgba(254, 235, 191, 0.45));
-            transition: transform 0.1s linear;
-        }
-        .taichi-disk-svg {
-            width: 100%; height: 100%;
-            background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 80%), 
-                        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="none" stroke="%23bda16a" stroke-width="1.5"/><path d="M50 2A48 48 0 0 1 50 98A24 24 0 0 1 50 50A24 24 0 0 0 50 2" fill="%23140e0b"/><path d="M50 2A48 48 0 0 0 50 98A24 24 0 0 0 50 50A24 24 0 0 1 50 2" fill="%23fdfaf4"/><circle cx="50" cy="26" r="5" fill="%23fdfaf4"/><circle cx="50" cy="74" r="5" fill="%23140e0b"/></svg>') no-repeat center center;
-            background-size: contain; border-radius: 50%;
-            animation: slowSpin 30s linear infinite;
-        }
-        @keyframes slowSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-        /* ==================== 🎛️ 悬浮高档磨砂中控台 ==================== */
+        /* ==================== 🎛️ 悬浮磨砂中控台 ==================== */
         .glass-console-panel {
             position: absolute; bottom: 8vh; left: 50%; transform: translateX(-50%);
             width: 88vw; max-width: 420px; z-index: 20;
-            background: rgba(15, 11, 9, 0.78);
+            background: rgba(15, 11, 9, 0.75);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
             border: 1px solid rgba(189, 161, 106, 0.3); border-top: 3px solid #bda16a;
             border-radius: 8px; padding: 18px; 
-            box-shadow: 0 30px 70px rgba(0,0,0,0.95), inset 0 1px 0 rgba(255,255,255,0.05);
+            box-shadow: 0 30px 70px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.05);
         }
 
         .panel-header { text-align: center; margin-bottom: 14px; }
@@ -123,23 +86,26 @@
             12% { opacity: 1; }
             100% { transform: translate(-50%, -50px); opacity: 0; }
         }
+
+        /* 💡 引导提示 */
+        .vr-guide-tips {
+            position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.6);
+            padding: 6px 12px; border-radius: 20px; font-size: 11px; color: #bda16a;
+            border: 1px solid rgba(189,161,106,0.3); z-index: 10; pointer-events: none;
+        }
     </style>
 </head>
 <body>
 
-    <div class="parallax-container">
-        <div class="temple-photo-bg" id="dynamic-bg"></div>
-        <div class="incense-smoke-layer"></div>
-    </div>
+    <div class="vr-guide-tips">🖱️ 按住鼠标左键并拖拽，可360°环顾神殿</div>
 
-    <div class="floating-taichi-aura" id="dynamic-taichi">
-        <div class="taichi-disk-svg"></div>
-    </div>
+    <div id="viewer-3d-stage"></div>
+    <div class="ambient-smoke-env"></div>
 
     <div class="glass-console-panel">
         <div class="panel-header">
             <h2>三清大殿 · 乾坤灵境</h2>
-            <p>☯ 虔诚敬奉 · 鸣磬修心 ☯</p>
+            <p>☯ 🔧 VR 3D 沉浸交互版 ☯</p>
         </div>
 
         <div class="tab-menu-row">
@@ -160,27 +126,26 @@
         </div>
     </div>
 
-    <script>
-        const bg = document.getElementById('dynamic-bg');
-        const taichi = document.getElementById('dynamic-taichi');
+    <script src="https://cdn.jsdelivr.net/npm/three/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.js"></script>
 
-        // 🏎️ 核心交互：监听鼠标或触控轨迹，计算3D视差位移
-        document.addEventListener('mousemove', (e) => {
-            const moveX = (e.clientX - window.innerWidth / 2) / (window.innerWidth / 2);
-            const moveY = (e.clientY - window.innerHeight / 2) / (window.innerHeight / 2);
-            
-            // 背景图反向轻微移动并带有微弱旋转，拉深空间感
-            bg.style.transform = `translate(${moveX * -25}px, ${moveY * -25}px) scale(1.02) rotateX(${moveY * -1}deg) rotateY(${moveX * 1}deg)`;
-            
-            // 太极法盘作为前景，正向稍微移动，形成前后错落的 3D 立体视觉
-            taichi.style.transform = `translate(calc(-50% + ${moveX * 15}px), calc(-50% + ${moveY * 15}px))`;
+    <script>
+        // 🔮 初始化 WebGL 3D 空间
+        const viewer = new PhotoSphereViewer.Viewer({
+            container: 'viewer-3d-stage',
+            panorama: 'bg.jpg', // 自动加载同级目录下的超清原图
+            caption: '三清大殿',
+            mousewheel: true,  // 允许用户滚动鼠标滚轮放大/缩小（拉近拉远看细节）
+            moveSpeed: 1.2,    // 拖拽旋转的丝滑度
+            defaultYaw: 0,
+            defaultPitch: 0,
+            zoomRange: [10, 100],
+            defaultZoomLvl: 30, // 初始视角广角大小，防止模糊
+            navbar: false      // 隐藏底层多余的自带工具栏，保持画面纯净
         });
 
-        // 以下为基础互动逻辑
-        let breathTimer = null;
-        let breathState = 0; 
+        // 🔊 铜磬音效引擎
         let audioCtx = null;
-
         function playBellSound(frequency) {
             try {
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -217,6 +182,8 @@
             input.value = '';
         }
 
+        let breathTimer = null;
+        let breathState = 0; 
         function triggerBreathExercise() {
             const btn = document.getElementById('breath-btn');
             if (breathTimer) {
