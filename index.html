@@ -14,13 +14,24 @@
             user-select: none;
         }
 
+        /* 🚪 入场过渡幕布 */
+        #entry-curtain {
+            position: fixed; inset: 0;
+            background-color: #050302;
+            z-index: 9999;
+            transition: opacity 3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; align-items: center; justify-content: center;
+            color: #bda16a; font-size: 16px; letter-spacing: 6px;
+            text-shadow: 0 0 10px rgba(189, 161, 106, 0.5);
+        }
+
         /* 🌌 3D 虚拟现实渲染视口 */
         #viewer-3d-stage {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 1;
         }
 
-        /* 🌫️ 空间中叠加的流动香烟薄雾（增强动态空气感） */
+        /* 🌫️ 空间中叠加的流动香烟薄雾 */
         .ambient-smoke-env {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.03), transparent 70%);
@@ -42,6 +53,7 @@
             border: 1px solid rgba(189, 161, 106, 0.3); border-top: 3px solid #bda16a;
             border-radius: 8px; padding: 18px; 
             box-shadow: 0 30px 70px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.05);
+            transition: opacity 0.5s ease; /* 加入透明度过渡动画，用于拖拽时隐藏 */
         }
 
         .panel-header { text-align: center; margin-bottom: 14px; }
@@ -96,6 +108,14 @@
     </style>
 </head>
 <body>
+    <div id="entry-curtain">心生万物 · 境由心转</div>
+
+    <audio id="ambient-audio" loop preload="auto">
+        <source src="ambient.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="bell-audio" preload="auto">
+        <source src="bell.mp3" type="audio/mpeg">
+    </audio>
 
     <div class="vr-guide-tips">🖱️ 按住鼠标左键并拖拽，可360°环顾神殿</div>
 
@@ -130,23 +150,43 @@
     <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.js"></script>
 
     <script>
+        // 🚪 页面加载完成后，幕布缓缓消散
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const curtain = document.getElementById('entry-curtain');
+                curtain.style.opacity = '0';
+                setTimeout(() => curtain.remove(), 3000); // 彻底移除DOM
+            }, 1000); // 留出1秒的静心时间
+        });
+
         // 🔮 初始化 WebGL 3D 空间
         const viewer = new PhotoSphereViewer.Viewer({
             container: 'viewer-3d-stage',
             panorama: 'bg.jpg', // 自动加载同级目录下的超清原图
             caption: '三清大殿',
-            mousewheel: true,  // 允许用户滚动鼠标滚轮放大/缩小（拉近拉远看细节）
-            moveSpeed: 1.2,    // 拖拽旋转的丝滑度
+            mousewheel: true,  
+            moveSpeed: 1.2,    
             defaultYaw: 0,
             defaultPitch: 0,
             zoomRange: [10, 100],
-            defaultZoomLvl: 30, // 初始视角广角大小，防止模糊
-            navbar: false      // 隐藏底层多余的自带工具栏，保持画面纯净
+            defaultZoomLvl: 30, 
+            navbar: false      
         });
 
-        // 🔊 铜磬音效引擎
+        // 🎛️ 人动则 UI 隐：拖拽视角时隐藏中控台
+        let uiTimeout = null;
+        const consolePanel = document.querySelector('.glass-console-panel');
+        viewer.addEventListener('position-updated', () => {
+            consolePanel.style.opacity = '0.15'; // 转动视角时，UI 变半透明
+            clearTimeout(uiTimeout);
+            uiTimeout = setTimeout(() => {
+                consolePanel.style.opacity = '1'; // 停止转动 1.5 秒后，UI 恢复
+            }, 1500);
+        });
+
+        // 🔊 原生代码生成的铜磬声（作为没有音频文件时的备用方案）
         let audioCtx = null;
-        function playBellSound(frequency) {
+        function playFallbackBellSound(frequency) {
             try {
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 let now = audioCtx.currentTime;
@@ -168,8 +208,25 @@
             } catch(e) {}
         }
 
+        // 🔊 鸣磬主逻辑
         function ringTempleBell() {
-            playBellSound(215);
+            let bell = document.getElementById('bell-audio');
+            let ambient = document.getElementById('ambient-audio');
+
+            // 尝试播放真实的铜磬录音
+            if (bell.readyState >= 2) {
+                bell.currentTime = 0;
+                bell.play().catch(() => playFallbackBellSound(215)); // 播放失败则用代码生成声音兜底
+            } else {
+                playFallbackBellSound(215); // 没有文件则直接用代码生成声音
+            }
+
+            // 顺便唤醒背景白噪音（因为浏览器要求有用户交互才能播放音频）
+            if(ambient.paused && ambient.readyState >= 2) {
+                ambient.volume = 0.15; // 背景音设置得极其轻微
+                ambient.play().catch(e => console.log("等待用户交互以播放背景音"));
+            }
+
             showEtherealToast("鸣磬一下 · 内耗消散 ☯️");
         }
 
@@ -177,11 +234,13 @@
             let input = document.getElementById('wish-box');
             let text = input.value.trim();
             if(!text) return;
-            playBellSound(270);
+            
+            ringTempleBell(); // 提交祈愿时也触发一声铜磬
             showEtherealToast(`文疏已化，随风化煞：${text} 🏮`);
             input.value = '';
         }
 
+        // 💨 吐纳逻辑保持不变
         let breathTimer = null;
         let breathState = 0; 
         function triggerBreathExercise() {
@@ -206,10 +265,12 @@
             setTimeout(() => toast.remove(), 2800);
         }
 
+        // 恢复音频上下文
         document.addEventListener('click', () => {
             if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
         });
 
+        // 切换面板
         function switchConsoleTab(paneId, index) {
             document.querySelectorAll('.tab-item-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-content-pane').forEach(p => p.classList.remove('active'));
