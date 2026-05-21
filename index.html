@@ -8,296 +8,207 @@
         * { box-sizing: border-box; }
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
-            overflow: hidden; background-color: #0c0806;
+            overflow: hidden; background-color: #050302;
             font-family: "Noto Serif CJK SC", "SimSun", serif;
             user-select: none; color: #f3e1b9;
         }
 
-        /* 🌌 视觉渲染核心：3D 深度视图引擎 */
+        /* 🌌 3D 深度视图容器 */
         #vr-view-stage {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            position: absolute; top: -5%; left: -5%; width: 110%; height: 110%;
             display: flex; align-items: center; justify-content: center;
-            overflow: hidden; z-index: 1;
+            z-index: 1;
+            transition: transform 0.1s ease-out; /* 关键：用于实现鼠标跟随的平滑感 */
         }
 
-        /* 🚪 入场仪式：3D 门扇过渡 */
+        /* 🖼️ 高清背景图：直接调用云端高清大殿 */
+        #vr-view-mirror {
+            width: 100%; height: 100%; object-fit: cover;
+            filter: brightness(0.9) contrast(1.1) saturate(0.8);
+        }
+
+        /* 🚪 入场幕布 */
         #entry-curtain {
-            position: fixed; inset: 0;
-            background-color: #0c0806;
-            z-index: 9999;
-            transition: opacity 3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            letter-spacing: 6px; text-shadow: 0 0 15px rgba(189, 161, 106, 0.6);
+            position: fixed; inset: 0; background: #050302; z-index: 9999;
+            transition: opacity 3s ease; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; letter-spacing: 8px;
         }
-        #entry-curtain h1 { font-size: 24px; color: #f3e1b9; margin-bottom: 10px; }
-        #entry-curtain p { font-size: 13px; color: #a69580; opacity: 0.8; }
 
-        /* ==================== 🌫️ 空间粒子与光影层 ==================== */
+        /* ==================== 🌫️ 氛围叠加层（增加真实感） ==================== */
         
-        /* 1. 尘埃微粒：在光线中闪烁 */
-        #dust-particles {
-            position: absolute; width: 100%; height: 100%;
-            background: transparent;
-            pointer-events: none; z-index: 3;
-            background-image: radial-gradient(rgba(255, 235, 191, 0.15) 1px, transparent 1px);
-            background-size: 50px 50px;
-            animation: particleDrift 20s linear infinite;
+        /* 1. 动态烟雾 */
+        .ambient-mist {
+            position: fixed; inset: 0; pointer-events: none; z-index: 5;
+            background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.05), transparent 70%);
+            mix-blend-mode: screen; animation: mistMove 20s infinite alternate;
         }
-        @keyframes particleDrift {
-            0% { background-position: 0 0; }
-            100% { background-position: 500px 500px; }
+        @keyframes mistMove {
+            from { transform: translate(-2%, -2%) scale(1); opacity: 0.3; }
+            to { transform: translate(2%, 2%) scale(1.1); opacity: 0.6; }
         }
 
-        /* 2. 流动烟霞：香火气缭绕 */
-        #ambient-mist {
-            position: absolute; width: 100%; height: 100%;
-            background: transparent;
-            pointer-events: none; z-index: 4;
-            mix-blend-mode: screen;
-            animation: mistFlow 25s ease-in-out infinite alternate;
-            background: 
-                radial-gradient(circle at 10% 20%, rgba(255,255,255,0.01) 0%, transparent 60%),
-                radial-gradient(circle at 80% 90%, rgba(255,255,255,0.01) 0%, transparent 60%);
+        /* 2. 烛火微光闪烁 */
+        .light-flicker {
+            position: fixed; inset: 0; pointer-events: none; z-index: 2;
+            background: rgba(124, 31, 23, 0.02);
+            animation: flicker 0.2s infinite alternate;
         }
-        @keyframes mistFlow {
-            0% { transform: scale(1) translate(0, 0); opacity: 0.2; }
-            100% { transform: scale(1.1) translate(-30px, -20px); opacity: 0.5; }
+        @keyframes flicker {
+            from { opacity: 0.5; } to { opacity: 1; }
         }
 
-        /* 3. 烛火闪烁：全局动态光影 */
-        #ambient-light-flicker {
-            position: absolute; width: 100%; height: 100%;
-            background: transparent;
-            pointer-events: none; z-index: 2;
-            animation: lightFlicker 0.15s ease infinite alternate;
-        }
-        @keyframes lightFlicker {
-            0% { background: rgba(124, 31, 23, 0.01); }
-            100% { background: rgba(124, 31, 23, 0.03); }
-        }
-
-        /* ==================== 🎛️ 悬浮磨砂中控台 ==================== */
+        /* ==================== 🎛️ 玻璃态UI中控台 ==================== */
         .glass-console-panel {
             position: absolute; bottom: 8vh; left: 50%; transform: translateX(-50%);
             width: 88vw; max-width: 420px; z-index: 20;
-            background: rgba(15, 11, 9, 0.7);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(189, 161, 106, 0.25); border-top: 3px solid #bda16a;
-            border-radius: 12px; padding: 22px 18px 18px 18px; 
-            box-shadow: 0 40px 90px rgba(0,0,0,0.95), inset 0 1px 0 rgba(255,255,255,0.03);
-            transition: opacity 0.6s ease;
+            background: rgba(15, 11, 9, 0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(189, 161, 106, 0.3); border-top: 3px solid #bda16a;
+            border-radius: 12px; padding: 20px; box-shadow: 0 40px 100px rgba(0,0,0,0.8);
         }
 
-        .panel-header { text-align: center; margin-bottom: 18px; }
-        .panel-header h2 { margin: 0; font-size: 22px; color: #f3e1b9; letter-spacing: 6px; font-weight: bold; text-shadow: 0 2px 4px #000; }
-        .panel-header p { margin: 6px 0 0 0; font-size: 11px; color: #a69580; letter-spacing: 2px; opacity: 0.6; }
+        .panel-header h2 { margin: 0; font-size: 22px; text-align: center; letter-spacing: 4px; color: #f3e1b9; }
+        .panel-header p { margin: 5px 0 15px 0; font-size: 11px; text-align: center; color: #a69580; opacity: 0.7; }
 
-        .tab-menu-row { width: 100%; display: flex; gap: 8px; margin-bottom: 18px; }
-        .tab-item-btn {
-            flex: 1; background: rgba(5, 4, 3, 0.5); border: 1px solid rgba(189, 161, 106, 0.15);
-            color: #bfae9c; padding: 11px 0; font-size: 13px; font-weight: bold;
-            cursor: pointer; border-radius: 4px; transition: all 0.2s; font-family: inherit;
+        .tab-menu { display: flex; gap: 8px; margin-bottom: 15px; }
+        .tab-btn {
+            flex: 1; padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(189,161,106,0.2);
+            color: #bfae9c; font-size: 12px; cursor: pointer; border-radius: 4px;
         }
-        .tab-item-btn.active {
-            background: linear-gradient(135deg, #7c1f17, #a62d22); color: #fff; border-color: #bda16a;
-            box-shadow: 0 0 15px rgba(124, 31, 23, 0.4);
-        }
-        
-        .tab-content-pane { width: 100%; display: none; }
-        .tab-content-pane.active { display: block; }
+        .tab-btn.active { background: #7c1f17; color: #fff; border-color: #bda16a; }
 
-        .gold-action-btn {
-            background: linear-gradient(135deg, #a67f3c, #f7e4be); color: #1c130e;
-            border: none; width: 100%; padding: 15px; font-size: 14px; font-weight: bold;
-            border-radius: 4px; cursor: pointer; box-shadow: 0 6px 20px rgba(0,0,0,0.7);
-            letter-spacing: 3px; font-family: inherit; transition: all 0.1s;
+        .action-content { display: none; }
+        .action-content.active { display: block; }
+
+        .gold-btn {
+            width: 100%; padding: 14px; background: linear-gradient(135deg, #a67f3c, #f7e4be);
+            border: none; border-radius: 4px; color: #1c130e; font-weight: bold; cursor: pointer;
+            letter-spacing: 2px; transition: 0.2s;
         }
-        .gold-action-btn:active { transform: scale(0.97); filter: brightness(0.9); }
-        
-        .wish-input-element {
-            width: 100%; padding: 12px; background: rgba(5, 4, 3, 0.85);
-            border: 1px solid #4a3b2c; color: #fff; text-align: center;
-            font-size: 13px; border-radius: 4px; margin-bottom: 14px; outline: none; font-family: inherit;
+        .gold-btn:active { transform: scale(0.98); }
+
+        .wish-input {
+            width: 100%; padding: 12px; background: #000; border: 1px solid #4a3b2c;
+            color: #fff; border-radius: 4px; margin-bottom: 10px; text-align: center;
         }
 
-        .ethereal-toast {
-            position: absolute; color: #f7e4be; font-size: 16px; font-weight: bold;
-            pointer-events: none; left: 50%; top: 25%; transform: translateX(-50%);
-            animation: riseAndFade 3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-            text-shadow: 0 2px 10px #000, 0 0 15px rgba(254, 235, 191, 0.8); z-index: 100;
+        /* 飘字提醒 */
+        .toast {
+            position: fixed; top: 30%; left: 50%; transform: translate(-50%, -50%);
+            color: #f7e4be; font-size: 18px; font-weight: bold; pointer-events: none;
+            text-shadow: 0 0 15px #000; animation: fadeUp 2.5s forwards; z-index: 100;
         }
-        @keyframes riseAndFade {
-            0% { transform: translate(-50%, 50px); opacity: 0; }
-            15% { opacity: 1; }
-            100% { transform: translate(-50%, -60px); opacity: 0; }
-        }
-
-        /* 💡 引导提示 */
-        .vr-guide-tips {
-            position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.6);
-            padding: 8px 16px; border-radius: 20px; font-size: 12px; color: #bda16a;
-            border: 1px solid rgba(189,161,106,0.25); z-index: 10; pointer-events: none;
-        }
-
-        /* 🖼️ 超清 3D 渲染视图镜像 (我把图片代码直接嵌在这里了) */
-        #vr-view-mirror {
-            width: 100vw; height: 100vh; object-fit: cover;
-            object-position: center; filter: brightness(1.1) contrast(1.05);
-            -webkit-mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
-            mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
+        @keyframes fadeUp {
+            0% { opacity: 0; transform: translate(-50%, 20px); }
+            20% { opacity: 1; }
+            100% { opacity: 0; transform: translate(-50%, -40px); }
         }
     </style>
 </head>
 <body>
+
     <div id="entry-curtain">
-        <h1>心生万物 · 境由心转</h1>
-        <p>☯ 正在引入大殿 3D 超清数据流 ☯</p>
+        <h2 style="color:#bda16a">万籁俱静 · 唯见真我</h2>
+        <p style="color:#666">正在连接灵境 3D 视图...</p>
     </div>
 
-    <audio id="ambient-audio" loop preload="auto">
-        <source src="ambient.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="bell-audio" preload="auto">
-        <source src="bell.mp3" type="audio/mpeg">
-    </audio>
-
-    <div class="vr-guide-tips">🖱️ 画面采用 3D 超清深度视图，暂不支持旋转</div>
+    <div class="light-flicker"></div>
+    <div class="ambient-mist"></div>
 
     <div id="vr-view-stage">
-        <img id="vr-view-mirror" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAK8BLADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJwcUGG6iiOwhIiUint4109jRSYoKS0lVn3h5m6io6Slpqeoqaqys7S1tre4ubrCw8TFxsfiy3ELKy8U19r3dn9DZW4v5646WRf/aAAw4w4f4b/wN/f//Z" alt="三清大殿超清渲染图">
-        
-        <div id="dust-particles"></div>
-        <div id="ambient-mist"></div>
-        <div id="ambient-light-flicker"></div>
+        <img id="vr-view-mirror" src="https://images.unsplash.com/photo-1610991148731-9705e3240212?q=80&w=2070&auto=format&fit=crop" alt="灵境视图">
     </div>
 
     <div class="glass-console-panel">
         <div class="panel-header">
             <h2>三清大殿 · 乾坤灵境</h2>
-            <p>☯ 🔧 WebVR 3D 深度沉浸版 ☯</p>
+            <p>☯ 沉浸式 3D 深度交互 ☯</p>
         </div>
 
-        <div class="tab-menu-row">
-            <button class="tab-item-btn active" onclick="switchConsoleTab('p-incense', 0)">敬奉心香</button>
-            <button class="tab-item-btn" onclick="switchConsoleTab('p-breath', 1)">功态吐纳</button>
-            <button class="tab-item-btn" onclick="switchConsoleTab('p-wish', 2)">文疏祈愿</button>
+        <div class="tab-menu">
+            <button class="tab-btn active" onclick="showTab(0)">敬奉心香</button>
+            <button class="tab-btn" onclick="showTab(1)">功态吐纳</button>
+            <button class="tab-btn" onclick="showTab(2)">文疏祈愿</button>
         </div>
 
-        <div id="p-incense" class="tab-content-pane active">
-            <button class="gold-action-btn" onclick="ringTempleBell()">叩击混元法盘 · 鸣磬静心</button>
+        <div class="action-content active">
+            <button class="gold-btn" onclick="playBell()">鸣磬静心</button>
         </div>
-        <div id="p-breath" class="tab-content-pane">
-            <button class="gold-action-btn" id="breath-btn" onclick="triggerBreathExercise()">开始跟随法盘磁场吐纳</button>
+        <div class="action-content">
+            <button class="gold-btn" id="breath-btn" onclick="startBreath()">开始吐纳</button>
         </div>
-        <div id="p-wish" class="tab-content-pane">
-            <input type="text" id="wish-box" class="wish-input-element" placeholder="在案前至诚书写心中所求（如：远离内耗）" maxlength="16">
-            <button class="gold-action-btn" onclick="sendWish疏文()">化文疏归于烟霞</button>
+        <div class="action-content">
+            <input type="text" id="wish" class="wish-input" placeholder="输入心中所求...">
+            <button class="gold-btn" onclick="sendWish()">化疏文</button>
         </div>
     </div>
 
     <script>
-        // 🚪 页面加载完成后，幕布缓缓消散
-        window.addEventListener('load', () => {
+        // 🚪 入场
+        window.onload = () => {
             setTimeout(() => {
-                const curtain = document.getElementById('entry-curtain');
-                curtain.style.opacity = '0';
-                setTimeout(() => curtain.remove(), 3000); // 彻底移除DOM
-            }, 2000); // 预留数据加载时间
+                document.getElementById('entry-curtain').style.opacity = '0';
+                setTimeout(() => document.getElementById('entry-curtain').remove(), 3000);
+            }, 1500);
+        };
+
+        // 🖱️ 3D 悬浮透视效果：让背景随鼠标移动
+        const stage = document.getElementById('vr-view-stage');
+        document.addEventListener('mousemove', (e) => {
+            const x = (window.innerWidth / 2 - e.pageX) / 50;
+            const y = (window.innerHeight / 2 - e.pageY) / 50;
+            stage.style.transform = `rotateY(${x}deg) rotateX(${-y}deg) translateZ(20px)`;
         });
 
-        // 🔊 原生代码生成的铜磬声（兜底方案）
+        // 🔊 鸣磬
         let audioCtx = null;
-        function playFallbackBellSound(frequency) {
-            try {
-                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                let now = audioCtx.currentTime;
-                let components = [frequency, frequency * 1.52, frequency * 1.95];
-                let volumes = [0.25, 0.08, 0.03];
-                
-                components.forEach((f, i) => {
-                    let osc = audioCtx.createOscillator();
-                    let gainNode = audioCtx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(f, now);
-                    gainNode.gain.setValueAtTime(volumes[i], now);
-                    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 5);
-                    osc.connect(gainNode);
-                    gainNode.connect(audioCtx.destination);
-                    osc.start(now);
-                    osc.stop(now + 5);
-                });
-            } catch(e) {}
+        function playBell() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(215, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 4);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 4);
+            toast("磬响一声 · 杂念皆消 ☯️");
         }
 
-        // 🔊 鸣磬主逻辑
-        function ringTempleBell() {
-            let bell = document.getElementById('bell-audio');
-            let ambient = document.getElementById('ambient-audio');
-
-            // 尝试播放真实的铜磬录音
-            if (bell.readyState >= 2) {
-                bell.currentTime = 0;
-                bell.play().catch(() => playFallbackBellSound(215)); // 播放失败则用代码生成声音兜底
-            } else {
-                playFallbackBellSound(215); // 没有文件则直接用代码生成声音
-            }
-
-            // 顺便唤醒背景白噪音（因为浏览器要求有用户交互才能播放音频）
-            if(ambient.paused && ambient.readyState >= 2) {
-                ambient.volume = 0.1; // 背景音设置得极其轻微
-                ambient.play().catch(e => console.log("等待用户交互以播放背景音"));
-            }
-
-            showEtherealToast("鸣磬一下 · 内耗消散 ☯️");
-        }
-
-        function sendWish疏文() {
-            let input = document.getElementById('wish-box');
-            let text = input.value.trim();
-            if(!text) return;
-            
-            ringTempleBell(); // 提交祈愿时也触发一声铜磬
-            showEtherealToast(`文疏已化，随风化煞：${text} 🏮`);
-            input.value = '';
-        }
-
-        // 💨 吐纳逻辑保持不变
-        let breathTimer = null;
-        let breathState = 0; 
-        function triggerBreathExercise() {
+        // 💨 吐纳
+        let breathing = false;
+        function startBreath() {
             const btn = document.getElementById('breath-btn');
-            if (breathTimer) {
-                clearInterval(breathTimer); breathTimer = null;
-                btn.innerText = "开始跟随法盘磁场吐纳"; return;
-            }
-            breathState = 0;
-            btn.innerText = "✨ 吸气... 汲取大殿纯阳之气";
-            breathTimer = setInterval(() => {
-                breathState = 1 - breathState;
-                btn.innerText = breathState === 0 ? "✨ 吸气... 汲取大殿纯阳之气" : "💨 呼气... 排出体内焦虑烦杂";
+            if(breathing) { location.reload(); return; }
+            breathing = true;
+            let step = 0;
+            setInterval(() => {
+                btn.innerText = step % 2 === 0 ? "✨ 吸气... 纳新" : "💨 呼气... 吐故";
+                step++;
             }, 4000);
         }
 
-        function showEtherealToast(msg) {
-            let toast = document.createElement('div');
-            toast.className = 'ethereal-toast';
-            toast.innerText = msg;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 2800);
+        function sendWish() {
+            const w = document.getElementById('wish').value;
+            if(!w) return;
+            toast(`疏文已上达天听：${w} 🏮`);
+            document.getElementById('wish').value = '';
         }
 
-        // 恢复音频上下文
-        document.addEventListener('click', () => {
-            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-        });
+        function toast(m) {
+            const t = document.createElement('div');
+            t.className = 'toast';
+            t.innerText = m;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 2500);
+        }
 
-        // 切换面板
-        function switchConsoleTab(paneId, index) {
-            document.querySelectorAll('.tab-item-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-content-pane').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.tab-item-btn')[index].classList.add('active');
-            document.getElementById(paneId).classList.add('active');
+        function showTab(idx) {
+            const btns = document.querySelectorAll('.tab-btn');
+            const contents = document.querySelectorAll('.action-content');
+            btns.forEach((b, i) => b.classList.toggle('active', i === idx));
+            contents.forEach((c, i) => c.classList.toggle('active', i === idx));
         }
     </script>
 </body>
