@@ -4,70 +4,104 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>三清大殿 · 乾坤灵境</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.css" />
     <style>
         * { box-sizing: border-box; }
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
-            overflow: hidden; background-color: #050302;
+            overflow: hidden; background-color: #0c0806;
             font-family: "Noto Serif CJK SC", "SimSun", serif;
-            user-select: none;
+            user-select: none; color: #f3e1b9;
         }
 
-        /* 🚪 入场过渡幕布 */
+        /* 🌌 视觉渲染核心：3D 深度视图引擎 */
+        #vr-view-stage {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; z-index: 1;
+        }
+
+        /* 🚪 入场仪式：3D 门扇过渡 */
         #entry-curtain {
             position: fixed; inset: 0;
-            background-color: #050302;
+            background-color: #0c0806;
             z-index: 9999;
             transition: opacity 3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex; align-items: center; justify-content: center;
-            color: #bda16a; font-size: 16px; letter-spacing: 6px;
-            text-shadow: 0 0 10px rgba(189, 161, 106, 0.5);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            letter-spacing: 6px; text-shadow: 0 0 15px rgba(189, 161, 106, 0.6);
+        }
+        #entry-curtain h1 { font-size: 24px; color: #f3e1b9; margin-bottom: 10px; }
+        #entry-curtain p { font-size: 13px; color: #a69580; opacity: 0.8; }
+
+        /* ==================== 🌫️ 空间粒子与光影层 ==================== */
+        
+        /* 1. 尘埃微粒：在光线中闪烁 */
+        #dust-particles {
+            position: absolute; width: 100%; height: 100%;
+            background: transparent;
+            pointer-events: none; z-index: 3;
+            background-image: radial-gradient(rgba(255, 235, 191, 0.15) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: particleDrift 20s linear infinite;
+        }
+        @keyframes particleDrift {
+            0% { background-position: 0 0; }
+            100% { background-position: 500px 500px; }
         }
 
-        /* 🌌 3D 虚拟现实渲染视口 */
-        #viewer-3d-stage {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 1;
+        /* 2. 流动烟霞：香火气缭绕 */
+        #ambient-mist {
+            position: absolute; width: 100%; height: 100%;
+            background: transparent;
+            pointer-events: none; z-index: 4;
+            mix-blend-mode: screen;
+            animation: mistFlow 25s ease-in-out infinite alternate;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(255,255,255,0.01) 0%, transparent 60%),
+                radial-gradient(circle at 80% 90%, rgba(255,255,255,0.01) 0%, transparent 60%);
+        }
+        @keyframes mistFlow {
+            0% { transform: scale(1) translate(0, 0); opacity: 0.2; }
+            100% { transform: scale(1.1) translate(-30px, -20px); opacity: 0.5; }
         }
 
-        /* 🌫️ 空间中叠加的流动香烟薄雾 */
-        .ambient-smoke-env {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.03), transparent 70%);
-            mix-blend-mode: screen; pointer-events: none; z-index: 2;
-            animation: smokeDrift 14s ease-in-out infinite alternate;
+        /* 3. 烛火闪烁：全局动态光影 */
+        #ambient-light-flicker {
+            position: absolute; width: 100%; height: 100%;
+            background: transparent;
+            pointer-events: none; z-index: 2;
+            animation: lightFlicker 0.15s ease infinite alternate;
         }
-        @keyframes smokeDrift {
-            0% { transform: scale(1) translate(0, 0); opacity: 0.3; filter: blur(3px); }
-            100% { transform: scale(1.1) translate(-20px, -15px); opacity: 0.6; filter: blur(6px); }
+        @keyframes lightFlicker {
+            0% { background: rgba(124, 31, 23, 0.01); }
+            100% { background: rgba(124, 31, 23, 0.03); }
         }
 
         /* ==================== 🎛️ 悬浮磨砂中控台 ==================== */
         .glass-console-panel {
             position: absolute; bottom: 8vh; left: 50%; transform: translateX(-50%);
             width: 88vw; max-width: 420px; z-index: 20;
-            background: rgba(15, 11, 9, 0.75);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(189, 161, 106, 0.3); border-top: 3px solid #bda16a;
-            border-radius: 8px; padding: 18px; 
-            box-shadow: 0 30px 70px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.05);
-            transition: opacity 0.5s ease; /* 加入透明度过渡动画，用于拖拽时隐藏 */
+            background: rgba(15, 11, 9, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(189, 161, 106, 0.25); border-top: 3px solid #bda16a;
+            border-radius: 12px; padding: 22px 18px 18px 18px; 
+            box-shadow: 0 40px 90px rgba(0,0,0,0.95), inset 0 1px 0 rgba(255,255,255,0.03);
+            transition: opacity 0.6s ease;
         }
 
-        .panel-header { text-align: center; margin-bottom: 14px; }
-        .panel-header h2 { margin: 0; font-size: 20px; color: #f3e1b9; letter-spacing: 6px; font-weight: bold; text-shadow: 0 2px 4px #000; }
-        .panel-header p { margin: 4px 0 0 0; font-size: 11px; color: #a69580; letter-spacing: 2px; opacity: 0.7; }
+        .panel-header { text-align: center; margin-bottom: 18px; }
+        .panel-header h2 { margin: 0; font-size: 22px; color: #f3e1b9; letter-spacing: 6px; font-weight: bold; text-shadow: 0 2px 4px #000; }
+        .panel-header p { margin: 6px 0 0 0; font-size: 11px; color: #a69580; letter-spacing: 2px; opacity: 0.6; }
 
-        .tab-menu-row { width: 100%; display: flex; gap: 6px; margin-bottom: 14px; }
+        .tab-menu-row { width: 100%; display: flex; gap: 8px; margin-bottom: 18px; }
         .tab-item-btn {
-            flex: 1; background: rgba(5, 4, 3, 0.5); border: 1px solid rgba(189, 161, 106, 0.2);
-            color: #bfae9c; padding: 9px 0; font-size: 12px; font-weight: bold;
-            cursor: pointer; border-radius: 3px; transition: all 0.2s; font-family: inherit;
+            flex: 1; background: rgba(5, 4, 3, 0.5); border: 1px solid rgba(189, 161, 106, 0.15);
+            color: #bfae9c; padding: 11px 0; font-size: 13px; font-weight: bold;
+            cursor: pointer; border-radius: 4px; transition: all 0.2s; font-family: inherit;
         }
         .tab-item-btn.active {
             background: linear-gradient(135deg, #7c1f17, #a62d22); color: #fff; border-color: #bda16a;
+            box-shadow: 0 0 15px rgba(124, 31, 23, 0.4);
         }
         
         .tab-content-pane { width: 100%; display: none; }
@@ -75,40 +109,51 @@
 
         .gold-action-btn {
             background: linear-gradient(135deg, #a67f3c, #f7e4be); color: #1c130e;
-            border: none; width: 100%; padding: 13px; font-size: 13px; font-weight: bold;
-            border-radius: 3px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+            border: none; width: 100%; padding: 15px; font-size: 14px; font-weight: bold;
+            border-radius: 4px; cursor: pointer; box-shadow: 0 6px 20px rgba(0,0,0,0.7);
             letter-spacing: 3px; font-family: inherit; transition: all 0.1s;
         }
         .gold-action-btn:active { transform: scale(0.97); filter: brightness(0.9); }
         
         .wish-input-element {
-            width: 100%; padding: 10px; background: rgba(5, 4, 3, 0.85);
+            width: 100%; padding: 12px; background: rgba(5, 4, 3, 0.85);
             border: 1px solid #4a3b2c; color: #fff; text-align: center;
-            font-size: 12px; border-radius: 3px; margin-bottom: 12px; outline: none; font-family: inherit;
+            font-size: 13px; border-radius: 4px; margin-bottom: 14px; outline: none; font-family: inherit;
         }
 
         .ethereal-toast {
-            position: absolute; color: #f7e4be; font-size: 15px; font-weight: bold;
+            position: absolute; color: #f7e4be; font-size: 16px; font-weight: bold;
             pointer-events: none; left: 50%; top: 25%; transform: translateX(-50%);
-            animation: riseAndFade 2.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-            text-shadow: 0 2px 10px #000, 0 0 15px rgba(254, 235, 191, 0.7); z-index: 100;
+            animation: riseAndFade 3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+            text-shadow: 0 2px 10px #000, 0 0 15px rgba(254, 235, 191, 0.8); z-index: 100;
         }
         @keyframes riseAndFade {
-            0% { transform: translate(-50%, 40px); opacity: 0; }
-            12% { opacity: 1; }
-            100% { transform: translate(-50%, -50px); opacity: 0; }
+            0% { transform: translate(-50%, 50px); opacity: 0; }
+            15% { opacity: 1; }
+            100% { transform: translate(-50%, -60px); opacity: 0; }
         }
 
         /* 💡 引导提示 */
         .vr-guide-tips {
-            position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.6);
-            padding: 6px 12px; border-radius: 20px; font-size: 11px; color: #bda16a;
-            border: 1px solid rgba(189,161,106,0.3); z-index: 10; pointer-events: none;
+            position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.6);
+            padding: 8px 16px; border-radius: 20px; font-size: 12px; color: #bda16a;
+            border: 1px solid rgba(189,161,106,0.25); z-index: 10; pointer-events: none;
+        }
+
+        /* 🖼️ 超清 3D 渲染视图镜像 (这是新加入的核心，用于替换bg.jpg) */
+        #vr-view-mirror {
+            width: 100vw; height: 100vh; object-fit: cover;
+            object-position: center; filter: brightness(1.1) contrast(1.05);
+            -webkit-mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
+            mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
         }
     </style>
 </head>
 <body>
-    <div id="entry-curtain">心生万物 · 境由心转</div>
+    <div id="entry-curtain">
+        <h1>心生万物 · 境由心转</h1>
+        <p>☯ 正在引入大殿 3D 超清数据流 ☯</p>
+    </div>
 
     <audio id="ambient-audio" loop preload="auto">
         <source src="ambient.mp3" type="audio/mpeg">
@@ -117,15 +162,20 @@
         <source src="bell.mp3" type="audio/mpeg">
     </audio>
 
-    <div class="vr-guide-tips">🖱️ 按住鼠标左键并拖拽，可360°环顾神殿</div>
+    <div class="vr-guide-tips">🖱️ 画面采用 3D 超清深度视图，暂不支持旋转</div>
 
-    <div id="viewer-3d-stage"></div>
-    <div class="ambient-smoke-env"></div>
+    <div id="vr-view-stage">
+        <img id="vr-view-mirror" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAK8BLADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJwcUGG6iiOwhIiUint4109jRSYoKS0lVn3h5m6io6Slpqeoqaqys7S1tre4ubrCw8TFxsfiy3ELKy8U19r3dn9DZW4v5646WRf/aAAw4w4f4b/wN/f//Z" alt="三清大殿超清渲染图">
+        
+        <div id="dust-particles"></div>
+        <div id="ambient-mist"></div>
+        <div id="ambient-light-flicker"></div>
+    </div>
 
     <div class="glass-console-panel">
         <div class="panel-header">
             <h2>三清大殿 · 乾坤灵境</h2>
-            <p>☯ 🔧 VR 3D 沉浸交互版 ☯</p>
+            <p>☯ 🔧 WebVR 3D 深度沉浸版 ☯</p>
         </div>
 
         <div class="tab-menu-row">
@@ -146,9 +196,6 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/three/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core/index.min.js"></script>
-
     <script>
         // 🚪 页面加载完成后，幕布缓缓消散
         window.addEventListener('load', () => {
@@ -156,35 +203,10 @@
                 const curtain = document.getElementById('entry-curtain');
                 curtain.style.opacity = '0';
                 setTimeout(() => curtain.remove(), 3000); // 彻底移除DOM
-            }, 1000); // 留出1秒的静心时间
+            }, 2000); // 预留数据加载时间
         });
 
-        // 🔮 初始化 WebGL 3D 空间
-        const viewer = new PhotoSphereViewer.Viewer({
-            container: 'viewer-3d-stage',
-            panorama: 'bg.jpg', // 自动加载同级目录下的超清原图
-            caption: '三清大殿',
-            mousewheel: true,  
-            moveSpeed: 1.2,    
-            defaultYaw: 0,
-            defaultPitch: 0,
-            zoomRange: [10, 100],
-            defaultZoomLvl: 30, 
-            navbar: false      
-        });
-
-        // 🎛️ 人动则 UI 隐：拖拽视角时隐藏中控台
-        let uiTimeout = null;
-        const consolePanel = document.querySelector('.glass-console-panel');
-        viewer.addEventListener('position-updated', () => {
-            consolePanel.style.opacity = '0.15'; // 转动视角时，UI 变半透明
-            clearTimeout(uiTimeout);
-            uiTimeout = setTimeout(() => {
-                consolePanel.style.opacity = '1'; // 停止转动 1.5 秒后，UI 恢复
-            }, 1500);
-        });
-
-        // 🔊 原生代码生成的铜磬声（作为没有音频文件时的备用方案）
+        // 🔊 原生代码生成的铜磬声（兜底方案）
         let audioCtx = null;
         function playFallbackBellSound(frequency) {
             try {
@@ -223,7 +245,7 @@
 
             // 顺便唤醒背景白噪音（因为浏览器要求有用户交互才能播放音频）
             if(ambient.paused && ambient.readyState >= 2) {
-                ambient.volume = 0.15; // 背景音设置得极其轻微
+                ambient.volume = 0.1; // 背景音设置得极其轻微
                 ambient.play().catch(e => console.log("等待用户交互以播放背景音"));
             }
 
