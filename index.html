@@ -3,212 +3,270 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>三清大殿 · 乾坤灵境</title>
+    <title>云上道观 · 沉浸式修仙</title>
     <style>
-        * { box-sizing: border-box; }
+        /* 全局高级感重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            overflow: hidden; background-color: #050302;
-            font-family: "Noto Serif CJK SC", "SimSun", serif;
-            user-select: none; color: #f3e1b9;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: "Noto Serif SC", "SimSun", serif;
+            background-color: #050b14;
+            color: #e0d5c1;
         }
 
-        /* 🌌 3D 深度视图容器 */
-        #vr-view-stage {
-            position: absolute; top: -5%; left: -5%; width: 110%; height: 110%;
-            display: flex; align-items: center; justify-content: center;
-            z-index: 1;
-            transition: transform 0.1s ease-out; /* 关键：用于实现鼠标跟随的平滑感 */
+        /* 核心背景：巨幅沉浸式视觉 */
+        .scenery-container {
+            position: absolute;
+            top: -5%;
+            left: -5%;
+            width: 110%;
+            height: 110%;
+            background-image: url('bg1.jpg'); /* 这里放你最喜欢的那张大殿照片 */
+            background-size: cover;
+            background-position: center;
+            transition: transform 0.1s ease-out, filter 1s ease-in-out;
+            filter: brightness(0.85) contrast(1.05);
         }
 
-        /* 🖼️ 高清背景图：直接调用云端高清大殿 */
-        #vr-view-mirror {
-            width: 100%; height: 100%; object-fit: cover;
-            filter: brightness(0.9) contrast(1.1) saturate(0.8);
+        /* 赛博动态青烟特效 */
+        .smoke-overlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 80%, rgba(255,255,255,0.05), transparent 60%);
+            pointer-events: none;
+            mix-blend-mode: screen;
+            animation: smokeMove 8s infinite alternate ease-in-out;
         }
 
-        /* 🚪 入场幕布 */
-        #entry-curtain {
-            position: fixed; inset: 0; background: #050302; z-index: 9999;
-            transition: opacity 3s ease; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; letter-spacing: 8px;
+        @keyframes smokeMove {
+            0% { transform: scale(1) translate(0, 0); filter: blur(4px); }
+            100% { transform: scale(1.1) translate(2%, -3%); filter: blur(8px); }
         }
 
-        /* ==================== 🌫️ 氛围叠加层（增加真实感） ==================== */
-        
-        /* 1. 动态烟雾 */
-        .ambient-mist {
-            position: fixed; inset: 0; pointer-events: none; z-index: 5;
-            background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.05), transparent 70%);
-            mix-blend-mode: screen; animation: mistMove 20s infinite alternate;
-        }
-        @keyframes mistMove {
-            from { transform: translate(-2%, -2%) scale(1); opacity: 0.3; }
-            to { transform: translate(2%, 2%) scale(1.1); opacity: 0.6; }
+        /* 遮罩：营造深邃的寺庙氛围 */
+        .vignette {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, transparent 40%, rgba(3, 7, 15, 0.8) 100%);
+            pointer-events: none;
         }
 
-        /* 2. 烛火微光闪烁 */
-        .light-flicker {
-            position: fixed; inset: 0; pointer-events: none; z-index: 2;
-            background: rgba(124, 31, 23, 0.02);
-            animation: flicker 0.2s infinite alternate;
+        /* 顶部庄严匾额标题 */
+        .header-title {
+            position: absolute;
+            top: 5%;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            pointer-events: none;
         }
-        @keyframes flicker {
-            from { opacity: 0.5; } to { opacity: 1; }
+        .header-title h1 {
+            font-size: 2.5rem;
+            letter-spacing: 0.8rem;
+            color: #eddba4;
+            text-shadow: 0 0 15px rgba(237, 219, 164, 0.4);
+            margin-bottom: 5px;
         }
-
-        /* ==================== 🎛️ 玻璃态UI中控台 ==================== */
-        .glass-console-panel {
-            position: absolute; bottom: 8vh; left: 50%; transform: translateX(-50%);
-            width: 88vw; max-width: 420px; z-index: 20;
-            background: rgba(15, 11, 9, 0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(189, 161, 106, 0.3); border-top: 3px solid #bda16a;
-            border-radius: 12px; padding: 20px; box-shadow: 0 40px 100px rgba(0,0,0,0.8);
-        }
-
-        .panel-header h2 { margin: 0; font-size: 22px; text-align: center; letter-spacing: 4px; color: #f3e1b9; }
-        .panel-header p { margin: 5px 0 15px 0; font-size: 11px; text-align: center; color: #a69580; opacity: 0.7; }
-
-        .tab-menu { display: flex; gap: 8px; margin-bottom: 15px; }
-        .tab-btn {
-            flex: 1; padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(189,161,106,0.2);
-            color: #bfae9c; font-size: 12px; cursor: pointer; border-radius: 4px;
-        }
-        .tab-btn.active { background: #7c1f17; color: #fff; border-color: #bda16a; }
-
-        .action-content { display: none; }
-        .action-content.active { display: block; }
-
-        .gold-btn {
-            width: 100%; padding: 14px; background: linear-gradient(135deg, #a67f3c, #f7e4be);
-            border: none; border-radius: 4px; color: #1c130e; font-weight: bold; cursor: pointer;
-            letter-spacing: 2px; transition: 0.2s;
-        }
-        .gold-btn:active { transform: scale(0.98); }
-
-        .wish-input {
-            width: 100%; padding: 12px; background: #000; border: 1px solid #4a3b2c;
-            color: #fff; border-radius: 4px; margin-bottom: 10px; text-align: center;
+        .header-title p {
+            font-size: 0.9rem;
+            letter-spacing: 0.3rem;
+            color: #8c96a0;
         }
 
-        /* 飘字提醒 */
-        .toast {
-            position: fixed; top: 30%; left: 50%; transform: translate(-50%, -50%);
-            color: #f7e4be; font-size: 18px; font-weight: bold; pointer-events: none;
-            text-shadow: 0 0 15px #000; animation: fadeUp 2.5s forwards; z-index: 100;
+        /* 右侧移步换景书卷菜单 */
+        .nav-menu {
+            position: absolute;
+            right: 4%;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            background: rgba(12, 22, 36, 0.75);
+            padding: 30px 20px;
+            border-radius: 5px;
+            border: 1px solid rgba(237, 219, 164, 0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
         }
-        @keyframes fadeUp {
-            0% { opacity: 0; transform: translate(-50%, 20px); }
+        .nav-item {
+            cursor: pointer;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            letter-spacing: 6px;
+            font-size: 1.1rem;
+            color: #a3b0c2;
+            transition: all 0.3s ease;
+            padding: 10px 5px;
+            border-left: 2px solid transparent;
+        }
+        .nav-item:hover, .nav-item.active {
+            color: #eddba4;
+            text-shadow: 0 0 10px rgba(237, 219, 164, 0.6);
+            border-left: 2px solid #eddba4;
+        }
+
+        /* 中央核心交互区：赛博功德箱 */
+        .interaction-zone {
+            position: absolute;
+            bottom: 15%;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* 炫酷的古典渐变发光按钮 */
+        .temple-btn {
+            background: linear-gradient(135deg, #8c2525 0%, #4a1212 100%);
+            border: 1px solid #eddba4;
+            color: #eddba4;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            letter-spacing: 4px;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(140, 37, 37, 0.4);
+            transition: all 0.3s ease;
+        }
+        .temple-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(237, 219, 164, 0.6);
+            background: linear-gradient(135deg, #a62e2e 0%, #5c1818 100%);
+        }
+
+        /* 功德弹窗文字 */
+        .gongde-text {
+            position: absolute;
+            color: #eddba4;
+            font-size: 1.5rem;
+            font-weight: bold;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(0);
+            animation: floatUp 1.2s ease-out forwards;
+            text-shadow: 0 0 8px #eddba4;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 0; transform: translateY(0); }
             20% { opacity: 1; }
-            100% { opacity: 0; transform: translate(-50%, -40px); }
+            100% { opacity: 0; transform: translateY(-80px); }
+        }
+
+        /* 底部功德计数器 */
+        .counter-panel {
+            background: rgba(0,0,0,0.4);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .counter-panel span {
+            color: #eddba4;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-    <div id="entry-curtain">
-        <h2 style="color:#bda16a">万籁俱静 · 唯见真我</h2>
-        <p style="color:#666">正在连接灵境 3D 视图...</p>
+    <div class="scenery-container" id="bgLayer"></div>
+    
+    <div class="smoke-overlay"></div>
+    <div class="vignette"></div>
+
+    <div class="header-title">
+        <h1 id="mainTitle">玉 虚 殿</h1>
+        <p id="subTitle">意念通天 · 福泽万物</p>
     </div>
 
-    <div class="light-flicker"></div>
-    <div class="ambient-mist"></div>
-
-    <div id="vr-view-stage">
-        <img id="vr-view-mirror" src="https://images.unsplash.com/photo-1610991148731-9705e3240212?q=80&w=2070&auto=format&fit=crop" alt="灵境视图">
+    <div class="nav-menu">
+        <div class="nav-item active" onclick="switchScene('玉虚殿', '意念通天 · 福泽万物', 'bg1.jpg', this)">正殿供奉</div>
+        <div class="nav-item" onclick="switchScene('祖师殿', '玄风永振 · 青烟袅袅', 'bg2.jpg', this)">祖师祈福</div>
+        <div class="nav-item" onclick="switchScene('玄帝殿', '太乙寻祥 · 俯瞰群山', 'bg3.jpg', this)">后山许愿</div>
     </div>
 
-    <div class="glass-console-panel">
-        <div class="panel-header">
-            <h2>三清大殿 · 乾坤灵境</h2>
-            <p>☯ 沉浸式 3D 深度交互 ☯</p>
-        </div>
-
-        <div class="tab-menu">
-            <button class="tab-btn active" onclick="showTab(0)">敬奉心香</button>
-            <button class="tab-btn" onclick="showTab(1)">功态吐纳</button>
-            <button class="tab-btn" onclick="showTab(2)">文疏祈愿</button>
-        </div>
-
-        <div class="action-content active">
-            <button class="gold-btn" onclick="playBell()">鸣磬静心</button>
-        </div>
-        <div class="action-content">
-            <button class="gold-btn" id="breath-btn" onclick="startBreath()">开始吐纳</button>
-        </div>
-        <div class="action-content">
-            <input type="text" id="wish" class="wish-input" placeholder="输入心中所求...">
-            <button class="gold-btn" onclick="sendWish()">化疏文</button>
-        </div>
+    <div class="interaction-zone">
+        <div id="floatContainer"></div>
+        <button class="temple-btn" onclick="addGongde()">敲击木鱼 · 虔诚供奉</button>
+        <div class="counter-panel">当前功德：<span id="gongdeCount">0</span></div>
     </div>
 
     <script>
-        // 🚪 入场
-        window.onload = () => {
-            setTimeout(() => {
-                document.getElementById('entry-curtain').style.opacity = '0';
-                setTimeout(() => document.getElementById('entry-curtain').remove(), 3000);
-            }, 1500);
-        };
+        let count = 0;
 
-        // 🖱️ 3D 悬浮透视效果：让背景随鼠标移动
-        const stage = document.getElementById('vr-view-stage');
-        document.addEventListener('mousemove', (e) => {
-            const x = (window.innerWidth / 2 - e.pageX) / 50;
-            const y = (window.innerHeight / 2 - e.pageY) / 50;
-            stage.style.transform = `rotateY(${x}deg) rotateX(${-y}deg) translateZ(20px)`;
+        // 功能一：实现震撼的鼠标动态视差效果（让静态照片有立体感）
+        const bgLayer = document.getElementById('bgLayer');
+        window.addEventListener('mousemove', (e) => {
+            const x = (window.innerWidth / 2 - e.clientX) / 25;
+            const y = (window.innerHeight / 2 - e.clientY) / 25;
+            bgLayer.style.transform = `translate(${x}px, ${y}px) scale(1.02)`;
         });
 
-        // 🔊 鸣磬
-        let audioCtx = null;
-        function playBell() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(215, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 4);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 4);
-            toast("磬响一声 · 杂念皆消 ☯️");
+        // 功能二：点击增加功德，并在屏幕上飘出金色文字
+        function addGongde() {
+            count++;
+            document.getElementById('gongdeCount').innerText = count;
+
+            // 创建飘字特效
+            const container = document.getElementById('floatContainer');
+            const text = document.createElement('div');
+            text.className = 'gongde-text';
+            text.innerText = '功德 +1';
+            
+            // 随机给飘字加一点点左右偏移，看起来更灵动
+            const randomX = Math.random() * 40 - 20;
+            text.style.left = `calc(50% + ${randomX}px)`;
+            
+            container.appendChild(text);
+
+            // 播放自带的系统提示音（假装是木鱼声，后期可以换成真木鱼音频）
+            if(window.AudioContext || window.webkitAudioContext) {
+                let ctx = new (window.AudioContext || window.webkitAudioContext)();
+                let osc = ctx.createOscillator();
+                let gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(150, ctx.currentTime); // 低沉的木鱼质感
+                gain.gain.setValueAtTime(0.5, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.3);
+            }
+
+            // 动画结束后自动销毁文字，不占内存
+            setTimeout(() => {
+                text.remove();
+            }, 1200);
         }
 
-        // 💨 吐纳
-        let breathing = false;
-        function startBreath() {
-            const btn = document.getElementById('breath-btn');
-            if(breathing) { location.reload(); return; }
-            breathing = true;
-            let step = 0;
-            setInterval(() => {
-                btn.innerText = step % 2 === 0 ? "✨ 吸气... 纳新" : "💨 呼气... 吐故";
-                step++;
-            }, 4000);
-        }
+        // 功能三：移步换景核心逻辑
+        function switchScene(title, subtitle, bgImage, element) {
+            // 切换菜单激活状态
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            element.classList.add('active');
 
-        function sendWish() {
-            const w = document.getElementById('wish').value;
-            if(!w) return;
-            toast(`疏文已上达天听：${w} 🏮`);
-            document.getElementById('wish').value = '';
-        }
-
-        function toast(m) {
-            const t = document.createElement('div');
-            t.className = 'toast';
-            t.innerText = m;
-            document.body.appendChild(t);
-            setTimeout(() => t.remove(), 2500);
-        }
-
-        function showTab(idx) {
-            const btns = document.querySelectorAll('.tab-btn');
-            const contents = document.querySelectorAll('.action-content');
-            btns.forEach((b, i) => b.classList.toggle('active', i === idx));
-            contents.forEach((c, i) => c.classList.toggle('active', i === idx));
+            // 触发淡出淡入切换背景
+            bgLayer.style.filter = 'brightness(0) contrast(1)';
+            
+            setTimeout(() => {
+                // 现实开发中，用户需要把自己的照片改名为 bg1.jpg, bg2.jpg, bg3.jpg 放在同目录下
+                bgLayer.style.backgroundImage = `url('${bgImage}')`;
+                document.getElementById('mainTitle').innerText = title;
+                document.getElementById('subTitle').innerText = subtitle;
+                bgLayer.style.filter = 'brightness(0.85) contrast(1.05)';
+            }, 500);
         }
     </script>
 </body>
