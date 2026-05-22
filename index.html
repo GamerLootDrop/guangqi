@@ -2,13 +2,14 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>静心 · 宇宙空间</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
         body, html {
             width: 100%;
@@ -27,7 +28,6 @@
             width: 100%;
             height: 100%;
             z-index: 1;
-            cursor: pointer;
         }
 
         /* 边缘暗部遮罩，增强深邃的包裹感与孤独感 */
@@ -43,7 +43,7 @@
         /* 核心精神文案容器（呼吸淡入淡出） */
         .soul-container {
             position: absolute;
-            top: 40%;
+            top: 35%;
             left: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
@@ -54,14 +54,18 @@
         }
         .soul-text {
             color: #b8ad96;
-            font-size: 1.25rem;
-            letter-spacing: 7px;
-            line-height: 2.8rem;
+            font-size: 1.1rem;
+            letter-spacing: 5px;
+            line-height: 2.4rem;
             opacity: 0;
             filter: blur(4px);
             animation: textBreath 15s infinite ease-in-out;
             text-shadow: 0 0 25px rgba(184, 173, 150, 0.25);
             font-weight: 300;
+        }
+        @media (min-width: 768px) {
+            .soul-text { font-size: 1.25rem; letter-spacing: 7px; line-height: 2.8rem; }
+            .soul-container { top: 40%; }
         }
         @keyframes textBreath {
             0% { opacity: 0; filter: blur(6px); transform: scale(0.97); }
@@ -70,62 +74,76 @@
             100% { opacity: 0; filter: blur(6px); transform: scale(1.03); }
         }
 
-        /* 悬停在星辰上浮现的“他人心声”容器 */
+        /* 悬停/点击在星辰上浮现的“他人心声”容器 */
         .resonance-box {
             position: absolute;
             z-index: 100;
-            background: rgba(2, 5, 10, 0.85);
-            border: 1px solid rgba(184, 173, 150, 0.2);
-            padding: 12px 18px;
+            background: rgba(2, 5, 10, 0.9);
+            border: 1px solid rgba(184, 173, 150, 0.25);
+            padding: 14px 20px;
             border-radius: 4px;
             color: #dcd3be;
             font-size: 0.9rem;
             letter-spacing: 2px;
-            line-height: 1.5rem;
+            line-height: 1.6rem;
             pointer-events: none;
             opacity: 0;
             transform: translate(-50%, -120%);
-            transition: opacity 0.4s ease, filter 0.4s ease;
-            backdrop-filter: blur(6px);
-            max-width: 260px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.7);
-            filter: blur(3px);
+            transition: opacity 0.4s ease, filter 0.4s ease, transform 0.3s ease;
+            backdrop-filter: blur(8px);
+            width: 85vw;
+            max-width: 280px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+            filter: blur(4px);
         }
         .resonance-box.active {
-            opacity: 0.9;
+            opacity: 0.95;
             filter: blur(0px);
         }
+        /* 手机端触控时的特殊定位样式（居中偏上，防止被手指挡住） */
+        .resonance-box.mobile-center {
+            position: absolute;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            animation: mobileBoxFadeIn 0.3s ease forwards;
+        }
+        @keyframes mobileBoxFadeIn {
+            from { opacity: 0; filter: blur(5px); transform: translate(-50%, -45%); }
+            to { opacity: 0.95; filter: blur(0px); transform: translate(-50%, -50%); }
+        }
 
-        /* 右下角极简倾诉按钮（不破坏画面） */
+        /* 右下角极简倾诉按钮 */
         .whisper-trigger {
             position: absolute;
             bottom: 5%;
-            right: 4%;
+            right: 6%;
             z-index: 20;
-            color: rgba(184, 173, 150, 0.4);
+            color: rgba(184, 173, 150, 0.5);
             font-size: 0.85rem;
             letter-spacing: 2px;
             cursor: pointer;
             transition: color 0.3s;
             border-bottom: 1px solid rgba(184, 173, 150, 0.15);
-            padding-bottom: 2px;
+            padding-bottom: 4px;
         }
+        @media (min-width: 768px) { .whisper-trigger { right: 4%; } }
         .whisper-trigger:hover {
             color: rgba(184, 173, 150, 0.9);
         }
 
-        /* 弹出输入面板：执念化作星辰 */
+        /* 弹出输入面板 */
         .input-panel {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            z-index: 50;
-            background: rgba(3, 7, 14, 0.95);
-            border: 1px solid rgba(184, 173, 150, 0.2);
-            padding: 30px;
+            z-index: 150;
+            background: rgba(3, 7, 14, 0.97);
+            border: 1px solid rgba(184, 173, 150, 0.25);
+            padding: 25px;
             border-radius: 4px;
-            width: 90%;
+            width: 88%;
             max-width: 400px;
             display: none;
             flex-direction: column;
@@ -146,7 +164,7 @@
             padding: 12px;
             color: #e0d5c1;
             font-family: inherit;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             outline: none;
             resize: none;
             border-radius: 2px;
@@ -163,7 +181,7 @@
             background: transparent;
             border: 1px solid rgba(184, 173, 150, 0.3);
             color: #8c8370;
-            padding: 6px 16px;
+            padding: 8px 18px;
             font-size: 0.8rem;
             cursor: pointer;
             border-radius: 2px;
@@ -173,21 +191,17 @@
             border-color: #b8ad96;
             color: #b8ad96;
         }
-        .panel-btn.submit:hover {
-            background: #b8ad96;
-            color: #03070e;
-        }
 
-        /* 声音开关按钮 */
+        /* 左下角声音开关 */
         .audio-trigger {
             position: absolute;
             bottom: 5%;
-            left: 4%;
+            left: 6%;
             z-index: 20;
             background: transparent;
             border: 1px solid rgba(184, 173, 150, 0.2);
             color: #8c8370;
-            padding: 6px 20px;
+            padding: 6px 16px;
             font-size: 0.8rem;
             letter-spacing: 2px;
             border-radius: 20px;
@@ -195,22 +209,25 @@
             transition: all 0.4s;
             outline: none;
         }
+        @media (min-width: 768px) { .audio-trigger { left: 4%; padding: 6px 20px; } }
         .audio-trigger:hover {
             border-color: #b8ad96;
             color: #b8ad96;
         }
 
-        /* 顶部引导小字 */
+        /* 顶部引导提示 */
         .top-hint {
             position: absolute;
             top: 4%;
             left: 50%;
             transform: translateX(-50%);
             font-size: 0.75rem;
-            color: rgba(184, 173, 150, 0.2);
-            letter-spacing: 3px;
+            color: rgba(184, 173, 150, 0.25);
+            letter-spacing: 2px;
             pointer-events: none;
             z-index: 10;
+            text-align: center;
+            width: 90%;
         }
     </style>
 </head>
@@ -219,7 +236,7 @@
     <canvas id="spaceCanvas"></canvas>
     <div class="ambient-glow"></div>
 
-    <div class="top-hint">拖拽可360°转动视角 · 鼠标悬停寻找发光的灵魂</div>
+    <div class="top-hint" id="guideHint">滑动旋转星空 · 轻触发光星辰感应心声</div>
     <div class="soul-container">
         <p class="soul-text" id="breathingText">万物自有其时。<br>你已经做得很好了，不必对自己步步紧逼。</p>
     </div>
@@ -229,7 +246,7 @@
     <button class="audio-trigger" onclick="toggleSpaceAudio(event)" id="audioBtn">轻触 · 听泉</button>
     <div class="whisper-trigger" onclick="openInputPanel(event)">把执念散作星辰</div>
 
-    <div class="input-panel" id="inputPanel" onclick="event.stopPropagation()">
+    <div class="input-panel" id="inputPanel">
         <p>写下一件你此刻放不下的事：</p>
         <textarea id="whisperInput" rows="3" placeholder="写完后，它将凝聚成宇宙里的一颗星..."></textarea>
         <div class="panel-btns">
@@ -245,12 +262,21 @@
         let width = canvas.width = window.innerWidth;
         let height = canvas.height = window.innerHeight;
 
+        // 检测是否为移动端
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if(!isMobile) {
+            document.getElementById('guideHint').innerText = "拖拽可360°转动视角 · 鼠标悬停寻找发光的灵魂";
+        }
+
         let rotationX = 0, rotationY = 0;
         let targetRotationX = 0, targetRotationY = 0;
         let isDragging = false;
+        
+        // 触控/鼠标追踪物理量
+        let startX = 0, startY = 0;
         let prevMouseX = 0, prevMouseY = 0;
+        let totalMoveDist = 0; // 用来判定是“拖拽视角”还是“轻触点击”
 
-        // 核心玩法：宇宙内的执念星辰矩阵（包含预埋的用户真实心声，直击痛点）
         const starNodes = [];
         const poolOfThoughts = [
             "今年31岁被裁员了，瞒着父母每天在图书馆假装上班，好累。",
@@ -263,22 +289,24 @@
 
         class StarNode {
             constructor(text = null, isUserGenerated = false) {
-                // 3D 空间球体坐标分布
                 const theta = Math.random() * Math.PI * 2;
                 const phi = Math.acos((Math.random() * 2) - 1);
-                const dist = isUserGenerated ? (250 + Math.random() * 150) : (350 + Math.random() * 350); // 用户生成的离镜头更近
+                // 手机端适当缩小编盘半径，使星辰在小屏幕上更紧凑、更有凝聚感
+                const baseDist = isMobile ? 280 : 350;
+                const dist = isUserGenerated ? (baseDist * 0.7) : (baseDist + Math.random() * baseDist);
 
                 this.x = dist * Math.sin(phi) * Math.cos(theta);
                 this.y = dist * Math.sin(phi) * Math.sin(theta);
                 this.z = dist * Math.cos(phi);
 
-                // 星星的外观特性
                 this.text = text || poolOfThoughts[Math.floor(Math.random() * poolOfThoughts.length)];
                 this.isUser = isUserGenerated;
-                this.size = isUserGenerated ? 2.5 : (Math.random() * 1.5 + 0.8);
                 
-                // 普通星星微弱闪烁，带有心声的星星带有温暖的微金光晕
-                this.baseAlpha = isUserGenerated ? 0.9 : (Math.random() * 0.4 + 0.2);
+                // 移动端让星星体积稍微增大一点点，更方便用肉眼寻找
+                const sizeMultiplier = isMobile ? 1.4 : 1.0;
+                this.size = isUserGenerated ? (3.0 * sizeMultiplier) : ((Math.random() * 1.3 + 0.7) * sizeMultiplier);
+                
+                this.baseAlpha = isUserGenerated ? 0.95 : (Math.random() * 0.4 + 0.2);
                 this.screenX = 0;
                 this.screenY = 0;
                 this.currentScale = 0;
@@ -302,9 +330,8 @@
                     ctx.beginPath();
                     ctx.arc(this.screenX, this.screenY, this.size * this.currentScale, 0, Math.PI * 2);
                     
-                    // 用户生成的或者悬停感应的星星散发耀眼金光
                     if(this.isUser) {
-                        ctx.fillStyle = `rgba(237, 219, 164, ${this.baseAlpha})`;
+                        ctx.fillStyle = `rgba(242, 226, 177, ${this.baseAlpha})`;
                         ctx.shadowBlur = 15;
                         ctx.shadowColor = "#eddba4";
                     } else {
@@ -312,18 +339,22 @@
                         ctx.shadowBlur = 0;
                     }
                     ctx.fill();
-                    ctx.shadowBlur = 0; // 重置画布阴影
+                    ctx.shadowBlur = 0;
                 }
             }
         }
 
-        // 初始化生成 200 颗带有世间悲欢的星辰
-        for(let i=0; i<150; i++) starNodes.push(new StarNode());
+        // 填充星海
+        const starCount = isMobile ? 100 : 160; // 手机端稍微精简数量，保护丝滑流畅度
+        for(let i=0; i<starCount; i++) starNodes.push(new StarNode());
 
-        // 3D 空间拖拽与视角环顾核心算法
+        // --- 核心物理事件绑定（完美融合 PC 鼠标与手机触控） ---
+
+        // 1. 电脑端鼠标逻辑
         window.addEventListener('mousedown', (e) => {
-            if(e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON') return;
+            if(checkTargetInvalid(e.target)) return;
             isDragging = true;
+            totalMoveDist = 0;
             prevMouseX = e.clientX; prevMouseY = e.clientY;
         });
 
@@ -334,42 +365,73 @@
                 targetRotationY += deltaX * 0.002;
                 targetRotationX += deltaY * 0.002;
                 prevMouseX = e.clientX; prevMouseY = e.clientY;
-            } else {
-                // 核心探测逻辑：当鼠标不拖拽时，检测是否悬停在某一小颗星辰周围
-                checkStarHover(e.clientX, e.clientY);
+                totalMoveDist += Math.hypot(deltaX, deltaY);
+            } else if (!isMobile) {
+                // 只有电脑端才在移动时执行 Hover 感应
+                checkStarInteraction(e.clientX, e.clientY, false);
             }
         });
 
-        window.addEventListener('mouseup', () => isDragging = false);
+        window.addEventListener('mouseup', (e) => {
+            if(!isDragging) return;
+            isDragging = false;
+            // 如果鼠标没怎么移动，说明是单点触发
+            if(totalMoveDist < 5 && !isMobile) {
+                checkStarInteraction(e.clientX, e.clientY, true);
+            }
+        });
 
-        // 移动端触摸支持
+        // 2. 手机端触控逻辑（核心改造升级）
         window.addEventListener('touchstart', (e) => {
-            if(e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON') return;
+            if(checkTargetInvalid(e.target)) return;
             isDragging = true;
-            prevMouseX = e.touches[0].clientX; prevMouseY = e.touches[0].clientY;
-        });
+            totalMoveDist = 0;
+            startX = prevMouseX = e.touches[0].clientX;
+            startY = prevMouseY = e.touches[0].clientY;
+        }, { passive: true });
+
         window.addEventListener('touchmove', (e) => {
-            if (isDragging) {
-                const deltaX = e.touches[0].clientX - prevMouseX;
-                const deltaY = e.touches[0].clientY - prevMouseY;
-                targetRotationY += deltaX * 0.004;
-                targetRotationX += deltaY * 0.004;
-                prevMouseX = e.touches[0].clientX; prevMouseY = e.touches[0].clientY;
+            if (!isDragging) return;
+            const deltaX = e.touches[0].clientX - prevMouseX;
+            const deltaY = e.touches[0].clientY - prevMouseY;
+            targetRotationY += deltaX * 0.004;
+            targetRotationX += deltaY * 0.004;
+            prevMouseX = e.touches[0].clientX;
+            prevMouseY = e.touches[0].clientY;
+            totalMoveDist += Math.hypot(deltaX, deltaY);
+        }, { passive: true });
+
+        window.addEventListener('touchend', (e) => {
+            if(!isDragging) return;
+            isDragging = false;
+            
+            // 核心判定：如果手指滑动的总距离小于 8 像素，说明用户在执行“轻触感应”
+            if (totalMoveDist < 8) {
+                checkStarInteraction(startX, startY, true);
+            } else {
+                // 如果是在拖拽视角，在手机上默认淡出已显示的心声，保证视野干净
+                if(isMobile) {
+                    document.getElementById('resonanceBox').classList.remove('active');
+                }
             }
         });
-        window.addEventListener('touchend', () => isDragging = false);
 
-        // 核心感应模块：检测鼠标与星辰的物理碰撞，浮现心声
+        function checkTargetInvalid(target) {
+            return target.tagName === 'TEXTAREA' || target.tagName === 'BUTTON' || target.classList.contains('whisper-trigger');
+        }
+
+        // --- 核心感应模块（全平台自适应适配） ---
         const resBox = document.getElementById('resonanceBox');
-        function checkStarHover(mx, my) {
+        
+        function checkStarInteraction(mx, my, isClickOrTouch) {
             let hoveredStar = null;
-            // 设定一个感应半径（20像素内触发，方便操作）
-            const hoverRadius = 18;
+            // 物理碰撞半径：手机端手指判定范围扩大一倍(35px)，电脑端保持灵敏(16px)
+            const activeRadius = isMobile ? 35 : 16; 
 
             for(let star of starNodes) {
                 if(star.currentScale > 0) {
                     const dist = Math.hypot(star.screenX - mx, star.screenY - my);
-                    if(dist < hoverRadius) {
+                    if(dist < activeRadius) {
                         hoveredStar = star;
                         break;
                     }
@@ -378,17 +440,34 @@
 
             if(hoveredStar) {
                 resBox.innerHTML = hoveredStar.text;
-                resBox.style.left = `${mx}px`;
-                resBox.style.top = `${my}px`;
+                
+                if (isMobile) {
+                    // 手机端：居中弹出，配合高级高斯模糊背景，防止手指遮挡且极具仪式感
+                    resBox.style.left = "50%";
+                    resBox.style.top = "50%";
+                    resBox.classList.add('mobile-center');
+                } else {
+                    // 电脑端：跟随鼠标浮动
+                    resBox.classList.remove('mobile-center');
+                    resBox.style.left = `${mx}px`;
+                    resBox.style.top = `${my}px`;
+                }
+                
                 resBox.classList.add('active');
-                // 悬停时让这颗星星高亮
                 hoveredStar.baseAlpha = 1;
-                if(!hoveredStar.isUser) hoveredStar.size = 2.2;
+                hoveredStar.size = isMobile ? 4.0 : 2.5;
             } else {
-                resBox.classList.remove('active');
+                // 如果点在了空无一物的虚空中，直接淡出清除心声框
+                if (isClickOrTouch || !isMobile) {
+                    resBox.classList.remove('active');
+                    resBox.classList.remove('mobile-center');
+                }
                 // 恢复普通星星亮度
                 starNodes.forEach(s => {
-                    if(!s.isUser) { s.baseAlpha = Math.random() * 0.4 + 0.2; s.size = Math.random() * 1.5 + 0.8; }
+                    if(!s.isUser) { 
+                        s.baseAlpha = Math.random() * 0.4 + 0.2; 
+                        s.size = (Math.random() * 1.3 + 0.7) * (isMobile ? 1.4 : 1.0); 
+                    }
                 });
             }
         }
@@ -396,15 +475,15 @@
         // 渲染主循环
         let globalPulse = 1; let pulseDir = 1;
         function render() {
-            ctx.fillStyle = 'rgba(2, 5, 10, 0.15)';
+            ctx.fillStyle = 'rgba(2, 5, 10, 0.18)';
             ctx.fillRect(0, 0, width, height);
 
-            rotationX += (targetRotationX - rotationX) * 0.04;
-            rotationY += (targetRotationY - rotationY) * 0.04;
-            targetRotationY += 0.00005; // 极其微弱的浩瀚自转
+            rotationX += (targetRotationX - rotationX) * 0.05;
+            rotationY += (targetRotationY - rotationY) * 0.05;
+            targetRotationY += 0.00008; // 极微弱的宇宙自转
 
             globalPulse += 0.004 * pulseDir;
-            if(globalPulse > 1.2 || globalPulse < 0.8) pulseDir *= -1;
+            if(globalPulse > 1.15 || globalPulse < 0.85) pulseDir *= -1;
 
             for (let star of starNodes) {
                 star.draw(rotationX, rotationY, globalPulse);
@@ -414,29 +493,30 @@
         }
         render();
 
-        // 极简弹窗交互逻辑
-        function openInputPanel(e) { e.stopPropagation(); document.getElementById('inputPanel').style.display = 'flex'; }
-        function closeInputPanel() { document.getElementById('inputPanel').style.display = 'none'; }
+        // 交互控制
+        function openInputPanel(e) { 
+            e.stopPropagation(); 
+            document.getElementById('inputPanel').style.display = 'flex'; 
+            document.getElementById('whisperInput').focus();
+        }
+        function closeInputPanel() { 
+            document.getElementById('inputPanel').style.display = 'none'; 
+        }
         
-        // 核心交互：提交执念，化作金色星辰飞入3D矩阵
         function submitWhisper() {
             const input = document.getElementById('whisperInput');
             const text = input.value.trim();
             if(!text) return;
 
-            // 实时注入一颗专属于用户的、发光的星辰
             const newStar = new StarNode(text, true);
             starNodes.push(newStar);
 
-            // 清空并关闭面板
             input.value = '';
             closeInputPanel();
-
-            // 播放专属磬声，给心灵一次宏大的仪式感回响
             playValleyChime();
         }
 
-        // 心理学意境文字轮播
+        // 心理学意境轮播
         const texts = [
             "万物自有其时。<br>你已经做得很好了，不必对自己步步紧逼。",
             "闭眼，听雨。<br>这一刻，世界不属于任何人，只属于你自己。",
@@ -449,7 +529,7 @@
             document.getElementById('breathingText').innerHTML = texts[textIndex];
         }, 15000);
 
-        // 物理音频合成引擎（听雨 + 风铃）
+        // 音频合成引擎（听雨 + 随机远方风铃）
         let audioCtx = null; let bellInterval = null;
         function toggleSpaceAudio(e) {
             e.stopPropagation();
@@ -473,10 +553,10 @@
             whiteNoise.buffer = noiseBuffer; whiteNoise.loop = true;
 
             const filter = audioCtx.createBiquadFilter();
-            filter.type = 'lowpass'; filter.frequency.setValueAtTime(900, audioCtx.currentTime);
+            filter.type = 'lowpass'; filter.frequency.setValueAtTime(850, audioCtx.currentTime);
 
             const rainGain = audioCtx.createGain();
-            rainGain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+            rainGain.gain.setValueAtTime(0.06, audioCtx.currentTime);
 
             whiteNoise.connect(filter); filter.connect(rainGain);
             rainGain.connect(audioCtx.destination);
@@ -485,16 +565,16 @@
             bellInterval = setInterval(() => {
                 if (!audioCtx) return;
                 let osc = audioCtx.createOscillator(); let bellGain = audioCtx.createGain();
-                osc.type = 'sine'; osc.frequency.setValueAtTime(850 + Math.random() * 150, audioCtx.currentTime);
+                osc.type = 'sine'; osc.frequency.setValueAtTime(800 + Math.random() * 200, audioCtx.currentTime);
                 bellGain.gain.setValueAtTime(0, audioCtx.currentTime);
-                bellGain.gain.linearRampToValueAtTime(0.015, audioCtx.currentTime + 0.1);
+                bellGain.gain.linearRampToValueAtTime(0.012, audioCtx.currentTime + 0.1);
                 bellGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 5.0);
                 osc.connect(bellGain); bellGain.connect(audioCtx.destination);
                 osc.start(); osc.stop(audioCtx.currentTime + 5.0);
-            }, 9000);
+            }, 8000);
         }
 
-        // 深谷回响物理钟声（提交执念时触发）
+        // 深谷回响物理钟声（散作星河仪式感）
         function playValleyChime() {
             if (!audioCtx) return;
             const frequencies = [293.66, 440.00, 587.33, 734.16];
@@ -503,7 +583,7 @@
                 let osc = audioCtx.createOscillator(); let gainNode = audioCtx.createGain();
                 osc.type = 'sine'; osc.frequency.setValueAtTime(freq, now);
                 gainNode.gain.setValueAtTime(0, now);
-                gainNode.gain.linearRampToValueAtTime(0.03 / (index + 1), now + 0.06); 
+                gainNode.gain.linearRampToValueAtTime(0.025 / (index + 1), now + 0.06); 
                 const duration = 6.0 - (index * 0.8); 
                 gainNode.gain.exponentialRampToValueAtTime(0.0001, now + duration);
                 osc.connect(gainNode); gainNode.connect(audioCtx.destination);
