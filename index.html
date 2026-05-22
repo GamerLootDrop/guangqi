@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>云上道观 · 见心知性</title>
+    <title>静心 · 空间</title>
     <style>
         * {
             margin: 0;
@@ -14,348 +14,292 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
+            background-color: #04080e;
             font-family: "Noto Serif SC", "SimSun", serif;
-            background-color: #03060a;
-            color: #dcd3be;
         }
-
-        /* 沉浸式巨幅背景（支持细腻鼠标视差） */
-        .scenery-container {
-            position: absolute;
-            top: -5%;
-            left: -5%;
-            width: 110%;
-            height: 110%;
-            background-image: url('bg3.jpg'); /* 默认用你部署的三清殿 */
-            background-size: cover;
-            background-position: center;
-            transition: transform 0.15s ease-out, filter 1.5s ease-in-out;
-            filter: brightness(0.75) contrast(1.05);
-            z-index: 1;
-        }
-
-        /* 阴暗环境遮罩：烘托庄严神秘感 */
-        .vignette {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, transparent 30%, rgba(3, 6, 10, 0.85) 100%);
-            pointer-events: none;
-            z-index: 2;
-            transition: opacity 1.5s ease;
-        }
-
-        /* 所有的UI元素支持一键隐退淡出 */
-        .ui-element {
-            position: absolute;
-            z-index: 10;
-            transition: opacity 1.5s ease, transform 1.5s ease;
-            opacity: 1;
-        }
-
-        /* 隐退模式下的状态 */
-        .pure-mode .ui-element {
-            opacity: 0 !important;
-            pointer-events: none;
-        }
-
-        /* 顶部庄严匾额 */
-        .header-title {
-            top: 6%;
-            left: 50%;
-            transform: translateX(-50%);
-            text-align: center;
-        }
-        .header-title h1 {
-            font-size: 2.2rem;
-            letter-spacing: 0.8rem;
-            color: #eddba4;
-            text-shadow: 0 0 15px rgba(237, 219, 164, 0.3);
-            margin-bottom: 8px;
-        }
-        .header-title p {
-            font-size: 0.85rem;
-            letter-spacing: 0.4rem;
-            color: #7e8a96;
-        }
-
-        /* 右侧古风书卷式换景菜单 */
-        .nav-menu {
-            right: 4%;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
-            background: rgba(10, 16, 26, 0.75);
-            padding: 35px 22px;
-            border-radius: 4px;
-            border: 1px solid rgba(237, 219, 164, 0.15);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
-            backdrop-filter: blur(8px);
-        }
-        .nav-item {
-            cursor: pointer;
-            writing-mode: vertical-rl;
-            letter-spacing: 6px;
-            font-size: 1.05rem;
-            color: #929fae;
-            transition: all 0.4s ease;
-            padding: 8px 4px;
-            border-left: 1px solid transparent;
-        }
-        .nav-item:hover, .nav-item.active {
-            color: #eddba4;
-            text-shadow: 0 0 10px rgba(237, 219, 164, 0.5);
-            border-left: 1px solid #eddba4;
-        }
-
-        /* 左下角：心理学意念树洞 */
-        .tree-hole {
-            bottom: 6%;
-            left: 4%;
-            background: rgba(10, 16, 26, 0.6);
-            border: 1px solid rgba(237, 219, 164, 0.1);
-            padding: 15px 20px;
-            border-radius: 4px;
-            backdrop-filter: blur(5px);
-            width: 280px;
-        }
-        .tree-hole p {
-            font-size: 0.8rem;
-            color: #8a95a1;
-            margin-bottom: 10px;
-            letter-spacing: 1px;
-        }
-        .tree-hole-input {
-            width: 100%;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(237, 219, 164, 0.2);
-            padding: 8px 12px;
-            color: #e0d5c1;
-            font-family: inherit;
-            font-size: 0.85rem;
-            border-radius: 2px;
-            outline: none;
-            resize: none;
-            transition: border 0.3s;
-        }
-        .tree-hole-input:focus {
-            border: 1px solid #eddba4;
-        }
-        .tree-hole-btn {
-            margin-top: 8px;
-            float: right;
-            background: transparent;
-            border: 1px solid rgba(237, 219, 164, 0.4);
-            color: #eddba4;
-            padding: 4px 12px;
-            font-size: 0.75rem;
-            cursor: pointer;
-            border-radius: 2px;
-            transition: all 0.3s;
-        }
-        .tree-hole-btn:hover {
-            background: #eddba4;
-            color: #0a101a;
-        }
-
-        /* 文字化为青烟的动画图层 */
-        .smoke-text-layer {
+        
+        /* Canvas 铺满全屏，作为 3D 粒子空间的载体 */
+        #spaceCanvas {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 5;
-            pointer-events: none;
+            z-index: 1;
+            cursor: grab;
         }
-        .fading-smoke-text {
-            position: absolute;
-            color: #eddba4;
-            font-size: 1.1rem;
-            font-weight: 300;
-            letter-spacing: 2px;
-            white-space: nowrap;
-            opacity: 0;
-            transform: scale(1) translateY(0);
-            filter: blur(0px);
-            animation: smokeDissolve 5s ease-in-out forwards;
-            text-shadow: 0 0 8px rgba(237, 219, 164, 0.5);
-            writing-mode: vertical-rl;
-        }
-        @keyframes smokeDissolve {
-            0% { opacity: 0; transform: scale(0.9) translateY(0); filter: blur(0px); }
-            15% { opacity: 0.7; filter: blur(0.5px); }
-            50% { opacity: 0.4; transform: scale(1.05) translate(15px, -80px); filter: blur(2px); }
-            100% { opacity: 0; transform: scale(1.2) translate(40px, -200px); filter: blur(6px); }
+        #spaceCanvas:active {
+            cursor: grabbing;
         }
 
-        /* 中央核心交互区 */
-        .center-zone {
-            bottom: 8%;
+        /* 氛围光晕遮罩：加强空间的深邃与包裹感 */
+        .ambient-glow {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), transparent 20%, rgba(3, 6, 11, 0.9) 80%);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* 极简精神容器（文案提示） */
+        .soul-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+            pointer-events: none;
+            width: 80%;
+            max-width: 600px;
+        }
+
+        .soul-text {
+            color: #c5bba4;
+            font-size: 1.3rem;
+            letter-spacing: 6px;
+            line-height: 2.5rem;
+            opacity: 0;
+            filter: blur(5px);
+            animation: textBreath 12s infinite ease-in-out;
+            text-shadow: 0 0 20px rgba(197, 187, 164, 0.3);
+        }
+
+        /* 极简呼吸感动画：文案缓缓浮现、隐去，不给用户任何心理压力 */
+        @keyframes textBreath {
+            0% { opacity: 0; filter: blur(5px); transform: scale(0.98); }
+            30% { opacity: 0.85; filter: blur(0px); transform: scale(1); }
+            70% { opacity: 0.85; filter: blur(0px); transform: scale(1); }
+            100% { opacity: 0; filter: blur(5px); transform: scale(1.02); }
+        }
+
+        /* 控制器：声音开关 */
+        .audio-trigger {
+            position: absolute;
+            bottom: 6%;
             left: 50%;
             transform: translateX(-50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-        }
-        .pray-btn {
-            background: rgba(140, 37, 37, 0.85);
-            border: 1px solid #eddba4;
-            color: #eddba4;
-            padding: 12px 35px;
-            font-size: 1.05rem;
-            letter-spacing: 3px;
+            z-index: 20;
+            background: transparent;
+            border: 1px solid rgba(197, 187, 164, 0.25);
+            color: #a49b85;
+            padding: 8px 24px;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
             border-radius: 20px;
             cursor: pointer;
-            box-shadow: 0 0 15px rgba(140, 37, 37, 0.3);
-            transition: all 0.3s ease;
+            transition: all 0.4s;
+            outline: none;
         }
-        .pray-btn:hover {
-            transform: scale(1.03);
-            box-shadow: 0 0 20px rgba(237, 219, 164, 0.4);
-            background: rgba(166, 46, 46, 0.95);
-        }
-
-        /* 一键放开/提示唤醒 */
-        .pure-trigger-btn {
-            background: transparent;
-            border: 1px solid rgba(237, 219, 164, 0.3);
-            color: #929fae;
-        }
-        .wakeup-hint {
-            position: absolute;
-            bottom: 4%;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 0.8rem;
-            color: rgba(237, 219, 164, 0.3);
-            letter-spacing: 2px;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 1s ease;
-            z-index: 100;
-        }
-        .pure-mode .wakeup-hint {
-            opacity: 1;
+        .audio-trigger:hover {
+            border-color: #c5bba4;
+            color: #c5bba4;
+            box-shadow: 0 0 15px rgba(197, 187, 164, 0.15);
         }
     </style>
 </head>
 <body>
 
-    <div class="scenery-container" id="bgLayer"></div>
-    <div class="vignette" id="vignetteLayer"></div>
-    <div class="smoke-text-layer" id="smokeTextLayer"></div>
+    <canvas id="spaceCanvas"></canvas>
+    
+    <div class="ambient-glow" id="glowLayer"></div>
 
-    <div class="ui-element header-title">
-        <h1 id="mainTitle">三 清 殿</h1>
-        <p id="subTitle">虚怀若谷 · 观照内心</p>
+    <div class="soul-container">
+        <p class="soul-text" id="breathingText">闭眼，听雨。<br>这一刻，世界不属于任何人，只属于你自己。</p>
     </div>
 
-    <div class="ui-element tree-hole">
-        <p>若有凡忧，在此写下，让它随风而去：</p>
-        <textarea class="tree-hole-input" id="holeInput" rows="2" placeholder="不存痕迹，唯留清净..."></textarea>
-        <button class="tree-hole-btn" onclick="releaseTrouble()">放下</button>
-    </div>
-
-    <div class="ui-element nav-menu">
-        <div class="nav-item" onclick="switchScene('玉虚殿', '清心寡欲 · 复归本然', 'bg1.jpg', this)">正殿供奉</div>
-        <div class="nav-item" onclick="switchScene('祖师殿', '一炷清香  · 诸神庇佑', 'bg2.jpg', this)">祖师祈福</div>
-        <div class="nav-item active" onclick="switchScene('三清殿', '虚怀若谷 · 观照内心', 'bg3.jpg', this)">后山放空</div>
-    </div>
-
-    <div class="ui-element center-zone">
-        <button class="pray-btn" onclick="playTempleSound()">静坐听泉</button>
-        <button class="pray-btn pure-trigger-btn" onclick="togglePureMode(true)">屏退喧嚣 · 闭目放空</button>
-    </div>
-
-    <div class="wakeup-hint">点击屏幕任意位置，唤醒尘世</div>
+    <button class="audio-trigger" onclick="toggleSpaceAudio()" id="audioBtn">开启深山听泉</button>
 
     <script>
-        // 核心功能一：细腻的鼠标视差（赋予平面照片纵深感）
-        const bgLayer = document.getElementById('bgLayer');
+        // --- 核心模块一：纯代码从零勾勒的 3D 旋转星系/粒子空间 ---
+        const canvas = document.getElementById('spaceCanvas');
+        const ctx = canvas.getContext('2d');
+        const glowLayer = document.getElementById('glowLayer');
+
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        // 视角旋转核心参数（通过拖拽或鼠标移动改变，实现全景 3D 环顾）
+        let rotationX = 0;
+        let rotationY = 0;
+        let targetRotationX = 0;
+        let targetRotationY = 0;
+
+        let isDragging = false;
+        let previousMouseX = 0;
+        let previousMouseY = 0;
+
+        // 空间内的粒子总数（构成无边界的空灵空间）
+        const particleCount = 400;
+        const particles = [];
+
+        class Particle {
+            constructor() {
+                // 在 3D 球体空间内随机散落粒子
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos((Math.random() * 2) - 1);
+                const distance = 400 + Math.random() * 800; // 空间深度
+
+                this.x = distance * Math.sin(phi) * Math.cos(theta);
+                this.y = distance * Math.sin(phi) * Math.sin(theta);
+                this.z = distance * Math.cos(phi);
+                
+                this.size = Math.random() * 1.5 + 0.5;
+                // 温柔细腻的中式古风配色：瓦灰、月白、微金
+                const colors = ['rgba(197, 187, 164, 0.4)', 'rgba(220, 211, 190, 0.3)', 'rgba(146, 159, 174, 0.2)'];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            draw(rotX, rotY) {
+                // 3D 矩阵旋转数学公式（处理 X 轴与 Y 轴旋转）
+                let cosX = Math.cos(rotX), sinX = Math.sin(rotX);
+                let cosY = Math.cos(rotY), sinY = Math.sin(rotY);
+
+                // 旋转 Y 轴
+                let x1 = this.x * cosY - this.z * sinY;
+                let z1 = this.x * sinY + this.z * cosY;
+
+                // 旋转 X 轴
+                let y2 = this.y * cosX - z1 * sinX;
+                let z2 = this.y * sinX + z1 * cosX;
+
+                // 3D 透视投影（焦距 600，算出屏幕上的 2D 坐标）
+                const fov = 600;
+                if (z2 + fov > 0) {
+                    const scale = fov / (fov + z2);
+                    const screenX = width / 2 + x1 * scale;
+                    const screenY = height / 2 + y2 * scale;
+
+                    // 渲染粒子
+                    ctx.beginPath();
+                    ctx.arc(screenX, screenY, this.size * scale, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.fill();
+                }
+            }
+        }
+
+        // 初始化空间粒子
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        // 鼠标/手指交互逻辑：拖拽或者移动，带动 3D 空间缓缓旋转
         window.addEventListener('mousemove', (e) => {
-            if (document.body.classList.contains('pure-mode')) return; // 放空模式下减少晃动
-            const x = (window.innerWidth / 2 - e.clientX) / 45; // 减小幅度，更显稳重肃穆
-            const y = (window.innerHeight / 2 - e.clientY) / 45;
-            bgLayer.style.transform = `translate(${x}px, ${y}px) scale(1.03)`;
-        });
+            // 实时更新背景遮罩的光晕圆心位置
+            glowLayer.style.setProperty('--mx', `${e.clientX}px`);
+            glowLayer.style.setProperty('--my', `${e.clientY}px`);
 
-        // 核心功能二：意念树洞 · 文字化为青烟飘散
-        function releaseTrouble() {
-            const input = document.getElementById('holeInput');
-            const text = input.value.trim();
-            if (!text) return;
-
-            // 创建飘散的文字元素
-            const layer = document.getElementById('smokeTextLayer');
-            const smokeEl = document.createElement('div');
-            smokeEl.className = 'fading-smoke-text';
-            smokeEl.innerText = text;
-
-            // 让它从输入框附近或者大殿香炉附近升起
-            smokeEl.style.left = '15%';
-            smokeEl.style.bottom = '20%';
-
-            layer.appendChild(smokeEl);
-
-            // 清空输入框，造成“已经放下”的心理暗示
-            input.value = '';
-
-            // 动画结束后自动移除，不占内存
-            setTimeout(() => { smokeEl.remove(); }, 5000);
-        }
-
-        // 核心功能三：一键屏退喧嚣（放空模式）
-        function togglePureMode(isPure) {
-            if (isPure) {
-                document.body.classList.add('pure-mode');
-                document.getElementById('vignetteLayer').style.background = 'radial-gradient(circle, transparent 20%, rgba(2, 4, 6, 0.95) 100%)';
-            } else {
-                document.body.classList.remove('pure-mode');
-                document.getElementById('vignetteLayer').style.background = 'radial-gradient(circle, transparent 30%, rgba(3, 6, 10, 0.85) 100%)';
-            }
-        }
-
-        // 在放空模式下，点击任何地方都会温柔地唤醒界面
-        window.addEventListener('click', (e) => {
-            if (document.body.classList.contains('pure-mode')) {
-                // 如果点的是触发按钮本身，不重复触发
-                if (e.target.classList.contains('pure-trigger-btn')) return;
-                togglePureMode(false);
+            if (!isDragging) {
+                // 鼠标轻微晃动时，视角有 2% 的温柔跟随效果
+                targetRotationY = (e.clientX - width / 2) * 0.0003;
+                targetRotationX = (e.clientY - height / 2) * 0.0003;
             }
         });
 
-        // 核心功能四：移步换景（丝滑淡入淡出）
-        function switchScene(title, subtitle, bgImage, element) {
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            element.classList.add('active');
+        // 鼠标按住拖拽：实现 360 度环顾空间
+        window.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            previousMouseX = e.clientX;
+            previousMouseY = e.clientY;
+        });
 
-            bgLayer.style.filter = 'brightness(0) contrast(1)';
-            setTimeout(() => {
-                bgLayer.style.backgroundImage = `url('${bgImage}')`;
-                document.getElementById('mainTitle').innerText = title;
-                document.getElementById('subTitle').innerText = subtitle;
-                bgLayer.style.filter = 'brightness(0.75) contrast(1.05)';
-            }, 600);
+        window.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const deltaX = e.clientX - previousMouseX;
+                const deltaY = e.clientY - previousMouseY;
+                targetRotationY += deltaX * 0.003;
+                targetRotationX += deltaY * 0.003;
+                previousMouseX = e.clientX;
+                previousMouseY = e.clientY;
+            }
+        });
+
+        window.addEventListener('mouseup', () => isDragging = false);
+        
+        // 兼容手机端触摸环顾
+        window.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            previousMouseX = e.touches[0].clientX;
+            previousMouseY = e.touches[0].clientY;
+        });
+        window.addEventListener('touchmove', (e) => {
+            if (isDragging) {
+                const deltaX = e.touches[0].clientX - previousMouseX;
+                const deltaY = e.touches[0].clientY - previousMouseY;
+                targetRotationY += deltaX * 0.005;
+                targetRotationX += deltaY * 0.005;
+                previousMouseX = e.touches[0].clientX;
+                previousMouseY = e.touches[0].clientY;
+            }
+        });
+        window.addEventListener('touchend', () => isDragging = false);
+
+        // 持续渲染循环
+        function render() {
+            ctx.clearRect(0, 0, width, 0);
+            // 营造尾迹/渐暗效果，让粒子旋转带有一丝丝空灵的流动感
+            ctx.fillStyle = 'rgba(4, 8, 14, 0.15)'; 
+            ctx.fillRect(0, 0, width, height);
+
+            // 缓动函数（让视角的停止具有惯性和丝滑感）
+            rotationX += (targetRotationX - rotationX) * 0.05;
+            rotationY += (targetRotationY - rotationY) * 0.05;
+
+            // 空间即使静止，粒子也在极其微弱地自转，仿佛时光流动
+            targetRotationY += 0.0001; 
+
+            for (let p of particles) {
+                p.draw(rotationX, rotationY);
+            }
+
+            requestAnimationFrame(render);
         }
+        render();
 
-        // 核心功能五：纯代码生成“深山夜雨与微风远铃”白噪音（无需额外音频文件）
+        // 窗口大小缩放自适应
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+
+        // --- 核心模块二：心理学文字轮播设计 ---
+        const texts = [
+            "闭眼，听雨。<br>这一刻，世界不属于任何人，只属于你自己。",
+            "红尘滚滚，总有来路。<br>停下歇歇，本就无需向任何人交代。",
+            "风撩屋檐，雨润青苔。<br>心里积攒的那些委屈，就在这里散了吧。",
+            "万物自有其时。<br>你已经做得很好了，不必对自己步步紧逼。"
+        ];
+        let textIndex = 0;
+        const textEl = document.getElementById('breathingText');
+        
+        // 配合 CSS 动画周期（12秒），每 12 秒温柔切换一句直击心灵的话
+        setInterval(() => {
+            textIndex = (textIndex + 1) % texts.length;
+            textEl.innerHTML = texts[textIndex];
+        }, 12000);
+
+
+        // --- 核心模块三：纯数学音频合成（雨声、风铃声） ---
         let audioCtx = null;
-        function playTempleSound() {
+        let rainInterval = null;
+
+        function toggleSpaceAudio() {
+            const btn = document.getElementById('audioBtn');
             if (audioCtx) {
                 audioCtx.close();
                 audioCtx = null;
-                document.querySelector('.center-zone button').innerText = "静坐听泉";
+                clearInterval(rainInterval);
+                btn.innerText = "开启深山听泉";
                 return;
             }
 
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            document.querySelector('.center-zone button').innerText = "断开俗世";
+            btn.innerText = "断开世俗喧嚣";
 
-            // 1. 实时合成淅淅沥沥的雨声（白噪声滤掉高频）
+            // 1. 纯数学噪音公式生成持续的温润雨声
             const bufferSize = 2 * audioCtx.sampleRate;
             const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             const output = noiseBuffer.getChannelData(0);
@@ -369,35 +313,35 @@
 
             const filter = audioCtx.createBiquadFilter();
             filter.type = 'lowpass';
-            filter.frequency.setValueAtTime(1200, audioCtx.currentTime); // 闷闷的、让人安心的雨声
+            filter.frequency.setValueAtTime(1000, audioCtx.currentTime); // 过滤尖锐声，变成极其舒适的深夜大雨
 
             const rainGain = audioCtx.createGain();
-            rainGain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+            rainGain.gain.setValueAtTime(0.1, audioCtx.currentTime);
 
             whiteNoise.connect(filter);
             filter.connect(rainGain);
             rainGain.connect(audioCtx.destination);
             whiteNoise.start();
 
-            // 2. 定时模拟偶尔的一声空灵远铃（微风吹动铜铃）
-            setInterval(() => {
+            // 2. 模拟偶有微风掠过时的远山古庙铜铃声
+            rainInterval = setInterval(() => {
                 if (!audioCtx) return;
                 let osc = audioCtx.createOscillator();
                 let bellGain = audioCtx.createGain();
                 
                 osc.type = 'sine';
-                // 铜铃的高频清脆感
-                osc.frequency.setValueAtTime(880 + Math.random() * 200, audioCtx.currentTime); 
+                // 880Hz到1000Hz之间的清脆声，带有一丝空灵沉静
+                osc.frequency.setValueAtTime(800 + Math.random() * 150, audioCtx.currentTime); 
                 
                 bellGain.gain.setValueAtTime(0.0, audioCtx.currentTime);
-                bellGain.gain.linearRampToValueAtTime(0.03, audioCtx.currentTime + 0.1);
-                bellGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 4.0); // 漫长的回音
+                bellGain.gain.linearRampToValueAtTime(0.02, audioCtx.currentTime + 0.1);
+                bellGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 4.5); // 悠长的空灵余音
                 
                 osc.connect(bellGain);
                 bellGain.connect(audioCtx.destination);
                 osc.start();
-                osc.stop(audioCtx.currentTime + 4.0);
-            }, 7000); // 每隔7秒左右响一次远铃
+                osc.stop(audioCtx.currentTime + 4.5);
+            }, 8000); // 约每 8 秒铜铃一响
         }
     </script>
 </body>
