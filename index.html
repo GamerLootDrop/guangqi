@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>云上道观 · 沉浸式修仙</title>
+    <title>云上道观 · 见心知性</title>
     <style>
-        /* 全局高级感重置 */
         * {
             margin: 0;
             padding: 0;
@@ -16,257 +15,389 @@
             height: 100%;
             overflow: hidden;
             font-family: "Noto Serif SC", "SimSun", serif;
-            background-color: #050b14;
-            color: #e0d5c1;
+            background-color: #03060a;
+            color: #dcd3be;
         }
 
-        /* 核心背景：巨幅沉浸式视觉 */
+        /* 沉浸式巨幅背景（支持细腻鼠标视差） */
         .scenery-container {
             position: absolute;
             top: -5%;
             left: -5%;
             width: 110%;
             height: 110%;
-            background-image: url('bg1.jpg'); /* 这里放你最喜欢的那张大殿照片 */
+            background-image: url('bg3.jpg'); /* 默认用你部署的三清殿 */
             background-size: cover;
             background-position: center;
-            transition: transform 0.1s ease-out, filter 1s ease-in-out;
-            filter: brightness(0.85) contrast(1.05);
+            transition: transform 0.15s ease-out, filter 1.5s ease-in-out;
+            filter: brightness(0.75) contrast(1.05);
+            z-index: 1;
         }
 
-        /* 赛博动态青烟特效 */
-        .smoke-overlay {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at 50% 80%, rgba(255,255,255,0.05), transparent 60%);
-            pointer-events: none;
-            mix-blend-mode: screen;
-            animation: smokeMove 8s infinite alternate ease-in-out;
-        }
-
-        @keyframes smokeMove {
-            0% { transform: scale(1) translate(0, 0); filter: blur(4px); }
-            100% { transform: scale(1.1) translate(2%, -3%); filter: blur(8px); }
-        }
-
-        /* 遮罩：营造深邃的寺庙氛围 */
+        /* 阴暗环境遮罩：烘托庄严神秘感 */
         .vignette {
             position: absolute;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle, transparent 40%, rgba(3, 7, 15, 0.8) 100%);
+            background: radial-gradient(circle, transparent 30%, rgba(3, 6, 10, 0.85) 100%);
+            pointer-events: none;
+            z-index: 2;
+            transition: opacity 1.5s ease;
+        }
+
+        /* 所有的UI元素支持一键隐退淡出 */
+        .ui-element {
+            position: absolute;
+            z-index: 10;
+            transition: opacity 1.5s ease, transform 1.5s ease;
+            opacity: 1;
+        }
+
+        /* 隐退模式下的状态 */
+        .pure-mode .ui-element {
+            opacity: 0 !important;
             pointer-events: none;
         }
 
-        /* 顶部庄严匾额标题 */
+        /* 顶部庄严匾额 */
         .header-title {
-            position: absolute;
-            top: 5%;
+            top: 6%;
             left: 50%;
             transform: translateX(-50%);
             text-align: center;
-            pointer-events: none;
         }
         .header-title h1 {
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             letter-spacing: 0.8rem;
             color: #eddba4;
-            text-shadow: 0 0 15px rgba(237, 219, 164, 0.4);
-            margin-bottom: 5px;
+            text-shadow: 0 0 15px rgba(237, 219, 164, 0.3);
+            margin-bottom: 8px;
         }
         .header-title p {
-            font-size: 0.9rem;
-            letter-spacing: 0.3rem;
-            color: #8c96a0;
+            font-size: 0.85rem;
+            letter-spacing: 0.4rem;
+            color: #7e8a96;
         }
 
-        /* 右侧移步换景书卷菜单 */
+        /* 右侧古风书卷式换景菜单 */
         .nav-menu {
-            position: absolute;
             right: 4%;
             top: 50%;
             transform: translateY(-50%);
             display: flex;
             flex-direction: column;
-            gap: 25px;
-            background: rgba(12, 22, 36, 0.75);
-            padding: 30px 20px;
-            border-radius: 5px;
-            border: 1px solid rgba(237, 219, 164, 0.2);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            backdrop-filter: blur(10px);
+            gap: 30px;
+            background: rgba(10, 16, 26, 0.75);
+            padding: 35px 22px;
+            border-radius: 4px;
+            border: 1px solid rgba(237, 219, 164, 0.15);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
         }
         .nav-item {
             cursor: pointer;
             writing-mode: vertical-rl;
-            text-orientation: mixed;
             letter-spacing: 6px;
-            font-size: 1.1rem;
-            color: #a3b0c2;
-            transition: all 0.3s ease;
-            padding: 10px 5px;
-            border-left: 2px solid transparent;
+            font-size: 1.05rem;
+            color: #929fae;
+            transition: all 0.4s ease;
+            padding: 8px 4px;
+            border-left: 1px solid transparent;
         }
         .nav-item:hover, .nav-item.active {
             color: #eddba4;
-            text-shadow: 0 0 10px rgba(237, 219, 164, 0.6);
-            border-left: 2px solid #eddba4;
+            text-shadow: 0 0 10px rgba(237, 219, 164, 0.5);
+            border-left: 1px solid #eddba4;
         }
 
-        /* 中央核心交互区：赛博功德箱 */
-        .interaction-zone {
+        /* 左下角：心理学意念树洞 */
+        .tree-hole {
+            bottom: 6%;
+            left: 4%;
+            background: rgba(10, 16, 26, 0.6);
+            border: 1px solid rgba(237, 219, 164, 0.1);
+            padding: 15px 20px;
+            border-radius: 4px;
+            backdrop-filter: blur(5px);
+            width: 280px;
+        }
+        .tree-hole p {
+            font-size: 0.8rem;
+            color: #8a95a1;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+        .tree-hole-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(237, 219, 164, 0.2);
+            padding: 8px 12px;
+            color: #e0d5c1;
+            font-family: inherit;
+            font-size: 0.85rem;
+            border-radius: 2px;
+            outline: none;
+            resize: none;
+            transition: border 0.3s;
+        }
+        .tree-hole-input:focus {
+            border: 1px solid #eddba4;
+        }
+        .tree-hole-btn {
+            margin-top: 8px;
+            float: right;
+            background: transparent;
+            border: 1px solid rgba(237, 219, 164, 0.4);
+            color: #eddba4;
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+        .tree-hole-btn:hover {
+            background: #eddba4;
+            color: #0a101a;
+        }
+
+        /* 文字化为青烟的动画图层 */
+        .smoke-text-layer {
             position: absolute;
-            bottom: 15%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            pointer-events: none;
+        }
+        .fading-smoke-text {
+            position: absolute;
+            color: #eddba4;
+            font-size: 1.1rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+            white-space: nowrap;
+            opacity: 0;
+            transform: scale(1) translateY(0);
+            filter: blur(0px);
+            animation: smokeDissolve 5s ease-in-out forwards;
+            text-shadow: 0 0 8px rgba(237, 219, 164, 0.5);
+            writing-mode: vertical-rl;
+        }
+        @keyframes smokeDissolve {
+            0% { opacity: 0; transform: scale(0.9) translateY(0); filter: blur(0px); }
+            15% { opacity: 0.7; filter: blur(0.5px); }
+            50% { opacity: 0.4; transform: scale(1.05) translate(15px, -80px); filter: blur(2px); }
+            100% { opacity: 0; transform: scale(1.2) translate(40px, -200px); filter: blur(6px); }
+        }
+
+        /* 中央核心交互区 */
+        .center-zone {
+            bottom: 8%;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
         }
-
-        /* 炫酷的古典渐变发光按钮 */
-        .temple-btn {
-            background: linear-gradient(135deg, #8c2525 0%, #4a1212 100%);
+        .pray-btn {
+            background: rgba(140, 37, 37, 0.85);
             border: 1px solid #eddba4;
             color: #eddba4;
-            padding: 15px 40px;
-            font-size: 1.2rem;
-            letter-spacing: 4px;
-            border-radius: 30px;
+            padding: 12px 35px;
+            font-size: 1.05rem;
+            letter-spacing: 3px;
+            border-radius: 20px;
             cursor: pointer;
-            box-shadow: 0 0 15px rgba(140, 37, 37, 0.4);
+            box-shadow: 0 0 15px rgba(140, 37, 37, 0.3);
             transition: all 0.3s ease;
         }
-        .temple-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 25px rgba(237, 219, 164, 0.6);
-            background: linear-gradient(135deg, #a62e2e 0%, #5c1818 100%);
+        .pray-btn:hover {
+            transform: scale(1.03);
+            box-shadow: 0 0 20px rgba(237, 219, 164, 0.4);
+            background: rgba(166, 46, 46, 0.95);
         }
 
-        /* 功德弹窗文字 */
-        .gongde-text {
+        /* 一键放开/提示唤醒 */
+        .pure-trigger-btn {
+            background: transparent;
+            border: 1px solid rgba(237, 219, 164, 0.3);
+            color: #929fae;
+        }
+        .wakeup-hint {
             position: absolute;
-            color: #eddba4;
-            font-size: 1.5rem;
-            font-weight: bold;
-            opacity: 0;
+            bottom: 4%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            color: rgba(237, 219, 164, 0.3);
+            letter-spacing: 2px;
             pointer-events: none;
-            transform: translateY(0);
-            animation: floatUp 1.2s ease-out forwards;
-            text-shadow: 0 0 8px #eddba4;
+            opacity: 0;
+            transition: opacity 1s ease;
+            z-index: 100;
         }
-
-        @keyframes floatUp {
-            0% { opacity: 0; transform: translateY(0); }
-            20% { opacity: 1; }
-            100% { opacity: 0; transform: translateY(-80px); }
-        }
-
-        /* 底部功德计数器 */
-        .counter-panel {
-            background: rgba(0,0,0,0.4);
-            padding: 8px 20px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .counter-panel span {
-            color: #eddba4;
-            font-weight: bold;
+        .pure-mode .wakeup-hint {
+            opacity: 1;
         }
     </style>
 </head>
 <body>
 
     <div class="scenery-container" id="bgLayer"></div>
-    
-    <div class="smoke-overlay"></div>
-    <div class="vignette"></div>
+    <div class="vignette" id="vignetteLayer"></div>
+    <div class="smoke-text-layer" id="smokeTextLayer"></div>
 
-    <div class="header-title">
-        <h1 id="mainTitle">玉 虚 殿</h1>
-        <p id="subTitle">意念通天 · 福泽万物</p>
+    <div class="ui-element header-title">
+        <h1 id="mainTitle">三 清 殿</h1>
+        <p id="subTitle">虚怀若谷 · 观照内心</p>
     </div>
 
-    <div class="nav-menu">
-        <div class="nav-item active" onclick="switchScene('玉虚殿', '意念通天 · 福泽万物', 'bg1.jpg', this)">正殿供奉</div>
-        <div class="nav-item" onclick="switchScene('祖师殿', '玄风永振 · 青烟袅袅', 'bg2.jpg', this)">祖师祈福</div>
-        <div class="nav-item" onclick="switchScene('玄帝殿', '太乙寻祥 · 俯瞰群山', 'bg3.jpg', this)">后山许愿</div>
+    <div class="ui-element tree-hole">
+        <p>若有凡忧，在此写下，让它随风而去：</p>
+        <textarea class="tree-hole-input" id="holeInput" rows="2" placeholder="不存痕迹，唯留清净..."></textarea>
+        <button class="tree-hole-btn" onclick="releaseTrouble()">放下</button>
     </div>
 
-    <div class="interaction-zone">
-        <div id="floatContainer"></div>
-        <button class="temple-btn" onclick="addGongde()">敲击木鱼 · 虔诚供奉</button>
-        <div class="counter-panel">当前功德：<span id="gongdeCount">0</span></div>
+    <div class="ui-element nav-menu">
+        <div class="nav-item" onclick="switchScene('玉虚殿', '清心寡欲 · 复归本然', 'bg1.jpg', this)">正殿供奉</div>
+        <div class="nav-item" onclick="switchScene('祖师殿', '一炷清香  · 诸神庇佑', 'bg2.jpg', this)">祖师祈福</div>
+        <div class="nav-item active" onclick="switchScene('三清殿', '虚怀若谷 · 观照内心', 'bg3.jpg', this)">后山放空</div>
     </div>
+
+    <div class="ui-element center-zone">
+        <button class="pray-btn" onclick="playTempleSound()">静坐听泉</button>
+        <button class="pray-btn pure-trigger-btn" onclick="togglePureMode(true)">屏退喧嚣 · 闭目放空</button>
+    </div>
+
+    <div class="wakeup-hint">点击屏幕任意位置，唤醒尘世</div>
 
     <script>
-        let count = 0;
-
-        // 功能一：实现震撼的鼠标动态视差效果（让静态照片有立体感）
+        // 核心功能一：细腻的鼠标视差（赋予平面照片纵深感）
         const bgLayer = document.getElementById('bgLayer');
         window.addEventListener('mousemove', (e) => {
-            const x = (window.innerWidth / 2 - e.clientX) / 25;
-            const y = (window.innerHeight / 2 - e.clientY) / 25;
-            bgLayer.style.transform = `translate(${x}px, ${y}px) scale(1.02)`;
+            if (document.body.classList.contains('pure-mode')) return; // 放空模式下减少晃动
+            const x = (window.innerWidth / 2 - e.clientX) / 45; // 减小幅度，更显稳重肃穆
+            const y = (window.innerHeight / 2 - e.clientY) / 45;
+            bgLayer.style.transform = `translate(${x}px, ${y}px) scale(1.03)`;
         });
 
-        // 功能二：点击增加功德，并在屏幕上飘出金色文字
-        function addGongde() {
-            count++;
-            document.getElementById('gongdeCount').innerText = count;
+        // 核心功能二：意念树洞 · 文字化为青烟飘散
+        function releaseTrouble() {
+            const input = document.getElementById('holeInput');
+            const text = input.value.trim();
+            if (!text) return;
 
-            // 创建飘字特效
-            const container = document.getElementById('floatContainer');
-            const text = document.createElement('div');
-            text.className = 'gongde-text';
-            text.innerText = '功德 +1';
-            
-            // 随机给飘字加一点点左右偏移，看起来更灵动
-            const randomX = Math.random() * 40 - 20;
-            text.style.left = `calc(50% + ${randomX}px)`;
-            
-            container.appendChild(text);
+            // 创建飘散的文字元素
+            const layer = document.getElementById('smokeTextLayer');
+            const smokeEl = document.createElement('div');
+            smokeEl.className = 'fading-smoke-text';
+            smokeEl.innerText = text;
 
-            // 播放自带的系统提示音（假装是木鱼声，后期可以换成真木鱼音频）
-            if(window.AudioContext || window.webkitAudioContext) {
-                let ctx = new (window.AudioContext || window.webkitAudioContext)();
-                let osc = ctx.createOscillator();
-                let gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(150, ctx.currentTime); // 低沉的木鱼质感
-                gain.gain.setValueAtTime(0.5, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-                osc.start();
-                osc.stop(ctx.currentTime + 0.3);
-            }
+            // 让它从输入框附近或者大殿香炉附近升起
+            smokeEl.style.left = '15%';
+            smokeEl.style.bottom = '20%';
 
-            // 动画结束后自动销毁文字，不占内存
-            setTimeout(() => {
-                text.remove();
-            }, 1200);
+            layer.appendChild(smokeEl);
+
+            // 清空输入框，造成“已经放下”的心理暗示
+            input.value = '';
+
+            // 动画结束后自动移除，不占内存
+            setTimeout(() => { smokeEl.remove(); }, 5000);
         }
 
-        // 功能三：移步换景核心逻辑
+        // 核心功能三：一键屏退喧嚣（放空模式）
+        function togglePureMode(isPure) {
+            if (isPure) {
+                document.body.classList.add('pure-mode');
+                document.getElementById('vignetteLayer').style.background = 'radial-gradient(circle, transparent 20%, rgba(2, 4, 6, 0.95) 100%)';
+            } else {
+                document.body.classList.remove('pure-mode');
+                document.getElementById('vignetteLayer').style.background = 'radial-gradient(circle, transparent 30%, rgba(3, 6, 10, 0.85) 100%)';
+            }
+        }
+
+        // 在放空模式下，点击任何地方都会温柔地唤醒界面
+        window.addEventListener('click', (e) => {
+            if (document.body.classList.contains('pure-mode')) {
+                // 如果点的是触发按钮本身，不重复触发
+                if (e.target.classList.contains('pure-trigger-btn')) return;
+                togglePureMode(false);
+            }
+        });
+
+        // 核心功能四：移步换景（丝滑淡入淡出）
         function switchScene(title, subtitle, bgImage, element) {
-            // 切换菜单激活状态
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
             element.classList.add('active');
 
-            // 触发淡出淡入切换背景
             bgLayer.style.filter = 'brightness(0) contrast(1)';
-            
             setTimeout(() => {
-                // 现实开发中，用户需要把自己的照片改名为 bg1.jpg, bg2.jpg, bg3.jpg 放在同目录下
                 bgLayer.style.backgroundImage = `url('${bgImage}')`;
                 document.getElementById('mainTitle').innerText = title;
                 document.getElementById('subTitle').innerText = subtitle;
-                bgLayer.style.filter = 'brightness(0.85) contrast(1.05)';
-            }, 500);
+                bgLayer.style.filter = 'brightness(0.75) contrast(1.05)';
+            }, 600);
+        }
+
+        // 核心功能五：纯代码生成“深山夜雨与微风远铃”白噪音（无需额外音频文件）
+        let audioCtx = null;
+        function playTempleSound() {
+            if (audioCtx) {
+                audioCtx.close();
+                audioCtx = null;
+                document.querySelector('.center-zone button').innerText = "静坐听泉";
+                return;
+            }
+
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            document.querySelector('.center-zone button').innerText = "断开俗世";
+
+            // 1. 实时合成淅淅沥沥的雨声（白噪声滤掉高频）
+            const bufferSize = 2 * audioCtx.sampleRate;
+            const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const output = noiseBuffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                output[i] = Math.random() * 2 - 1;
+            }
+
+            const whiteNoise = audioCtx.createBufferSource();
+            whiteNoise.buffer = noiseBuffer;
+            whiteNoise.loop = true;
+
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(1200, audioCtx.currentTime); // 闷闷的、让人安心的雨声
+
+            const rainGain = audioCtx.createGain();
+            rainGain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+
+            whiteNoise.connect(filter);
+            filter.connect(rainGain);
+            rainGain.connect(audioCtx.destination);
+            whiteNoise.start();
+
+            // 2. 定时模拟偶尔的一声空灵远铃（微风吹动铜铃）
+            setInterval(() => {
+                if (!audioCtx) return;
+                let osc = audioCtx.createOscillator();
+                let bellGain = audioCtx.createGain();
+                
+                osc.type = 'sine';
+                // 铜铃的高频清脆感
+                osc.frequency.setValueAtTime(880 + Math.random() * 200, audioCtx.currentTime); 
+                
+                bellGain.gain.setValueAtTime(0.0, audioCtx.currentTime);
+                bellGain.gain.linearRampToValueAtTime(0.03, audioCtx.currentTime + 0.1);
+                bellGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 4.0); // 漫长的回音
+                
+                osc.connect(bellGain);
+                bellGain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 4.0);
+            }, 7000); // 每隔7秒左右响一次远铃
         }
     </script>
 </body>
