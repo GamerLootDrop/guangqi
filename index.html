@@ -1,502 +1,295 @@
-import 'dart:math';
-import 'package:flutter/material.dart';
-
-void main() {
-  runApp(const MyApp());
-}
-
-// 1. 统一根组件名称，彻底解决 widget_test.dart 找不到 MyApp 的报错
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: '星海微茫',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF03020A),
-      ),
-      home: const StarScreen(),
-    );
-  }
-}
-
-class StarScreen extends StatefulWidget {
-  const StarScreen({super.key});
-
-  @override
-  State<StarScreen> createState() => _StarScreenState();
-}
-
-// 2. 3D 宇宙粒子模型
-enum StarType { faint, bright, premium } // 碎星、中景亮星、消费专属星
-
-class SpaceParticle {
-  double x, y, z;      // 3D 空间坐标
-  double size;         // 基础尺寸
-  Color color;         // 粒子颜色
-  double alpha = 0.0;  // 不透明度（用于呼吸感）
-  double speed;        // 迎面飞来的速度
-  StarType type;
-  String? wishText;    // 用户留下的“执念”内容
-
-  SpaceParticle({
-    required this.x,
-    required this.y,
-    required this.z,
-    required this.size,
-    required this.color,
-    required this.speed,
-    required this.type,
-    this.wishText,
-  });
-
-  void update(double deltaTime, double warpSpeed) {
-    // 基础前进逻辑（受到消费时的超空间跳跃加速影响）
-    z -= speed * deltaTime * warpSpeed; 
-
-    // 呼吸感算法
-    if (type == StarType.faint) {
-      alpha = 0.2 + 0.5 * sin(z * 0.03);
-    } else {
-      alpha = 0.5 + 0.5 * sin(z * 0.08);
-    }
-  }
-}
-
-class _StarScreenState extends State<StarScreen> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  final List<SpaceParticle> _stars = [];
-  final List<SpaceParticle> _nebulas = [];
-  Offset? _mousePos;
-  double _warpSpeed = 1.0; 
-  final Random _random = Random();
-  
-  // 模拟用户的星币数据
-  int _starCoins = 190; 
-
-  @override
-  void initState() {
-    super.initState();
-    _initUniverse();
-    
-    // 建立无限循环的动画渲染器（每帧刷新）
-    _controller = AnimationController(vsync: this, duration: const Duration(days: 365))..repeat();
-    _controller.addListener(_updateUniverse);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _initUniverse() {
-    // 渲染 600 颗基础背景细碎星辰
-    for (int i = 0; i < 600; i++) {
-      _stars.add(_generateRandomStar(StarType.faint));
-    }
-    // 预渲染 60 颗亮星
-    for (int i = 0; i < 60; i++) {
-      _stars.add(_generateRandomStar(StarType.bright));
-    }
-    // 渲染 12 块梦幻的深空星云气体（提供治愈色彩底色）
-    for (int i = 0; i < 12; i++) {
-      _nebulas.add(SpaceParticle(
-        x: (_random.nextDouble() - 0.5) * 2500,
-        y: (_random.nextDouble() - 0.5) * 2500,
-        z: _random.nextDouble() * 1000 + 100,
-        size: _random.nextDouble() * 250 + 150,
-        color: i % 2 == 0 ? const Color(0x339C27B0) : const Color(0x332196F3), // 优雅紫与深空蓝
-        speed: 4,
-        type: StarType.faint,
-      ));
-    }
-  }
-
-  SpaceParticle _generateRandomStar(StarType type) {
-    double spread = 3500;
-    return SpaceParticle(
-      x: (_random.nextDouble() - 0.5) * spread,
-      y: (_random.nextDouble() - 0.5) * spread,
-      z: _random.nextDouble() * 1000 + 10,
-      size: type == StarType.faint ? _random.nextDouble() * 1.5 + 0.8 : _random.nextDouble() * 4 + 3,
-      color: type == StarType.faint 
-          ? Colors.white 
-          : (_random.nextBool() ? const Color(0xFF80DEEA) : const Color(0xFFE1BEE7)), 
-      speed: _random.nextDouble() * 20 + 8,
-      type: type,
-    );
-  }
-
-  void _updateUniverse() {
-    if (!mounted) return;
-    setState(() {
-      double dt = 0.4; // 飞行前进系数
-      
-      // 消费加速后，平稳减速回原本的航速
-      if (_warpSpeed > 1.0) _warpSpeed -= 0.2;
-      if (_warpSpeed < 1.0) _warpSpeed = 1.0;
-
-      for (var star in _stars) {
-        star.update(dt, _warpSpeed);
-        // 超出屏幕视线后，在远方重生，形成无穷无尽的宇宙通道
-        if (star.z <= 0) {
-          var newStar = _generateRandomStar(star.type);
-          star.x = newStar.x; star.y = newStar.y; star.z = 1000;
-          star.type = newStar.type; star.size = newStar.size; star.color = newStar.color;
-          star.wishText = null;
-        }
-      }
-      for (var neb in _nebulas) {
-        neb.update(dt, 1.0);
-        if (neb.z <= 0) neb.z = 1000;
-      }
-    });
-  }
-
-  // 3. 彻底修复并重写 _publishThought 函数，规避任何参数不匹配问题
-  void _publishThought(String text, bool isVip) {
-    setState(() {
-      if (isVip) {
-        _warpSpeed = 18.0; // 付费震撼反馈：全宇宙进入超空间拉伸跃迁！
-        _starCoins += 50;  // 模拟扣费或加分
-      }
-      
-      // 宇宙深处（Z=900）诞生一颗带专属十字光芒的璀璨执念星
-      _stars.add(SpaceParticle(
-        x: (_random.nextDouble() - 0.5) * 150,
-        y: (_random.nextDouble() - 0.5) * 150,
-        z: 900,
-        size: isVip ? 16.0 : 8.0,
-        color: isVip ? const Color(0xFFFFD700) : const Color(0xFFE040FB), // VIP是圣光金，普通是梦幻紫
-        speed: 12.0,
-        type: isVip ? StarType.premium : StarType.bright,
-        wishText: text.isEmpty ? "默默放下一段执念..." : text,
-      ));
-    });
-  }
-
-  // 4. 重构弹窗布局与交互
-  void _openPublishDialog() {
-    final TextEditingController textController = TextEditingController();
-    bool wantVip = false;
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              backgroundColor: const Color(0xFF121026).withOpacity(0.95),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              title: const Text("把执念散作星辰", style: TextStyle(color: Colors.white, fontSize: 18)),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: textController,
-                    maxLines: 3,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      hintText: "写下你想断开的俗世纠葛...",
-                      hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.05),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  CheckboxListTile(
-                    title: const Text("升华这颗星（超空间星芒效果）", style: TextStyle(color: Colors.purpleAccent, fontSize: 14)),
-                    subtitle: const Text("消耗 10 星币", style: TextStyle(color: Colors.grey, fontSize: 12)),
-                    value: wantVip,
-                    activeColor: Colors.purpleAccent,
-                    onChanged: (val) {
-                      setDialogState(() {
-                        wantVip = val ?? false;
-                      });
-                    },
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text("留在此岸", style: TextStyle(color: Colors.grey)),
-                ),
-                TextButton(
-                  onPressed: () {
-                    // 调用我们修好的核心发布函数
-                    _publishThought(textController.text, wantVip);
-                    Navigator.pop(context);
-                  },
-                  child: const Text("发射", style: TextStyle(color: Colors.tealAccent, fontWeight: FontWeight.bold)),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: MouseRegion(
-        onHover: (event) => setState(() => _mousePos = event.localPosition),
-        onExit: (_) => setState(() => _mousePos = null),
-        child: Stack(
-          children: [
-            // 【全屏 3D 宇宙第一视角画布】
-            Positioned.fill(
-              child: CustomPaint(
-                painter: UniversePainter(
-                  particles: _stars,
-                  nebulas: _nebulas,
-                  mousePosition: _mousePos,
-                ),
-              ),
-            ),
-
-            // 【顶部状态栏 UI】
-            Positioned(
-              top: 20,
-              left: 20,
-              right: 20,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, py: 4),
-                        decoration: BoxDecoration(color: Colors.black25, borderRadius: BorderRadius.circular(20)),
-                        child: const Text("代号：天鹅座·坍缩态", style: TextStyle(color: Colors.white70, fontSize: 13)),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Icon(Icons.amber_custom_icon, color: Colors.amber[400], size: 16),
-                      const SizedBox(width: 4),
-                      Text("星币: $_starCoins", style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold)),
-                      const SizedBox(width: 12),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.amber[600],
-                          foregroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                        ),
-                        onPressed: () {
-                          setState(() => _starCoins += 100);
-                        },
-                        child: const Text("测试充值", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            // 【中央意境文字：万物自有其时】
-            Center(
-              child: IgnorePointer(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "万物自有其时。",
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.8),
-                        fontSize: 22,
-                        letterSpacing: 4,
-                        fontFamily: 'serif',
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      "你已经做得很好了，不必对自己步步紧逼。",
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.5),
-                        fontSize: 14,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // 【底部功能交互按钮】
-            Positioned(
-              bottom: 40,
-              left: 30,
-              right: 30,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white54,
-                      side: const BorderSide(color: Colors.white24),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _warpSpeed = 25.0; // 瞬间大清空式的前进
-                        _stars.removeWhere((s) => s.type == StarType.bright);
-                      });
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("负能量碎星已湮灭，俗世退散中..."), duration: Duration(seconds: 2)),
-                      );
-                    },
-                    child: const Text("断开俗世"),
-                  ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0x339C27B0),
-                      side: const BorderSide(color: Colors.purpleAccent, width: 0.8),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    ),
-                    onPressed: _openPublishDialog,
-                    child: const Text("把执念散作星辰", style: TextStyle(color: Colors.white, letterSpacing: 1)),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// 5. 高性能宇宙动态渲染引擎
-class UniversePainter extends CustomPainter {
-  final List<SpaceParticle> particles;
-  final List<SpaceParticle> nebulas;
-  final Offset? mousePosition;
-
-  UniversePainter({
-    required this.particles,
-    required this.nebulas,
-    this.mousePosition,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final maxDimension = max(size.width, size.height);
-    final fov = maxDimension * 0.7; // 3D 视角焦距
-
-    // 绘制深层宇宙太空背景
-    canvas.drawRect(Offset.zero & size, Paint()..color = const Color(0xFF03020A));
-
-    // A. 渲染大片色彩交织的星云（底层）
-    for (var nebula in nebulas) {
-      if (nebula.z <= 0) continue;
-      double screenX = (nebula.x / nebula.z) * fov + center.dx;
-      double screenY = (nebula.y / nebula.z) * fov + center.dy;
-      double radius = (nebula.size / nebula.z) * fov;
-
-      if (screenX < -radius || screenX > size.width + radius ||
-          screenY < -radius || screenY > size.height + radius) continue;
-
-      final nebulaPaint = Paint()
-        ..shader = RadialGradient(
-          colors: [
-            nebula.color.withOpacity(0.15 * nebula.alpha),
-            nebula.color.withOpacity(0.04 * nebula.alpha),
-            Colors.transparent,
-          ],
-        ).createShader(Rect.fromCircle(center: Offset(screenX, screenY), radius: radius));
-
-      canvas.drawCircle(Offset(screenX, screenY), radius, nebulaPaint);
-    }
-
-    // B. 渲染漫天恒星（中顶层）
-    for (var star in particles) {
-      if (star.z <= 0) continue;
-
-      double screenX = (star.x / star.z) * fov + center.dx;
-      double screenY = (star.y / star.z) * fov + center.dy;
-
-      // 引力波互动：靠近鼠标鼠标的星星会产生微弱的黑洞吸引偏转
-      double offsetX = 0;
-      double offsetY = 0;
-      if (mousePosition != null) {
-        double dx = mousePosition!.dx - screenX;
-        double dy = mousePosition!.dy - screenY;
-        double dist = sqrt(dx * dx + dy * dy);
-        if (dist < 220 && dist > 8) {
-          double force = (220 - dist) / 220 * 18; 
-          offsetX = (dx / dist) * force;
-          offsetY = (dy / dist) * force;
-        }
-      }
-
-      final finalPos = Offset(screenX + offsetX, screenY + offsetY);
-      double radius = (star.size / star.z) * fov;
-      if (radius < 0.6) radius = 0.6; // 维持最远碎星可见
-
-      // 剪裁视野外无用渲染以优化网页帧率
-      if (finalPos.dx < -radius || finalPos.dx > size.width + radius ||
-          finalPos.dy < -radius || finalPos.dy > size.height + radius) continue;
-
-      if (star.type == StarType.faint) {
-        // 远景微星
-        final p = Paint()..color = Colors.white.withOpacity(star.alpha);
-        canvas.drawCircle(finalPos, radius, p);
-      } else {
-        // 中近景亮星：中心高亮白色 + 外部高斯晕染光环
-        final glowPaint = Paint()
-          ..shader = RadialGradient(
-            colors: [
-              Colors.white.withOpacity(star.alpha),
-              star.color.withOpacity(0.7 * star.alpha),
-              star.color.withOpacity(0.15 * star.alpha),
-              Colors.transparent,
-            ],
-          ).createShader(Rect.fromCircle(center: finalPos, radius: radius * 3.5));
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>星海微茫 - 治愈宇宙</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #03020A; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        canvas { display: block; width: 100%; height: 100%; position: absolute; left: 0; top: 0; z-index: 1; }
         
-        canvas.drawCircle(finalPos, radius * 3.5, glowPaint);
+        /* 优雅的底层UI */
+        .ui-layer { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; p: 25px; box-sizing: border-box; }
+        .interactive { pointer-events: auto; }
+        
+        /* 顶部状态栏 */
+        .header { display: flex; justify-content: space-between; width: 100%; padding: 20px; }
+        .tag { background: rgba(255,255,255,0.07); backdrop-filter: blur(8px); padding: 6px 14px; border-radius: 20px; color: rgba(255,255,255,0.7); font-size: 13px; border: 1px solid rgba(255,255,255,0.05); }
+        .wallet { display: flex; align-items: center; background: rgba(0,0,0,0.3); backdrop-filter: blur(8px); padding: 4px 6px 4px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); }
+        .coin-text { color: #FFD700; font-weight: bold; font-size: 14px; margin-right: 12px; }
+        .btn-charge { background: #FFB300; color: #000; border: none; padding: 5px 14px; border-radius: 15px; font-size: 12px; font-weight: bold; cursor: pointer; transition: all 0.2s; }
+        .btn-charge:hover { background: #FFC107; transform: scale(1.05); }
 
-        // 如果是 VIP 消费生成的 Premium 独享星，绘制十字星芒（Anamorphic Flare 特效）
-        if (star.type == StarType.premium) {
-          final flarePaint = Paint()
-            ..color = star.color.withOpacity(0.5 * star.alpha)
-            ..strokeWidth = radius * 0.35;
-          
-          canvas.drawLine(Offset(finalPos.dx - radius * 6, finalPos.dy), Offset(finalPos.dx + radius * 6, finalPos.dy), flarePaint);
-          canvas.drawLine(Offset(finalPos.dx, finalPos.dy - radius * 6), Offset(finalPos.dx, finalPos.dy + radius * 6), flarePaint);
-          
-          // 悬浮显示文本（如果有的话）
-          if (star.wishText != null && radius > 3.0) {
-            final textPainter = TextPainter(
-              text: TextSpan(
-                text: star.wishText,
-                style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 11, backgroundColor: Colors.black38),
-              ),
-              textDirection: TextDirection.ltr,
-            )..layout();
-            textPainter.paint(canvas, Offset(finalPos.dx - textPainter.width / 2, finalPos.dy + radius + 6));
-          }
+        /* 中央意境文字 */
+        .center-text { text-align: center; color: rgba(255,255,255,0.8); letter-spacing: 4px; animation: fadeIn 2s ease-out; }
+        .center-text h1 { font-size: 24px; font-weight: 300; font-family: "Noto Serif SC", serif; margin-bottom: 12px; }
+        .center-text p { font-size: 14px; color: rgba(255,255,255,0.45); letter-spacing: 1px; }
+
+        /* 底部控制栏 */
+        .footer { display: flex; justify-content: space-between; width: 100%; padding: 20px; align-items: center; }
+        .btn-out { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.5); padding: 8px 20px; border-radius: 20px; cursor: pointer; font-size: 14px; transition: Linda 0.3s; }
+        .btn-out:hover { border-color: rgba(255,255,255,0.5); color: rgba(255,255,255,0.8); }
+        .btn-action { background: rgba(156, 39, 176, 0.2); border: 1px solid #E040FB; color: #fff; padding: 12px 28px; border-radius: 25px; cursor: pointer; font-size: 15px; letter-spacing: 1px; box-shadow: 0 0 15px rgba(224,64,251,0.2); transition: all 0.3s; }
+        .btn-action:hover { background: rgba(156, 39, 176, 0.4); box-shadow: 0 0 25px rgba(224,64,251,0.5); transform: translateY(-2px); }
+
+        /* 弹窗设计 */
+        .modal-mask { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(3,2,10,0.7); backdrop-filter: blur(10px); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        .modal-mask.show { opacity: 1; pointer-events: auto; }
+        .modal { background: #121026; border: 1px solid rgba(255,255,255,0.1); width: 90%; max-width: 400px; padding: 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .modal h2 { color: #fff; font-size: 18px; font-weight: 400; margin-bottom: 15px; }
+        .modal textarea { width: 100%; height: 80px; background: rgba(255,255,255,0.05); border: none; border-radius: 12px; padding: 12px; color: #fff; resize: none; font-size: 14px; margin-bottom: 15px; }
+        .modal textarea:focus { outline: 1px solid #E040FB; }
+        .checkbox-row { display: flex; align-items: center; margin-bottom: 20px; color: #E040FB; font-size: 14px; cursor: pointer; }
+        .checkbox-row input { margin-right: 8px; accent-color: #E040FB; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 15px; }
+        .btn-cancel { background: transparent; border: none; color: #888; cursor: pointer; font-size: 14px; }
+        .btn-submit { background: transparent; border: none; color: #00E676; font-weight: bold; cursor: pointer; font-size: 14px; }
+
+        /* 飘字特效 */
+        .wish-toast { position: absolute; color: rgba(255,255,255,0.8); background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 4px; font-size: 12px; pointer-events: none; transform: translate(-50%, -50%); z-index: 5; white-space: nowrap; transition: opacity 0.5s; border: 1px solid rgba(255,255,255,0.1); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <canvas id="universe"></canvas>
+
+    <div class="ui-layer">
+        <div class="header">
+            <div class="tag">代号：天鹅座 · 坍缩态</div>
+            <div class="wallet interactive">
+                <span class="coin-text">星币: <span id="coin-count">190</span></span>
+                <button class="btn-charge" onclick="chargeCoins()">测试充值</button>
+            </div>
+        </div>
+
+        <div class="center-text">
+            <h1>万物自有其时。</h1>
+            <p>你已经做得很好了，不必对自己步步紧逼。</p>
+        </div>
+
+        <div class="footer">
+            <button class="btn-out interactive" onclick="clearNegative()">断开俗世</button>
+            <button class="btn-action interactive" onclick="openModal()">把执念散作星辰</button>
+        </div>
+    </div>
+
+    <div class="modal-mask" id="wishModal">
+        <div class="modal">
+            <h2>把执念散作星辰</h2>
+            <textarea id="wishInput" placeholder="写下你想断开的俗世纠葛..."></textarea>
+            <label class="checkbox-row">
+                <input type="checkbox" id="vipCheck"> 升华这颗星（超空间星芒效果，消耗10星币）
+            </label>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal()">留在此岸</button>
+                <button class="btn-submit" onclick="submitWish()">发射</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('universe');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height, centerX, centerY;
+        let stars = [], nebulas = [];
+        let warpSpeed = 1.0;
+        let mouseX = null, mouseY = null;
+        let starCoins = 190;
+
+        // 调整画布大小
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            centerX = width / 2;
+            centerY = height / 2;
         }
-      }
-    }
-  }
+        window.addEventListener('resize', resize);
+        resize();
 
-  @override
-  bool shouldRepaint(covariant UniversePainter oldDelegate) => true;
-}
+        // 粒子类
+        class Particle {
+            constructor(isNebula = false, type = 'faint') {
+                this.isNebula = isNebula;
+                this.type = type; // faint, bright, premium
+                this.reset(true);
+            }
 
-// 拓展自定义图标防止系统图标缺失造成的异常
-extension on IconData {
-  static const IconData amber_custom_icon = Icons.stars;
-}
+            reset(init = false) {
+                this.x = (Math.random() - 0.5) * 3000;
+                this.y = (Math.random() - 0.5) * 3000;
+                this.z = init ? Math.random() * 1000 : 1000;
+                
+                if (this.isNebula) {
+                    this.size = Math.random() * 150 + 150;
+                    this.color = Math.random() > 0.5 ? 'rgba(156, 39, 176, ' : 'rgba(33, 150, 243, ';
+                    this.speed = 2;
+                } else {
+                    this.size = this.type === 'faint' ? Math.random() * 1.5 + 0.5 : Math.random() * 3 + 2;
+                    this.color = this.type === 'premium' ? '#FFD700' : (Math.random() > 0.5 ? '#80DEEA' : '#E1BEE7');
+                    this.speed = Math.random() * 15 + 5;
+                }
+                this.alpha = 0;
+                this.wishText = null;
+            }
+
+            update() {
+                // 第一视角前进：Z轴减小
+                if (this.isNebula) {
+                    this.z -= this.speed;
+                    this.alpha = 0.15 + 0.05 * Math.sin(this.z * 0.01);
+                } else {
+                    this.z -= this.speed * warpSpeed;
+                    this.alpha = this.type === 'faint' ? 0.3 + 0.5 * Math.sin(this.z * 0.03) : 0.8;
+                }
+
+                if (this.z <= 0) {
+                    this.reset(false);
+                }
+            }
+
+            draw() {
+                const fov = Math.max(width, height) * 0.7;
+                let screenX = (this.x / this.z) * fov + centerX;
+                let screenY = (this.y / this.z) * fov + centerY;
+                let radius = (this.size / this.z) * fov;
+
+                if (radius < 0.5 && !this.isNebula) radius = 0.5;
+
+                // 互动：鼠标引力波偏转
+                if (mouseX !== null && !this.isNebula) {
+                    let dx = mouseX - screenX;
+                    let dy = mouseY - screenY;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist < 200 && dist > 5) {
+                        let force = (200 - dist) / 200 * 15;
+                        screenX += (dx / dist) * force;
+                        screenY += (dy / dist) * force;
+                    }
+                }
+
+                // 视口裁剪优化
+                if (screenX < -radius || screenX > width + radius || screenY < -radius || screenY > height + radius) return;
+
+                ctx.save();
+                if (this.isNebula) {
+                    // 绘制星云柔焦效果
+                    let grad = ctx.createRadialGradient(screenX, screenY, 0, screenX, screenY, radius);
+                    grad.addColorStop(0, this.color + this.alpha + ')');
+                    grad.addColorStop(0.4, this.color + (this.alpha * 0.3) + ')');
+                    grad.addColorStop(1, 'rgba(0,0,0,0)');
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.arc(screenX, screenY, radius, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    if (this.type === 'faint') {
+                        // 远景微星
+                        ctx.fillStyle = `rgba(255,255,255,${this.alpha})`;
+                        ctx.beginPath();
+                        ctx.arc(screenX, screenY, radius, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else {
+                        // 中近景亮星发光层
+                        let grad = ctx.createRadialGradient(screenX, screenY, 0, screenX, screenY, radius * 4);
+                        grad.addColorStop(0, '#ffffff');
+                        grad.addColorStop(0.2, this.color);
+                        grad.addColorStop(1, 'rgba(0,0,0,0)');
+                        ctx.fillStyle = grad;
+                        ctx.beginPath();
+                        ctx.arc(screenX, screenY, radius * 4, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        // 专属星十字星芒
+                        if (this.type === 'premium') {
+                            ctx.strokeStyle = 'rgba(255,215,0,0.5)';
+                            ctx.lineWidth = radius * 0.4;
+                            ctx.beginPath();
+                            ctx.moveTo(screenX - radius * 6, screenY); ctx.lineTo(screenX + radius * 6, screenY);
+                            ctx.moveTo(screenX, screenY - radius * 6); ctx.lineTo(screenX, screenY + radius * 6);
+                            ctx.stroke();
+
+                            // 渲染绑定的执念文字
+                            if (this.wishText && this.z < 600 && this.z > 150) {
+                                ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                                ctx.font = '12px sans-serif';
+                                ctx.textAlign = 'center';
+                                ctx.fillText(this.wishText, screenX, screenY + radius + 15);
+                            }
+                        }
+                    }
+                }
+                ctx.restore();
+            }
+        }
+
+        // 初始化星空
+        for (let i = 0; i < 500; i++) stars.push(new Particle(false, 'faint'));
+        for (let i = 0; i < 40; i++) stars.push(new Particle(false, 'bright'));
+        for (let i = 0; i < 10; i++) nebulas.push(new Particle(true));
+
+        // 动画主循环
+        function loop() {
+            ctx.fillStyle = '#03020A';
+            ctx.fillRect(0, 0, width, height);
+
+            if (warpSpeed > 1.0) warpSpeed -= 0.15;
+            if (warpSpeed < 1.0) warpSpeed = 1.0;
+
+            nebulas.forEach(p => { p.update(); p.draw(); });
+            stars.forEach(p => { p.update(); p.draw(); });
+
+            requestAnimationFrame(loop);
+        }
+        loop();
+
+        // 互动监听
+        window.addEventListener('mousemove', (e) => { mouseX = e.clientX; mouseY = e.clientY; });
+        window.addEventListener('mouseout', () => { mouseX = null; mouseY = null; });
+
+        // UI 逻辑函数
+        function chargeCoins() {
+            starCoins += 100;
+            document.getElementById('coin-count').innerText = starCoins;
+        }
+
+        function clearNegative() {
+            warpSpeed = 20.0;
+            // 滤除部分中景星
+            stars = stars.filter(s => s.type === 'faint' || Math.random() > 0.4);
+            setTimeout(() => {
+                while(stars.length < 540) stars.push(new Particle(false, 'bright'));
+            }, 1000);
+        }
+
+        function openModal() { document.getElementById('wishModal').classList.add('show'); }
+        function closeModal() { document.getElementById('wishModal').classList.remove('show'); }
+
+        function submitWish() {
+            const text = document.getElementById('wishInput').value || "默默放下一记执念...";
+            const isVip = document.getElementById('vipCheck').checked;
+
+            if (isVip) {
+                if (starCoins < 10) { alert("星币不足！可点击右上角测试充值。"); return; }
+                starCoins -= 10;
+                document.getElementById('coin-count').innerText = starCoins;
+                warpSpeed = 16.0; // 开启全宇宙拉伸超空间跳跃！
+            }
+
+            // 诞生一颗新星星并绑定文字
+            let p = new Particle(false, isVip ? 'premium' : 'bright');
+            p.z = 900; p.x = (Math.random() - 0.5) * 80; p.y = (Math.random() - 0.5) * 80;
+            p.wishText = text;
+            p.size = isVip ? 14 : 6;
+            stars.push(p);
+
+            document.getElementById('wishInput').value = "";
+            document.getElementById('vipCheck').checked = false;
+            closeModal();
+        }
+    </script>
+</body>
+</html>
