@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>星海微茫 - 治愈宇宙</title>
+    <title>星海微茫 - 静谧冥想治愈版</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
         body, html { width: 100%; height: 100%; overflow: hidden; background-color: #03020A; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         canvas { display: block; width: 100%; height: 100%; position: absolute; left: 0; top: 0; z-index: 1; }
         
         /* 优雅的底层UI */
-        .ui-layer { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; p: 25px; box-sizing: border-box; }
+        .ui-layer { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 25px; box-sizing: border-box; }
         .interactive { pointer-events: auto; }
         
         /* 顶部状态栏 */
-        .header { display: flex; justify-content: space-between; width: 100%; padding: 20px; }
+        .header { display: flex; justify-content: space-between; width: 100%; }
         .tag { background: rgba(255,255,255,0.07); backdrop-filter: blur(8px); padding: 6px 14px; border-radius: 20px; color: rgba(255,255,255,0.7); font-size: 13px; border: 1px solid rgba(255,255,255,0.05); }
         .wallet { display: flex; align-items: center; background: rgba(0,0,0,0.3); backdrop-filter: blur(8px); padding: 4px 6px 4px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); }
         .coin-text { color: #FFD700; font-weight: bold; font-size: 14px; margin-right: 12px; }
@@ -22,13 +22,13 @@
         .btn-charge:hover { background: #FFC107; transform: scale(1.05); }
 
         /* 中央意境文字 */
-        .center-text { text-align: center; color: rgba(255,255,255,0.8); letter-spacing: 4px; animation: fadeIn 2s ease-out; }
-        .center-text h1 { font-size: 24px; font-weight: 300; font-family: "Noto Serif SC", serif; margin-bottom: 12px; }
-        .center-text p { font-size: 14px; color: rgba(255,255,255,0.45); letter-spacing: 1px; }
+        .center-text { text-align: center; color: rgba(255,255,255,0.8); letter-spacing: 4px; animation: fadeIn 2s ease-out; margin-top: -15vh; }
+        .center-text h1 { font-size: 22px; font-weight: 300; font-family: "Noto Serif SC", serif; margin-bottom: 12px; text-shadow: 0 0 8px rgba(255,255,255,0.3); }
+        .center-text p { font-size: 13px; color: rgba(255,255,255,0.45); letter-spacing: 1px; }
 
         /* 底部控制栏 */
-        .footer { display: flex; justify-content: space-between; width: 100%; padding: 20px; align-items: center; }
-        .btn-out { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.5); padding: 8px 20px; border-radius: 20px; cursor: pointer; font-size: 14px; transition: Linda 0.3s; }
+        .footer { display: flex; justify-content: space-between; width: 100%; padding: 10px; align-items: center; }
+        .btn-out { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.5); padding: 8px 20px; border-radius: 20px; cursor: pointer; font-size: 14px; transition: all 0.3s; }
         .btn-out:hover { border-color: rgba(255,255,255,0.5); color: rgba(255,255,255,0.8); }
         .btn-action { background: rgba(156, 39, 176, 0.2); border: 1px solid #E040FB; color: #fff; padding: 12px 28px; border-radius: 25px; cursor: pointer; font-size: 15px; letter-spacing: 1px; box-shadow: 0 0 15px rgba(224,64,251,0.2); transition: all 0.3s; }
         .btn-action:hover { background: rgba(156, 39, 176, 0.4); box-shadow: 0 0 25px rgba(224,64,251,0.5); transform: translateY(-2px); }
@@ -38,16 +38,13 @@
         .modal-mask.show { opacity: 1; pointer-events: auto; }
         .modal { background: #121026; border: 1px solid rgba(255,255,255,0.1); width: 90%; max-width: 400px; padding: 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .modal h2 { color: #fff; font-size: 18px; font-weight: 400; margin-bottom: 15px; }
-        .modal textarea { width: 100%; height: 80px; background: rgba(255,255,255,0.05); border: none; border-radius: 12px; padding: 12px; color: #fff; resize: none; font-size: 14px; margin-bottom: 15px; }
+        .modal textarea { width: 100%; height: 80px; background: rgba(255,255,255,0.05); border: none; border-radius: 12px; padding: 12px; color: #fff; resize: none; font-size: 14px; margin-bottom: 15px; font-family: inherit; }
         .modal textarea:focus { outline: 1px solid #E040FB; }
         .checkbox-row { display: flex; align-items: center; margin-bottom: 20px; color: #E040FB; font-size: 14px; cursor: pointer; }
         .checkbox-row input { margin-right: 8px; accent-color: #E040FB; }
         .modal-actions { display: flex; justify-content: flex-end; gap: 15px; }
         .btn-cancel { background: transparent; border: none; color: #888; cursor: pointer; font-size: 14px; }
         .btn-submit { background: transparent; border: none; color: #00E676; font-weight: bold; cursor: pointer; font-size: 14px; }
-
-        /* 飘字特效 */
-        .wish-toast { position: absolute; color: rgba(255,255,255,0.8); background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 4px; font-size: 12px; pointer-events: none; transform: translate(-50%, -50%); z-index: 5; white-space: nowrap; transition: opacity 0.5s; border: 1px solid rgba(255,255,255,0.1); }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -71,7 +68,7 @@
         </div>
 
         <div class="footer">
-            <button class="btn-out interactive" onclick="clearNegative()">断开俗世</button>
+            <button class="btn-out interactive" onclick="driftAway()">散作微尘</button>
             <button class="btn-action interactive" onclick="openModal()">把执念散作星辰</button>
         </div>
     </div>
@@ -81,7 +78,7 @@
             <h2>把执念散作星辰</h2>
             <textarea id="wishInput" placeholder="写下你想断开的俗世纠葛..."></textarea>
             <label class="checkbox-row">
-                <input type="checkbox" id="vipCheck"> 升华这颗星（超空间星芒效果，消耗10星币）
+                <input type="checkbox" id="vipCheck"> 升华这颗星（消耗 10 星币，开启【雪花闪烁模式】）
             </label>
             <div class="modal-actions">
                 <button class="btn-cancel" onclick="closeModal()">留在此岸</button>
@@ -95,12 +92,20 @@
         const ctx = canvas.getContext('2d');
         
         let width, height, centerX, centerY;
-        let stars = [], nebulas = [];
-        let warpSpeed = 1.0;
+        let stars = [];
         let mouseX = null, mouseY = null;
         let starCoins = 190;
+        let currentDriftX = 0, currentDriftY = 0;
 
-        // 调整画布大小
+        // 【别人的消息数据池】
+        const messagePool = [
+            { author: "仙女座·虚粒子", text: "今年裁员了，不敢告诉爸妈，在图书馆假装上班，好累。" },
+            { author: "猎户座·慢中子", text: "努力了三年还是没考上研，感觉自己是个废物，对不起爸妈。" },
+            { author: "天琴座·坍缩态", text: "房租又涨了，加班到深夜，不知道坚持的意义是什么。" },
+            { author: "天鹅座·红移线", text: "暗恋了他四年，今天他结婚了，新娘很漂亮。" },
+            { author: "半人马·星流", text: "如果累了就睡一觉吧，这个星球上你已经坚持很久了。" }
+        ];
+
         function resize() {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
@@ -110,40 +115,49 @@
         window.addEventListener('resize', resize);
         resize();
 
-        // 粒子类
         class Particle {
-            constructor(isNebula = false, type = 'faint') {
-                this.isNebula = isNebula;
+            constructor(type = 'faint', hasMessage = false) {
                 this.type = type; // faint, bright, premium
+                this.hasMessage = hasMessage;
                 this.reset(true);
+                this.alpha = 0;
             }
 
             reset(init = false) {
-                this.x = (Math.random() - 0.5) * 3000;
-                this.y = (Math.random() - 0.5) * 3000;
+                this.x = (Math.random() - 0.5) * 2000;
+                this.y = (Math.random() - 0.5) * 2000;
                 this.z = init ? Math.random() * 1000 : 1000;
                 
-                if (this.isNebula) {
-                    this.size = Math.random() * 150 + 150;
-                    this.color = Math.random() > 0.5 ? 'rgba(156, 39, 176, ' : 'rgba(33, 150, 243, ';
-                    this.speed = 2;
+                this.size = this.type === 'faint' ? Math.random() * 1.5 + 0.8 : Math.random() * 4 + 3;
+                
+                // 【一开始的温柔】温柔的蓝紫色发光体
+                if (this.type === 'premium') {
+                    this.color = '#da70d6'; // VIP温柔的紫罗兰色
+                    this.size = Math.random() * 6 + 5;
                 } else {
-                    this.size = this.type === 'faint' ? Math.random() * 1.5 + 0.5 : Math.random() * 3 + 2;
-                    this.color = this.type === 'premium' ? '#FFD700' : (Math.random() > 0.5 ? '#80DEEA' : '#E1BEE7');
-                    this.speed = Math.random() * 15 + 5;
+                    this.color = Math.random() > 0.5 ? '#80DEEA' : '#a29bfe'; // 温柔的蓝、紫色
                 }
-                this.alpha = 0;
+                
+                // 【重要：彻底降速】降速90%，像雪花一样缓慢漂移
+                this.speed = Math.random() * 1.0 + 0.2; 
                 this.wishText = null;
+                this.messageData = null;
+
+                // 给部分亮星绑定别人的消息
+                if (this.hasMessage) {
+                    this.messageData = messagePool[Math.floor(Math.random() * messagePool.length)];
+                }
             }
 
             update() {
-                // 第一视角前进：Z轴减小
-                if (this.isNebula) {
-                    this.z -= this.speed;
-                    this.alpha = 0.15 + 0.05 * Math.sin(this.z * 0.01);
+                // 静谧前进：Z轴极其缓慢减小
+                this.z -= this.speed;
+
+                // 呼吸感算法：远处的星温柔闪烁
+                if (this.type === 'faint') {
+                    this.alpha = 0.25 + 0.6 * Math.sin(this.z * 0.015);
                 } else {
-                    this.z -= this.speed * warpSpeed;
-                    this.alpha = this.type === 'faint' ? 0.3 + 0.5 * Math.sin(this.z * 0.03) : 0.8;
+                    this.alpha = 0.6 + 0.4 * Math.sin(this.z * 0.05);
                 }
 
                 if (this.z <= 0) {
@@ -157,98 +171,70 @@
                 let screenY = (this.y / this.z) * fov + centerY;
                 let radius = (this.size / this.z) * fov;
 
-                if (radius < 0.5 && !this.isNebula) radius = 0.5;
+                if (radius < 0.6) radius = 0.6; // 确保远处的碎星能被看见
 
-                // 互动：鼠标引力波偏转
-                if (mouseX !== null && !this.isNebula) {
-                    let dx = mouseX - screenX;
-                    let dy = mouseY - screenY;
-                    let dist = Math.sqrt(dx*dx + dy*dy);
-                    if (dist < 200 && dist > 5) {
-                        let force = (200 - dist) / 200 * 15;
-                        screenX += (dx / dist) * force;
-                        screenY += (dy / dist) * force;
-                    }
-                }
-
-                // 视口裁剪优化
+                // 视野裁剪
                 if (screenX < -radius || screenX > width + radius || screenY < -radius || screenY > height + radius) return;
 
                 ctx.save();
-                if (this.isNebula) {
-                    // 绘制星云柔焦效果
-                    let grad = ctx.createRadialGradient(screenX, screenY, 0, screenX, screenY, radius);
-                    grad.addColorStop(0, this.color + this.alpha + ')');
-                    grad.addColorStop(0.4, this.color + (this.alpha * 0.3) + ')');
-                    grad.addColorStop(1, 'rgba(0,0,0,0)');
-                    ctx.fillStyle = grad;
+                if (this.type === 'faint') {
+                    // 碎星：直接画一个带呼吸感的点
+                    ctx.fillStyle = `rgba(184, 173, 150, ${this.alpha})`;
                     ctx.beginPath();
                     ctx.arc(screenX, screenY, radius, 0, Math.PI * 2);
                     ctx.fill();
                 } else {
-                    if (this.type === 'faint') {
-                        // 远景微星
-                        ctx.fillStyle = `rgba(255,255,255,${this.alpha})`;
-                        ctx.beginPath();
-                        ctx.arc(screenX, screenY, radius, 0, Math.PI * 2);
-                        ctx.fill();
-                    } else {
-                        // 中近景亮星发光层
-                        let grad = ctx.createRadialGradient(screenX, screenY, 0, screenX, screenY, radius * 4);
-                        grad.addColorStop(0, '#ffffff');
-                        grad.addColorStop(0.2, this.color);
-                        grad.addColorStop(1, 'rgba(0,0,0,0)');
-                        ctx.fillStyle = grad;
-                        ctx.beginPath();
-                        ctx.arc(screenX, screenY, radius * 4, 0, Math.PI * 2);
-                        ctx.fill();
+                    // 核心视觉：高亮恒星（中心纯白 + 外部发光晕染）
+                    let grad = ctx.createRadialGradient(screenX, screenY, 0, screenX, screenY, radius * 3.5);
+                    grad.addColorStop(0, `rgba(255, 255, 255, ${this.alpha})`);
+                    grad.addColorStop(0.2, this.color);
+                    grad.addColorStop(1, 'rgba(0,0,0,0)');
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.arc(screenX, screenY, radius * 3.5, 0, Math.PI * 2);
+                    ctx.fill();
 
-                        // 专属星十字星芒
-                        if (this.type === 'premium') {
-                            ctx.strokeStyle = 'rgba(255,215,0,0.5)';
-                            ctx.lineWidth = radius * 0.4;
-                            ctx.beginPath();
-                            ctx.moveTo(screenX - radius * 6, screenY); ctx.lineTo(screenX + radius * 6, screenY);
-                            ctx.moveTo(screenX, screenY - radius * 6); ctx.lineTo(screenX, screenY + radius * 6);
-                            ctx.stroke();
+                    // 升华特效：温柔的十字星芒
+                    if (this.type === 'premium') {
+                        ctx.strokeStyle = `rgba(217, 201, 165, ${this.alpha * 0.3})`;
+                        ctx.lineWidth = radius * 0.4;
+                        ctx.beginPath();
+                        ctx.moveTo(screenX - radius * 6, screenY); ctx.lineTo(screenX + radius * 6, screenY);
+                        ctx.moveTo(screenX, screenY - radius * 6); ctx.lineTo(screenX, screenY + radius * 6);
+                        ctx.stroke();
+                    }
 
-                            // 渲染绑定的执念文字
-                            if (this.wishText && this.z < 600 && this.z > 150) {
-                                ctx.fillStyle = 'rgba(255,255,255,0.7)';
-                                ctx.font = '12px sans-serif';
-                                ctx.textAlign = 'center';
-                                ctx.fillText(this.wishText, screenX, screenY + radius + 15);
-                            }
-                        }
+                    // 【别人的消息显示】只在亮星飘近且文字不刺眼时显示
+                    if ((this.wishText || this.messageData) && this.z < 600 && this.z > 100) {
+                        ctx.fillStyle = `rgba(224, 215, 195, ${this.alpha * 0.6})`; // 温柔的白米色字体
+                        ctx.font = '12px sans-serif';
+                        ctx.textAlign = 'left';
+                        const text = this.wishText ? this.wishText : `🌌【${this.messageData.author}】：${this.messageData.text}`;
+                        // 绘制文字旁的梦幻小字条装饰
+                        ctx.fillText(text, screenX + radius * 3, screenY + 4);
+                        ctx.strokeStyle = `rgba(224, 215, 195, ${this.alpha * 0.1})`;
+                        ctx.strokeRect(screenX + radius * 3 - 5, screenY - 12, ctx.measureText(text).width + 10, 24);
                     }
                 }
                 ctx.restore();
             }
         }
 
-        // 初始化星空
-        for (let i = 0; i < 500; i++) stars.push(new Particle(false, 'faint'));
-        for (let i = 0; i < 40; i++) stars.push(new Particle(false, 'bright'));
-        for (let i = 0; i < 10; i++) nebulas.push(new Particle(true));
+        // 初始化星空：降低总数量，提升画面空灵感
+        for (let i = 0; i < 400; i++) stars.push(new Particle('faint'));
+        for (let i = 0; i < 50; i++) stars.push(new Particle('bright', i % 10 === 0)); // 只有十分之一亮星带别人的消息
 
         // 动画主循环
         function loop() {
-            ctx.fillStyle = '#03020A';
+            // 背景换回【一开始的温柔】空灵深黑紫色
+            ctx.fillStyle = '#02050a'; 
             ctx.fillRect(0, 0, width, height);
 
-            if (warpSpeed > 1.0) warpSpeed -= 0.15;
-            if (warpSpeed < 1.0) warpSpeed = 1.0;
-
-            nebulas.forEach(p => { p.update(); p.draw(); });
             stars.forEach(p => { p.update(); p.draw(); });
 
             requestAnimationFrame(loop);
         }
         loop();
-
-        // 互动监听
-        window.addEventListener('mousemove', (e) => { mouseX = e.clientX; mouseY = e.clientY; });
-        window.addEventListener('mouseout', () => { mouseX = null; mouseY = null; });
 
         // UI 逻辑函数
         function chargeCoins() {
@@ -256,13 +242,10 @@
             document.getElementById('coin-count').innerText = starCoins;
         }
 
-        function clearNegative() {
-            warpSpeed = 20.0;
-            // 滤除部分中景星
-            stars = stars.filter(s => s.type === 'faint' || Math.random() > 0.4);
-            setTimeout(() => {
-                while(stars.length < 540) stars.push(new Particle(false, 'bright'));
-            }, 1000);
+        function driftAway() {
+            // “断开俗世”变成了一个缓慢温柔的视角扩散
+            stars.forEach(s => s.z += 100);
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("负能量已湮灭，俗世散作微尘...")));
         }
 
         function openModal() { document.getElementById('wishModal').classList.add('show'); }
@@ -276,14 +259,12 @@
                 if (starCoins < 10) { alert("星币不足！可点击右上角测试充值。"); return; }
                 starCoins -= 10;
                 document.getElementById('coin-count').innerText = starCoins;
-                warpSpeed = 16.0; // 开启全宇宙拉伸超空间跳跃！
             }
 
-            // 诞生一颗新星星并绑定文字
-            let p = new Particle(false, isVip ? 'premium' : 'bright');
-            p.z = 900; p.x = (Math.random() - 0.5) * 80; p.y = (Math.random() - 0.5) * 80;
+            // 付费触发【雪花闪烁模式】：发射不再产生刺眼流星，而是生成一颗高亮、带十字星芒、像超大雪花一样温柔飘来的星星。
+            let p = new Particle(isVip ? 'premium' : 'bright');
+            p.z = 900; p.x = (Math.random() - 0.5) * 100; p.y = (Math.random() - 0.5) * 100;
             p.wishText = text;
-            p.size = isVip ? 14 : 6;
             stars.push(p);
 
             document.getElementById('wishInput').value = "";
