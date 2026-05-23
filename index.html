@@ -142,13 +142,12 @@
             <textarea class="whisper-area" id="whisperInput" placeholder="写下一句话，打碎揉进星河里。此地无人知晓你，亦无人能评判你..."></textarea>
             <div class="panel-buttons">
                 <button class="panel-btn cancel" onclick="closeInputPanel()">收回思绪</button>
-                <button class="panel-btn confirm" onclick="submitWhisper()">发射执念</button>
+                <button class="panel-btn confirm" onclick="submitWhisper(event)">发射执念</button>
             </div>
         </div>
     </div>
 
     <script>
-        // 🛠️ 核心修改：直接让前端访问 Supabase 的真实 API 节点，绕过 Cloudflare Worker 的限制
         const SUPABASE_URL = 'https://qzqcwyubugcendbdhme.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6cWN3dnl1YnVnY2VuZGJkaG1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0NDI5NzEsImV4cCI6MjA5NTAxODk3MX0.Sl2AxvDKZ7OSWT-uDCxGagGmIWWqWd_zQC_QiWbC7VI';
 
@@ -164,6 +163,7 @@
         }
         const myUniverseSign = getOrCreateUniverseSign();
 
+        // 🌟 确保 Canvas 已经存在后进行初始化
         const canvas = document.getElementById('spaceCanvas');
         const ctx = canvas.getContext('2d');
         let width = canvas.width = window.innerWidth;
@@ -240,7 +240,7 @@
                 ["努力了三年还是考研失败，感觉自己是个废物，对不起爸妈。", "飞马座 · 慢中子"],
                 ["大城市房租又涨了，每天加班到深夜，不知道坚持的意义是什么。", "英仙座 · 偏振光"],
                 ["喜欢了他整整四年，今天看到他在朋友圈发了和别人的婚纱照，祝你幸福。", "巨蟹座 · 坍缩态"],
-                ["今天走在路上，突然抬头看到一朵很好看的云，可惜没人可以分享。", "天鹅座 · 红移线"],
+                ["今天走在路上，突然抬头看到一朵很好看的云，可惜没人可以分享。", "天鹅座 · Red线"],
                 ["如果累了就睡一觉吧，在这个星球上你已经坚持很久了。", "半人马 · 星流"]
             ];
             for(let i=0; i<150; i++) {
@@ -256,17 +256,21 @@
                 starNodes.push(new StarNode(fallbackTexts[i % fallbackTexts.length], "寂静深空"));
             }
         }
+        
+        // 🌟 初始化调用
         loadStarsFromCloud();
 
-        async function submitWhisper() {
-            const input = document.getElementById('whisperInput'); const text = input.value.trim();
+        async function submitWhisper(event) {
+            if(event) event.stopPropagation();
+            const input = document.getElementById('whisperInput'); 
+            const text = input.value.trim();
             if(!text) return;
 
-            const newStar = new StarNode(text, myUniverseSign, true);
-            starNodes.push(newStar); closeInputPanel(); playValleyChime(); input.value = '';
+            const confirmBtn = document.querySelector('.panel-btn.confirm');
+            if(confirmBtn) confirmBtn.disabled = true;
 
             try {
-                await fetch(`${SUPABASE_URL}/rest/v1/whispers`, {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/whispers`, {
                     method: 'POST',
                     headers: {
                         'apikey': SUPABASE_KEY,
@@ -276,9 +280,22 @@
                     },
                     body: JSON.stringify({ content: text, author_sign: myUniverseSign })
                 });
-                console.log('执念已成功同步至星海云端数据库。');
+
+                if (response.ok) {
+                    alert('✨ 执念已穿透夜空，成功沉入星海数据库！');
+                    const newStar = new StarNode(text, myUniverseSign, true);
+                    starNodes.push(newStar); 
+                    closeInputPanel(); 
+                    playValleyChime(); 
+                    input.value = '';
+                } else {
+                    alert(`❌ 传导失败：服务器返回错误码 ${response.status}`);
+                }
             } catch (error) {
+                alert('❌ 信号未能发射：网络连接阻断，请确认 Supabase 配置是否正确。');
                 console.error('发射执念失败：', error);
+            } finally {
+                if(confirmBtn) confirmBtn.disabled = false;
             }
         }
 
@@ -291,6 +308,7 @@
 
         function checkTargetInvalid(target) { return target.tagName === 'TEXTAREA' || target.tagName === 'BUTTON' || target.classList.contains('whisper-trigger') || target.id === 'userSignHint'; }
         const resBox = document.getElementById('resonanceBox');
+        
         function checkStarInteraction(mx, my, isClickOrTouch) {
             let hoveredStar = null; const activeRadius = isMobile ? 35 : 16;
             for(let star of starNodes) { if(star.currentScale > 0) { const dist = Math.hypot(star.screenX - mx, star.screenY - my); if(dist < activeRadius) { hoveredStar = star; break; } } }
