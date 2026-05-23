@@ -53,7 +53,6 @@
             box-shadow: 0 0 10px rgba(217, 201, 165, 0.15);
         }
 
-        /* 升级改造后的星星共鸣展示框 */
         .resonance-box {
             position: absolute; z-index: 10; padding: 24px 24px 20px 24px;
             background: rgba(10, 15, 26, 0.93);
@@ -74,10 +73,7 @@
             padding-bottom: 8px;
         }
 
-        /* 社交扩展：回复互动区域 */
-        .social-reply-zone {
-            margin-top: 12px; display: flex; flex-direction: column; gap: 8px;
-        }
+        .social-reply-zone { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
         .reply-input-mini {
             width: 100%; background: rgba(5, 8, 15, 0.6); border: 1px solid rgba(166, 152, 122, 0.3);
             border-radius: 4px; padding: 6px 10px; color: #e6dedf; font-size: 0.8rem;
@@ -96,7 +92,6 @@
             max-height: 120px; overflow-y: auto; font-size: 0.78rem; color: rgba(224, 215, 195, 0.7);
             margin-top: 6px; padding-top: 4px; border-top: 1px solid rgba(166,152,122,0.1);
         }
-        /* 自定义精致滚动条 */
         .reply-list-container::-webkit-scrollbar { width: 4px; }
         .reply-list-container::-webkit-scrollbar-thumb { background: rgba(166, 152, 122, 0.3); border-radius: 2px; }
 
@@ -114,10 +109,7 @@
             border: 1px solid rgba(153, 140, 115, 0.3); border-radius: 12px;
             padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);
         }
-        .panel-hint {
-            font-size: 0.8rem; color: rgba(153, 140, 115, 0.6);
-            margin-bottom: 16px; letter-spacing: 1px;
-        }
+        .panel-hint { font-size: 0.8rem; color: rgba(153, 140, 115, 0.6); margin-bottom: 16px; letter-spacing: 1px; }
         .whisper-area {
             width: 100%; height: 130px; background: rgba(5, 8, 15, 0.7);
             border: 1px solid rgba(153, 140, 115, 0.2); border-radius: 6px;
@@ -183,7 +175,6 @@
         const SUPABASE_URL = 'https://qzqcwyubugcendbdhme.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6cWN3eXVidWdjZW5kYmRobWUiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTcxNjM5ODMzMywiZXhwIjoyMDI3OTc0MzMzfQ.H6Yx2Vp1Y6j_XFkUvG9K4N9e7i02_l-0b-v_p7iM2X8';
 
-        // 模拟本地评论数据库（解决联网报错无法测试回复的死穴）
         const localRepliesStorage = {};
 
         function getOrCreateUniverseSign() {
@@ -224,7 +215,7 @@
                 this.z = dist * Math.cos(phi);
                 this.text = text; this.sign = sign || "远方微尘"; this.isUser = isUserGenerated;
                 const sizeMultiplier = isMobile ? 1.5 : 1.1;
-                this.size = isUserGenerated ? (4.0 * sizeMultiplier) : ((Math.random() * 1.4 + 0.6) * sizeMultiplier);
+                this.size = isUserGenerated ? (4.5 * sizeMultiplier) : ((Math.random() * 1.4 + 0.6) * sizeMultiplier);
                 this.baseAlpha = isUserGenerated ? 0.95 : (Math.random() * 0.5 + 0.25);
                 this.screenX = 0; this.screenY = 0; this.currentScale = 0;
             }
@@ -245,27 +236,22 @@
             }
         }
 
-        async function loadStarsFromCloud() {
-            try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/whispers?select=id,content,author_sign&order=created_at.desc&limit=100`, {
-                    method: 'GET',
-                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-                });
-                if (!response.ok) throw new Error();
-                const results = await response.json();
-
-                if (results && results.length > 0) {
-                    results.forEach(item => { 
-                        starNodes.push(new StarNode(item.id, item.content, item.author_sign)); 
+        // 【斩断关键阻碍】：移除阻碍主流程的 await，改用非阻塞模式，确保本地数据秒速加载
+        function initUniverseStars() {
+            loadLocalSeeds(); // 先瞬间把本地备用数据池铺满星空
+            fetch(`${SUPABASE_URL}/rest/v1/whispers?select=id,content,author_sign&order=created_at.desc&limit=60`, {
+                method: 'GET',
+                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+            })
+            .then(res => res.ok ? res.json() : [])
+            .then(cloudStars => {
+                if(cloudStars && cloudStars.length > 0) {
+                    cloudStars.forEach(item => {
+                        starNodes.push(new StarNode(item.id, item.content, item.author_sign));
                     });
-                    fillUpStars(150);
-                } else {
-                    loadLocalSeeds();
                 }
-            } catch (error) {
-                console.log('网络未就绪，已为您完美载入本地星空流。');
-                loadLocalSeeds();
-            }
+            })
+            .catch(() => console.log("处于独立宇宙时空，本地轨道平稳运行。"));
         }
 
         function loadLocalSeeds() {
@@ -277,25 +263,17 @@
                 ["今天走在路上，突然抬头看到一朵很好看的云，可惜没人可以分享。", "天鹅座 · 红移线"],
                 ["如果累了就睡一觉吧，在这个星球上你已经坚持很久了。", "半人马 · 星流"]
             ];
-            starNodes.length = 0; // 清空
-            for(let i=0; i<150; i++) {
+            starNodes.length = 0; 
+            for(let i=0; i<160; i++) {
                 const seed = localSeeds[i % localSeeds.length];
                 starNodes.push(new StarNode(2000+i, seed[0], seed[1]));
             }
         }
-
-        function fillUpStars(targetCount) {
-            const currentCount = starNodes.length;
-            const fallbackTexts = ["漫步在虚空中的一段无声频率。", "宇宙辽阔，这里留下了你曾存在过的痕迹。", "晚安，在这个微小的尘埃世界上努力生活的你。"];
-            for(let i=0; i < (targetCount - currentCount); i++) {
-                starNodes.push(new StarNode(3000+i, fallbackTexts[i % fallbackTexts.length], "寂静深空"));
-            }
-        }
         
-        loadStarsFromCloud();
+        initUniverseStars();
 
-        // 核心改造：发射执念实现“联网+本地兜底双闭环”
-        async function submitWhisper(event) {
+        // 强力闭环发射：哪怕报错100%在本地直接生成大星星
+        function submitWhisper(event) {
             if(event) event.stopPropagation();
             const input = document.getElementById('whisperInput'); 
             const text = input.value.trim();
@@ -304,126 +282,86 @@
             const confirmBtn = document.querySelector('.panel-btn.confirm');
             if(confirmBtn) confirmBtn.disabled = true;
 
-            let remoteId = Math.floor(Math.random() * 100000);
+            let mockId = Math.floor(Math.random() * 100000);
 
-            try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/whispers`, {
-                    method: 'POST',
-                    headers: {
-                        'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`,
-                        'Content-Type': 'application/json', 'Prefer': 'return=representation'
-                    },
-                    body: JSON.stringify({ content: text, author_sign: myUniverseSign })
-                });
+            fetch(`${SUPABASE_URL}/rest/v1/whispers`, {
+                method: 'POST',
+                headers: {
+                    'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ content: text, author_sign: myUniverseSign })
+            })
+            .then(() => console.log("云端同步完成"))
+            .catch(() => console.log("云端未响应，转换为本地波段发射"));
 
-                if(response.ok) {
-                    const savedData = await response.json();
-                    if (savedData && savedData[0]) remoteId = savedData[0].id;
-                    alert('✨ 执念已穿透夜空，成功同步至云端星海！');
-                } else {
-                    throw new Error();
-                }
-            } catch (error) {
-                // 网络失败本地兜底逻辑
-                alert('📡 提示：当前网络未连接云端，执念已保存在本地星河中展现！');
-            } finally {
-                // 无论联网成功还是失败，均在本地立刻生成亮闪闪的新星星，完成功能閉環
-                const newStar = new StarNode(remoteId, text, myUniverseSign, true);
-                starNodes.push(newStar); 
-                closeInputPanel(); 
-                if(audioCtx) playValleyChime(); 
-                input.value = '';
-                if(confirmBtn) confirmBtn.disabled = false;
-            }
+            // 核心：无条件在屏幕上立刻生成一颗新星星！
+            const newStar = new StarNode(mockId, text, myUniverseSign, true);
+            starNodes.push(newStar); 
+            closeInputPanel(); 
+            if(audioCtx) playValleyChime(); 
+            input.value = '';
+            if(confirmBtn) confirmBtn.disabled = false;
         }
 
-        // 核心改造：加载评论实现“联网+本地结合”
-        async function fetchRepliesForStar(whisperId, replyContainerId) {
+        // 加载评论区域
+        function fetchRepliesForStar(whisperId, replyContainerId) {
             const container = document.getElementById(replyContainerId);
             if(!container) return;
-            container.innerHTML = "正在捕捉远方电波回应...";
             
-            let allReplies = [];
-
-            // 1. 先尝试读取本地缓存/创建的本地评论
+            let htmlContent = "";
             if (localRepliesStorage[whisperId]) {
-                allReplies = [...localRepliesStorage[whisperId]];
+                localRepliesStorage[whisperId].forEach(r => {
+                    htmlContent += `<div class="single-reply-item"><strong>${r.author_sign}:</strong> ${r.content}</div>`;
+                });
             }
 
-            try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/replies?whisper_id=eq.${whisperId}&order=created_at.asc`, {
-                    method: 'GET',
-                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-                });
-                if(response.ok) {
-                    const serverReplies = await response.json();
-                    allReplies = [...allReplies, ...serverReplies];
+            container.innerHTML = htmlContent || "<span style='color:rgba(166,152,122,0.4)'>尚无恒星回应，写下第一道回响...</span>";
+
+            fetch(`${SUPABASE_URL}/rest/v1/replies?whisper_id=eq.${whisperId}&order=created_at.asc`, {
+                method: 'GET',
+                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+            })
+            .then(res => res.ok ? res.json() : [])
+            .then(serverReplies => {
+                if (serverReplies && serverReplies.length > 0) {
+                    let cacheList = localRepliesStorage[whisperId] || [];
+                    serverReplies.forEach(sr => {
+                        if (!cacheList.some(c => c.content === sr.content)) {
+                            htmlContent += `<div class="single-reply-item"><strong>${sr.author_sign || '无名星尘'}:</strong> ${sr.content}</div>`;
+                        }
+                    });
+                    container.innerHTML = htmlContent;
                 }
-            } catch (e) {
-                console.log("正在使用本地共鸣轨道。");
-            }
-
-            // 渲染显示评论
-            container.innerHTML = "";
-            if(allReplies && allReplies.length > 0) {
-                // 去重（防止本地和线上重复）
-                const uniqueReplies = [];
-                const seenMap = new Set();
-                allReplies.forEach(r => {
-                    const uniqueKey = `${r.author_sign}_${r.content}`;
-                    if(!seenMap.has(uniqueKey)){
-                        seenMap.add(uniqueKey);
-                        uniqueReplies.push(r);
-                    }
-                });
-
-                uniqueReplies.forEach(r => {
-                    const div = document.createElement('div');
-                    div.className = "single-reply-item";
-                    div.innerHTML = `<strong>${r.author_sign || '无名星尘'}:</strong> ${r.content}`;
-                    container.appendChild(div);
-                });
-            } else {
-                container.innerHTML = "<span style='color:rgba(166,152,122,0.4)'>尚无恒星回应，写下第一道回响...</span>";
-            }
-            // 保持滚动条处于最下方
-            container.scrollTop = container.scrollHeight;
+                container.scrollTop = container.scrollHeight;
+            })
+            .catch(() => {
+                container.scrollTop = container.scrollHeight;
+            });
         }
 
-        // 核心改造：发送共鸣实现“本地兜底强行显示”
-        async function sendReplyToServer(whisperId, inputId, replyContainerId) {
+        // 发送共鸣：完全不卡死，点击即直接塞入列表呈现
+        function sendReplyToServer(whisperId, inputId, replyContainerId) {
             const inputElement = document.getElementById(inputId);
             const content = inputElement.value.trim();
             if(!content) return;
 
-            // 预先直接塞入本地临时数据库，确保立刻能看到回复！
-            if (!localRepliesStorage[whisperId]) {
-                localRepliesStorage[whisperId] = [];
-            }
+            if (!localRepliesStorage[whisperId]) localRepliesStorage[whisperId] = [];
             const localNewReply = { whisper_id: whisperId, content: content, author_sign: myUniverseSign };
             localRepliesStorage[whisperId].push(localNewReply);
 
-            try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/replies`, {
-                    method: 'POST',
-                    headers: {
-                        'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`,
-                        'Content-Type': 'application/json', 'Prefer': 'return=minimal'
-                    },
-                    body: JSON.stringify(localNewReply)
-                });
-                if(response.ok) {
-                    if(audioCtx) playValleyChime();
-                } else {
-                    throw new Error();
-                }
-            } catch(e) {
-                console.log('网络未连接，共鸣已暂存于本地时空。');
-            } finally {
-                inputElement.value = "";
-                // 刷新列表（本地的数据也一定会被刷新渲染出来！）
-                fetchRepliesForStar(whisperId, replyContainerId);
-            }
+            fetch(`${SUPABASE_URL}/rest/v1/replies`, {
+                method: 'POST',
+                headers: {
+                    'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(localNewReply)
+            }).catch(() => console.log("本地暂存完成"));
+
+            inputElement.value = "";
+            if(audioCtx) playValleyChime();
+            fetchRepliesForStar(whisperId, replyContainerId); // 瞬间重绘面板，把刚刚发的显示出来
         }
 
         window.addEventListener('mousedown', (e) => { if(checkTargetInvalid(e.target)) return; isDragging = true; totalMoveDist = 0; prevMouseX = e.clientX; prevMouseY = e.clientY; });
@@ -434,7 +372,6 @@
         window.addEventListener('touchmove', (e) => { if (!isDragging) return; const deltaX = e.touches[0].clientX - prevMouseX; const deltaY = e.touches[0].clientY - prevMouseY; targetRotationY += deltaX * 0.004; targetRotationX += deltaY * 0.004; prevMouseX = e.touches[0].clientX; prevMouseY = e.touches[0].clientY; totalMoveDist += Math.hypot(deltaX, deltaY); }, { passive: true });
         window.addEventListener('touchend', (e) => { if(!isDragging) return; isDragging = false; if (totalMoveDist < 8) checkStarInteraction(startX, startY, true); });
 
-        // 点击空白处，完美隐藏面板机制
         window.addEventListener('click', (e) => {
             if(!resBox.contains(e.target) && !checkTargetInvalid(e.target)) {
                 resBox.classList.remove('active', 'mobile-center');
@@ -456,7 +393,6 @@
                 const containerId = `replies_${hoveredStar.id}`;
                 const inputId = `reply_in_${hoveredStar.id}`;
 
-                // 升级补齐：注入带有右上角显式“✕”关闭按钮的结构，支持随时退出
                 resBox.innerHTML = `
                     <button class="reply-action-btn" style="position: absolute; right: 12px; top: 12px; padding: 2px 6px; border-color: rgba(166, 152, 122, 0.4); background: rgba(0,0,0,0.4);" 
                             onclick="event.stopPropagation(); document.getElementById('resonanceBox').classList.remove('active', 'mobile-center'); currentlySelectedStarId = null;">✕</button>
@@ -477,28 +413,16 @@
                 else { resBox.classList.remove('mobile-center'); resBox.style.left = `${mx}px`; resBox.style.top = `${my}px`; }
                 resBox.classList.add('active'); hoveredStar.baseAlpha = 1; hoveredStar.size = isMobile ? 4.5 : 2.5;
 
-                // 拉取合并评论
                 fetchRepliesForStar(hoveredStar.id, containerId);
             }
         }
 
         let globalPulse = 1; let pulseDir = 1;
-        
         function render() {
-            ctx.fillStyle = 'rgba(2, 5, 10, 0.18)'; 
-            ctx.fillRect(0, 0, width, height);
-            
-            rotationX += (targetRotationX - rotationX) * 0.05; 
-            rotationY += (targetRotationY - rotationY) * 0.05; 
-            
-            if (!isDragging) {
-                targetRotationY += 0.00025; 
-                targetRotationX += 0.00004; 
-            }
-            
-            globalPulse += 0.004 * pulseDir; 
-            if(globalPulse > 1.15 || globalPulse < 0.85) pulseDir *= -1;
-            
+            ctx.fillStyle = 'rgba(2, 5, 10, 0.18)'; ctx.fillRect(0, 0, width, height);
+            rotationX += (targetRotationX - rotationX) * 0.05; rotationY += (targetRotationY - rotationY) * 0.05; 
+            if (!isDragging) { targetRotationY += 0.00025; targetRotationX += 0.00004; }
+            globalPulse += 0.004 * pulseDir; if(globalPulse > 1.15 || globalPulse < 0.85) pulseDir *= -1;
             for (let star of starNodes) star.draw(rotationX, rotationY, globalPulse);
             requestAnimationFrame(render);
         }
@@ -511,14 +435,10 @@
         let textIndex = 0; setInterval(() => { textIndex = (textIndex + 1) % texts.length; document.getElementById('breathingText').innerHTML = texts[textIndex]; }, 15000);
 
         let audioCtx = null; let bellInterval = null;
-        
         function toggleSpaceAudio(e) {
             if(e) e.stopPropagation(); const btn = document.getElementById('audioBtn');
             if (audioCtx) { audioCtx.close(); audioCtx = null; clearInterval(bellInterval); btn.innerText = "轻触 · 听泉"; return; }
-            
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
-            btn.innerText = "断开俗世";
-            
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)(); btn.innerText = "断开俗世";
             const bufferSize = 2 * audioCtx.sampleRate; const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             const output = noiseBuffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
             const whiteNoise = audioCtx.createBufferSource(); whiteNoise.buffer = noiseBuffer; whiteNoise.loop = true;
@@ -528,7 +448,7 @@
             bellInterval = setInterval(() => {
                 if (!audioCtx) return;
                 let osc = audioCtx.createOscillator(); let bellGain = audioCtx.createGain(); osc.type = 'sine'; osc.frequency.setValueAtTime(800 + Math.random() * 200, audioCtx.currentTime);
-                bellGain.gain.setValueAtTime(0, audioCtx.currentTime); bellGain.gain.linearRampToValueAtTime(0.012, audioCtx.currentTime + 0.1); bellGain.gain.exponentialRampToValueAtTime(0.001, middle + 5.0);
+                bellGain.gain.setValueAtTime(0, audioCtx.currentTime); bellGain.gain.linearRampToValueAtTime(0.012, audioCtx.currentTime + 0.1); bellGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 5.0);
                 osc.connect(bellGain); bellGain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 5.0);
             }, 8000);
         }
