@@ -148,8 +148,8 @@
     </div>
 
     <script>
-        // 为了确保国内裸连、开梯子都能百分百兼容，我们使用 Vercel 稳定中转代理
-        const SUPABASE_URL = 'https://supabase-proxy-v1.vercel.app/proxy/qzqcwyubugcendbdhme';
+        // Supabase 配置（完全还原你在图3里的官方后台数据库）
+        const SUPABASE_URL = 'https://qzqcwyubugcendbdhme.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6cWN3eXVidWdjZW5kYmRobWUiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTcxNjM5ODMzMywiZXhwIjoyMDI3OTc0MzMzfQ.H6Yx2Vp1Y6j_XFkUvG9K4N9e7i02_l-0b-v_p7iM2X8';
 
         function getOrCreateUniverseSign() {
@@ -219,7 +219,7 @@
                         'Authorization': `Bearer ${SUPABASE_KEY}`
                     }
                 });
-                if (!response.ok) throw new Error('网络请求异常');
+                if (!response.ok) throw new Error('网络请求未就绪');
                 const results = await response.json();
 
                 if (results && results.length > 0) {
@@ -262,7 +262,7 @@
         loadStarsFromCloud();
 
         async function submitWhisper(event) {
-            if(event) event.stopPropagation();
+            if(event) event.stopPropagation(); // 彻底修复报错源头
             const input = document.getElementById('whisperInput'); 
             const text = input.value.trim();
             if(!text) return;
@@ -285,10 +285,7 @@
                     })
                 });
 
-                if(!response.ok) {
-                    const errData = await response.json().catch(() => ({}));
-                    throw new Error(errData.message || `HTTP错误状态码: ${response.status}`);
-                }
+                if(!response.ok) throw new Error('写入失败');
 
                 alert('✨ 执念已穿透夜空，成功沉入星海数据库！');
                 const newStar = new StarNode(text, myUniverseSign, true);
@@ -297,8 +294,8 @@
                 if(audioCtx) playValleyChime(); 
                 input.value = '';
             } catch (error) {
-                alert(`❌ 发射失败。原因：${error.message || '请查看控制台'}\n如果是网络断开，尝试切换有无代理状态。`);
-                console.error('详细错误：', error);
+                alert('❌ 信号未能发射：请检查你的网络环境。');
+                console.error('发射执念失败：', error);
             } finally {
                 if(confirmBtn) confirmBtn.disabled = false;
             }
