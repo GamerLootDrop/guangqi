@@ -364,10 +364,16 @@
                     body: JSON.stringify({ whisper_id: whisperId, content: content, author_sign: myUniverseSign })
                 });
                 if(!response.ok) throw new Error('发送回应失败');
+                
+                if(audioCtx) playValleyChime();
+                alert('✨ 你的回响已融入这颗星辰！');
+                
                 inputElement.value = "";
-                fetchRepliesForStar(whisperId, replyContainerId); // 重新拉取刷新评论列表
+                // 发送成功后自动收起并隐藏回复框
+                resBox.classList.remove('active', 'mobile-center');
+                currentlySelectedStarId = null;
             } catch(e) {
-                alert('❌ 共鸣失败，请检查网络');
+                alert('❌ 共鸣失败，请检查网络（若挂了梯子请尝试切换为全局模式）');
             }
         }
 
@@ -379,17 +385,16 @@
         window.addEventListener('touchmove', (e) => { if (!isDragging) return; const deltaX = e.touches[0].clientX - prevMouseX; const deltaY = e.touches[0].clientY - prevMouseY; targetRotationY += deltaX * 0.004; targetRotationX += deltaY * 0.004; prevMouseX = e.touches[0].clientX; prevMouseY = e.touches[0].clientY; totalMoveDist += Math.hypot(deltaX, deltaY); }, { passive: true });
         window.addEventListener('touchend', (e) => { if(!isDragging) return; isDragging = false; if (totalMoveDist < 8) checkStarInteraction(startX, startY, true); });
 
-        // 全局关闭气泡框
+        // 全局点击空白处关闭气泡框（加入了排除判定，防止点击输入框被误关）
         window.addEventListener('click', (e) => {
             if(!resBox.contains(e.target) && !checkTargetInvalid(e.target)) {
-                resBox.classList.remove('active');
-                resBox.classList.remove('mobile-center');
+                resBox.classList.remove('active', 'mobile-center');
                 currentlySelectedStarId = null;
             }
         });
 
         function checkTargetInvalid(target) { 
-            return target.tagName === 'TEXTAREA' || target.tagName === 'BUTTON' || target.tagName === 'INPUT' || target.classList.contains('whisper-trigger') || target.id === 'userSignHint' || target.classList.contains('social-reply-zone') || target.classList.contains('reply-list-container'); 
+            return target.tagName === 'TEXTAREA' || target.tagName === 'BUTTON' || target.tagName === 'INPUT' || target.classList.contains('whisper-trigger') || target.id === 'userSignHint' || target.classList.contains('social-reply-zone') || target.classList.contains('reply-list-container') || target.classList.contains('single-reply-item'); 
         }
         
         const resBox = document.getElementById('resonanceBox');
@@ -402,9 +407,12 @@
                 const containerId = `replies_${hoveredStar.id}`;
                 const inputId = `reply_in_${hoveredStar.id}`;
 
-                // 注入全新的带有“评论列表”和“回复框”的社交HTML面板结构
+                // 注入全新的带有“右上角关闭按钮”的模板结构，点击 ✕ 手动关闭
                 resBox.innerHTML = `
-                    <div style="font-style: italic;">"${hoveredStar.text}"</div>
+                    <button class="reply-action-btn" style="position: absolute; right: 10px; top: 10px; padding: 2px 6px; border-color: rgba(166, 152, 122, 0.4); background: rgba(0,0,0,0.3);" 
+                            onclick="event.stopPropagation(); document.getElementById('resonanceBox').classList.remove('active', 'mobile-center'); currentlySelectedStarId = null;">✕</button>
+                    
+                    <div style="font-style: italic; margin-top: 10px; padding-right: 15px;">"${hoveredStar.text}"</div>
                     <span class="author-sign">—— 来自【${hoveredStar.sign}】</span>
                     <div class="social-reply-zone">
                         <div class="reply-list-container" id="${containerId}">正在同步恒星轨道回响...</div>
