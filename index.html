@@ -3,61 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>星海微茫 · 第一视角沉浸版</title>
+    <title>星海微茫 · 灵魂级治愈音效版</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;400;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html {
             width: 100%; height: 100%; overflow: hidden;
-            /* 还原你截图中的暗红/深紫星云背景 */
             background: radial-gradient(circle at 50% 40%, #1c0926 0%, #0d0414 45%, #020104 100%);
             font-family: "Noto Serif SC", serif; color: #fff;
             user-select: none; -webkit-user-select: none;
         }
-        
-        /* 增加一层动态的星云迷雾遮罩 */
         .nebula-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;
             background: radial-gradient(ellipse at 80% 20%, rgba(139, 0, 0, 0.15) 0%, transparent 50%),
                         radial-gradient(ellipse at 20% 80%, rgba(75, 0, 130, 0.15) 0%, transparent 50%);
             mix-blend-mode: screen; pointer-events: none;
         }
-
         canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
 
-        /* --- UI 框架 (更轻量化，不遮挡星空) --- */
+        /* UI */
         .top-bar {
             position: absolute; top: 0; left: 0; width: 100%; z-index: 10;
             padding: calc(env(safe-area-inset-top, 20px) + 10px) 20px 15px; 
             display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none;
         }
         .user-hub { display: flex; align-items: center; gap: 10px; pointer-events: auto; }
-        .avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #ff4081, #d500f9); border: 1px solid rgba(255,255,255,0.5); box-shadow: 0 0 10px rgba(213,0,249,0.5);}
+        .avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #ff4081, #d500f9); border: 1px solid rgba(255,255,255,0.5); }
         .user-info { font-size: 0.75rem; letter-spacing: 1px;}
         .user-id { font-weight: bold; color: #eee; }
-        .currency { color: #ffd700; font-size: 0.7rem; margin-top: 2px; text-shadow: 0 0 5px rgba(255,215,0,0.5); }
 
-        .audio-ctrl {
-            pointer-events: auto; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2);
-            padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; color: #fff; cursor: pointer;
-            backdrop-filter: blur(5px); display: flex; align-items: center; gap: 5px; transition: 0.3s;
+        .headphone-tip {
+            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center; z-index: 5; pointer-events: none; width: 90%;
+            animation: fadeOut 8s forwards;
         }
-        .audio-ctrl.active { border-color: #00e5ff; color: #00e5ff; box-shadow: 0 0 10px rgba(0,229,255,0.3); }
+        @keyframes fadeOut { 0% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+        .headphone-tip h1 { font-size: 1.2rem; font-weight: 200; letter-spacing: 4px; margin-bottom: 10px; }
+        .headphone-tip p { font-size: 0.8rem; color: rgba(255,255,255,0.6); }
 
-        /* 中央文字 - 沉浸感增强 */
-        .ambient-box { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 5; pointer-events: none; width: 90%; }
-        .ambient-box h1 { font-size: 1.3rem; font-weight: 200; color: rgba(255,255,255,0.9); letter-spacing: 6px; margin-bottom: 12px; text-shadow: 0 0 20px rgba(255,255,255,0.5); }
-        .ambient-box p { font-size: 0.75rem; color: rgba(255,255,255,0.4); letter-spacing: 3px; }
-
-        .broadcast-bar {
-            position: absolute; top: 80px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.3); backdrop-filter: blur(8px); border-radius: 20px;
-            padding: 5px 15px; font-size: 0.65rem; z-index: 10; white-space: nowrap; 
-            color: #ccc; border: 1px solid rgba(255,64,129,0.3); box-shadow: 0 0 10px rgba(255,64,129,0.2);
-        }
-        .broadcast-bar span { color: #ff4081; font-weight: bold; }
-
-        /* 底部导航 */
         .bottom-action-area {
             position: absolute; bottom: 0; left: 0; width: 100%; z-index: 10;
             padding: 0 20px calc(env(safe-area-inset-bottom, 20px) + 15px);
@@ -68,39 +51,20 @@
             background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02)); 
             width: 80%; max-width: 320px; padding: 14px; border-radius: 30px; font-size: 0.9rem; color: #fff; 
             border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(10px);
-            box-shadow: 0 0 20px rgba(255,255,255,0.1); margin-bottom: 20px; letter-spacing: 2px; transition: 0.2s; cursor: pointer;
+            box-shadow: 0 0 20px rgba(255,255,255,0.1); margin-bottom: 20px; letter-spacing: 2px; cursor: pointer; transition: 0.2s;
         }
         .send-btn:active { transform: scale(0.95); background: rgba(255,255,255,0.2); }
 
-        .nav-bar { display: flex; justify-content: space-around; width: 100%; max-width: 380px; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 0.65rem; color: #666; gap: 4px; cursor: pointer; letter-spacing: 1px; }
-        .nav-item.active { color: #d500f9; text-shadow: 0 0 5px rgba(213,0,249,0.5); }
-        .nav-icon { font-size: 1.1rem; }
-
-        /* 模态弹窗 */
-        .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; z-index: 1000; background: rgba(0,0,0,0.85); backdrop-filter: blur(15px); display: none; justify-content: center; align-items: center; padding: 20px; }
-        .modal-card { background: #0a0510; border: 1px solid rgba(213,0,249,0.3); border-radius: 12px; width: 100%; max-width: 340px; padding: 25px 20px; box-shadow: 0 0 40px rgba(213,0,249,0.15); }
-        .modal-title { font-size: 1.1rem; margin-bottom: 15px; text-align: center; font-weight: 200; letter-spacing: 2px; }
-        .input-box { width: 100%; height: 90px; background: rgba(255,255,255,0.05); border: 1px solid #333; border-radius: 8px; padding: 12px; color: #fff; font-family: inherit; resize: none; margin-bottom: 15px; outline: none; font-size: 0.85rem;}
-        
-        .premium-toggle { display: flex; justify-content: space-between; align-items: center; background: rgba(255,64,129,0.1); padding: 12px; border-radius: 8px; margin-bottom: 20px; border: 1px solid rgba(255,64,129,0.3); transition: 0.3s;}
-        .premium-info { font-size: 0.75rem; color: #ff4081; line-height: 1.4; }
-        
-        .btn-row { display: flex; gap: 12px; }
-        .btn-outline { flex: 1; padding: 12px; background: transparent; border: 1px solid #555; color: #aaa; border-radius: 20px; text-align: center; font-size: 0.85rem; letter-spacing: 1px;}
-        .btn-solid { flex: 1; padding: 12px; background: linear-gradient(135deg, #d500f9, #4a148c); color: #fff; border: none; border-radius: 20px; text-align: center; font-weight: bold; font-size: 0.85rem; letter-spacing: 1px; box-shadow: 0 5px 15px rgba(213,0,249,0.4);}
-
         /* 灵魂共鸣气泡 */
         .resonance-bubble {
-            position: absolute; z-index: 50; padding: 15px 20px; background: rgba(10,5,16,0.9);
-            border: 1px solid rgba(213,0,249,0.4); border-radius: 8px; color: #eee;
-            width: 280px; opacity: 0; pointer-events: none; transition: all 0.3s ease;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 20px rgba(213,0,249,0.15);
-            transform: translate(-50%, 20px); text-align: center;
+            position: absolute; z-index: 50; padding: 15px 20px; background: rgba(10,5,16,0.85);
+            border: 1px solid rgba(213,0,249,0.3); border-radius: 8px; color: #eee;
+            width: 280px; opacity: 0; pointer-events: none; transition: all 0.5s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 20px rgba(213,0,249,0.1);
+            transform: translate(-50%, 20px); text-align: center; backdrop-filter: blur(10px);
         }
-        .resonance-bubble.active { opacity: 1; transform: translate(-50%, -50%); pointer-events: auto; }
-        .rb-id { font-size: 0.65rem; color: #d500f9; margin-bottom: 8px; letter-spacing: 1px; }
-        .rb-text { font-style: italic; font-size: 0.9rem; line-height: 1.6; }
+        .resonance-bubble.active { opacity: 1; transform: translate(-50%, -50%); }
+        .rb-text { font-style: italic; font-size: 0.9rem; line-height: 1.6; letter-spacing: 1px; }
 
     </style>
 </head>
@@ -114,218 +78,221 @@
             <div class="avatar"></div>
             <div class="user-info">
                 <div class="user-id">天鹅座 · 暗物质</div>
-                <div class="currency">✨ 270 星尘</div>
             </div>
         </div>
-        <div class="audio-ctrl" id="audioBtn" onclick="toggleCosmicAudio()">
-            <span>🔇</span> 深空频段
-        </div>
     </div>
 
-    <div class="broadcast-bar" id="broadcast">
-        📢 <span>[英仙座]</span> 刚刚将执念融进了星云
-    </div>
-
-    <div class="ambient-box">
-        <h1 id="breathingText">宇宙浩瀚，你能容下自己。</h1>
-        <p>灵魂第一视角 · 正在向星空深处坠落</p>
+    <div class="headphone-tip">
+        <h1>请务必戴上耳机</h1>
+        <p>点击任意星辰 · 聆听宇宙的呼吸</p>
     </div>
 
     <div class="bottom-action-area">
-        <button class="send-btn" onclick="openInput()">把执念散作星辰</button>
-        <div class="nav-bar">
-            <div class="nav-item active"><span class="nav-icon">🌌</span><span>深空</span></div>
-            <div class="nav-item"><span class="nav-icon">💎</span><span>补给</span></div>
-            <div class="nav-item"><span class="nav-icon">📜</span><span>观测</span></div>
-            <div class="nav-item"><span class="nav-icon">👤</span><span>共鸣</span></div>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="inputModal">
-        <div class="modal-card">
-            <div class="modal-title">投递星海</div>
-            <textarea class="input-box" id="wishText" placeholder="写下这一刻的想法，让它随着你向宇宙深处飞去..."></textarea>
-            
-            <div class="premium-toggle" id="supernovaToggle" onclick="toggleSupernova()">
-                <div class="premium-info">
-                    <strong>💫 融为超新星 (全服高亮)</strong><br>
-                    化作最耀眼的红色巨星，带有专属星晕
-                </div>
-                <div style="color:#ff4081; font-weight:bold; font-size:0.8rem;">-100 星尘</div>
-            </div>
-
-            <div class="btn-row">
-                <button class="btn-outline" onclick="closeInput()">收回思绪</button>
-                <button class="btn-solid" onclick="submitWish()">静默发射</button>
-            </div>
-        </div>
+        <button class="send-btn" onclick="triggerSupernova()">释放执念</button>
     </div>
 
     <div class="resonance-bubble" id="resBox"></div>
 
     <script>
-        // --- 核心：第一视角 3D 深空宇宙引擎 ---
+        // ==========================================
+        // 核心一：直击灵魂的 Web Audio 引擎 (水晶颂钵混响)
+        // ==========================================
+        let audioCtx = null;
+        let masterGain = null;
+        let convolver = null; // 灵魂核心：巨大的空间混响
+
+        // 五声治愈音阶 (C, D, E, G, A) - 无论怎么点都不会有违和感
+        const pentatonicScale = [523.25, 587.33, 659.25, 783.99, 880.00];
+
+        function initAudio() {
+            if (audioCtx) return;
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+            
+            masterGain = audioCtx.createGain();
+            masterGain.gain.value = 0.8;
+            masterGain.connect(audioCtx.destination);
+
+            // 1. 生成深空混响 (Impulse Response)
+            // 这是让声音从“脑电波”变成“大教堂水晶”的魔法
+            const reverbTime = 4.0; // 4秒的超长混响
+            const sampleRate = audioCtx.sampleRate;
+            const length = sampleRate * reverbTime;
+            const impulse = audioCtx.createBuffer(2, length, sampleRate);
+            const left = impulse.getChannelData(0);
+            const right = impulse.getChannelData(1);
+            
+            for (let i = 0; i < length; i++) {
+                // 指数衰减的白噪音，模拟巨大的真空空间反射
+                const decay = Math.exp(-i / (sampleRate * 0.8)); 
+                left[i] = (Math.random() * 2 - 1) * decay;
+                right[i] = (Math.random() * 2 - 1) * decay;
+            }
+            
+            convolver = audioCtx.createConvolver();
+            convolver.buffer = impulse;
+            
+            // 混响连入主通道
+            convolver.connect(masterGain);
+
+            // 启动极微弱的宇宙底噪 (星风)
+            startStellarWind();
+        }
+
+        // 极微弱的“星际风声”，替代原来的低频嗡鸣
+        function startStellarWind() {
+            const bufferSize = audioCtx.sampleRate * 2;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+            noise.loop = true;
+
+            // 用低通滤波器把噪音变成柔和的风声
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.value = 400; // 只保留极低的呼啸声
+
+            const noiseGain = audioCtx.createGain();
+            noiseGain.gain.value = 0.015; // 声音极低，潜意识级别
+
+            noise.connect(filter);
+            filter.connect(convolver); // 风声也加入混响
+            noise.start();
+        }
+
+        // 核心：敲击水晶颂钵的声音
+        function playCrystalChime() {
+            if (!audioCtx) initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            // 随机选取五声音阶中的一个音
+            const baseFreq = pentatonicScale[Math.floor(Math.random() * pentatonicScale.length)];
+            const now = audioCtx.currentTime;
+
+            // 制造水晶音的函数 (基频 + 多个高音泛音)
+            function createPartial(freq, vol, attack, decay, type='sine') {
+                const osc = audioCtx.createOscillator();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, now);
+                
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0, now);
+                // 柔和的起音 (Attack)，不是立刻敲击
+                gain.gain.linearRampToValueAtTime(vol, now + attack);
+                // 极长的尾音缓慢消失 (Decay)
+                gain.gain.exponentialRampToValueAtTime(0.001, now + decay);
+                
+                osc.connect(gain);
+                // 直接接入混响器！
+                gain.connect(convolver);
+                
+                osc.start(now);
+                osc.stop(now + decay);
+            }
+
+            // 合成颂钵音效：1个基音 + 2个泛音
+            createPartial(baseFreq, 0.4, 0.05, 3.5);           // 温暖的基音
+            createPartial(baseFreq * 2.01, 0.15, 0.02, 2.5);   // 微弱的八度泛音 (稍微失谐一点点 2.01 增加真实感)
+            createPartial(baseFreq * 2.99, 0.05, 0.01, 1.5, 'triangle'); // 清脆的玻璃敲击感
+        }
+
+
+        // ==========================================
+        // 核心二：第一视角视觉引擎 (不变，保持深空坠落感)
+        // ==========================================
         const canvas = document.getElementById('spaceCanvas');
         const ctx = canvas.getContext('2d');
         let width = canvas.width = window.innerWidth;
         let height = canvas.height = window.innerHeight;
+        let cx = width / 2, cy = height / 2;
+        let rotX = 0, rotY = 0, targetRotX = 0, targetRotY = 0;
+        let warpSpeed = 1.0; 
         
-        let cx = width / 2;
-        let cy = height / 2;
-        
-        // 视角旋转与移动控制
-        let rotX = 0, rotY = 0;
-        let targetRotX = 0, targetRotY = 0;
-        let baseSpeed = 1.2; // 向前推进的基础速度
-        let warpSpeed = baseSpeed; 
-        
-        // 星星颜色池（还原真实星空的冷暖色）
-        const starColors = [
-            'rgba(255, 255, 255, ', // 白星
-            'rgba(173, 216, 230, ', // 蓝矮星
-            'rgba(255, 200, 150, ', // 红矮星/黄星
-            'rgba(213, 0, 249, '    // 紫星(少数)
+        const dummyTexts = [
+            "今天很累，但看到了很美的夕阳。", 
+            "其实没什么过不去的，宇宙这么大。", 
+            "如果重来一次，我不会推开你。",
+            "就让所有的执念，留在这个真空里吧。"
         ];
 
         class Star {
-            constructor(text = "", isPremium = false) {
-                this.reset(true);
-                this.text = text;
-                this.isPremium = isPremium;
-            }
-            
+            constructor() { this.reset(true); }
             reset(randomZ = false) {
-                // 球坐标系随机分布
                 const theta = Math.random() * Math.PI * 2;
                 const phi = Math.acos(Math.random() * 2 - 1);
-                // 星星分布范围
                 const r = 100 + Math.random() * 800; 
-                
                 this.x = r * Math.sin(phi) * Math.cos(theta);
                 this.y = r * Math.sin(phi) * Math.sin(theta);
-                // 如果是初始化，Z轴随机；如果是飞出屏幕后重置，Z轴放到最远处(1000)
                 this.z = randomZ ? (Math.random() * 1000) : (800 + Math.random() * 200);
-                
                 this.baseSize = Math.random() * 1.5 + 0.5;
-                this.colorBase = starColors[Math.floor(Math.random() * starColors.length)];
                 this.alpha = Math.random() * 0.5 + 0.3;
+                
+                // 赋予部分星星文本内容
+                this.text = Math.random() > 0.9 ? dummyTexts[Math.floor(Math.random()*dummyTexts.length)] : null;
+                // 带有文字的星星颜色稍微偏紫偏亮
+                this.color = this.text ? 'rgba(213, 0, 249, ' : 'rgba(255, 255, 255, ';
             }
 
             draw() {
-                // 1. 第一视角灵魂核心：Z轴不断减少，形成向前飞行的错觉
                 this.z -= warpSpeed;
-                
-                // 如果星星飞过了相机背后，重置到远处
-                if (this.z < -50) {
-                    this.reset(false);
-                }
+                if (this.z < -50) this.reset(false);
 
-                // 2. 交互视角的 3D 旋转
                 const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
                 const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
                 
-                let x1 = this.x * cosY - this.z * sinY;
-                let z1 = this.x * sinY + this.z * cosY;
-                
-                let y2 = this.y * cosX - z1 * sinX;
-                let z2 = this.y * sinX + z1 * cosX;
+                let x1 = this.x * cosY - this.z * sinY, z1 = this.x * sinY + this.z * cosY;
+                let y2 = this.y * cosX - z1 * sinX, z2 = this.y * sinX + z1 * cosX;
 
-                // 3. 透视投影计算
-                const fov = 400; // 视野深度，决定拉伸感
+                const fov = 400; 
                 if (z2 + fov > 0) {
                     const scale = fov / (fov + z2);
-                    // 飞得越近，XY偏离中心越快（曲率效果）
                     this.screenX = cx + x1 * scale; 
                     this.screenY = cy + y2 * scale;
-                    
-                    // --- 渲染星星 ---
                     let size = this.baseSize * scale;
                     let currentAlpha = this.alpha;
-                    
-                    // 靠近镜头时淡出，避免怼脸
                     if(z2 < 100) currentAlpha *= (z2 / 100);
 
                     ctx.beginPath();
-                    
-                    if (this.isPremium) {
-                        // 超新星渲染：红色/紫色大光晕
-                        size = 5 * scale;
-                        ctx.arc(this.screenX, this.screenY, size, 0, Math.PI * 2);
-                        ctx.fillStyle = '#ff4081';
-                        ctx.shadowBlur = 30 * scale;
-                        ctx.shadowColor = '#d500f9';
-                        ctx.fill();
-                        
-                        // 十字光芒
-                        ctx.strokeStyle = `rgba(255,64,129,${currentAlpha})`;
-                        ctx.lineWidth = 1;
-                        ctx.moveTo(this.screenX - size*3, this.screenY); ctx.lineTo(this.screenX + size*3, this.screenY);
-                        ctx.moveTo(this.screenX, this.screenY - size*3); ctx.lineTo(this.screenX, this.screenY + size*3);
-                        ctx.stroke();
-                        
-                    } else {
-                        // 普通星星，带细微拖尾(如果速度快)
-                        if (warpSpeed > baseSpeed + 1) {
-                            ctx.lineWidth = size;
-                            ctx.strokeStyle = this.colorBase + currentAlpha + ')';
-                            ctx.moveTo(this.screenX, this.screenY);
-                            // 拖尾方向由中心向外辐射
-                            const trailX = this.screenX + (this.screenX - cx) * 0.05 * (warpSpeed/10);
-                            const trailY = this.screenY + (this.screenY - cy) * 0.05 * (warpSpeed/10);
-                            ctx.lineTo(trailX, trailY);
-                            ctx.stroke();
-                        } else {
-                            ctx.arc(this.screenX, this.screenY, size, 0, Math.PI * 2);
-                            ctx.fillStyle = this.colorBase + currentAlpha + ')';
-                            // 极少部分亮星带微弱光晕
-                            if(this.baseSize > 1.8) {
-                                ctx.shadowBlur = 10 * scale;
-                                ctx.shadowColor = this.colorBase + '1)';
-                            }
-                            ctx.fill();
-                        }
+                    ctx.arc(this.screenX, this.screenY, this.text ? size * 1.5 : size, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color + currentAlpha + ')';
+                    if (this.text) {
+                        ctx.shadowBlur = 15 * scale;
+                        ctx.shadowColor = 'rgba(213,0,249,0.8)';
                     }
-                    ctx.shadowBlur = 0; // 重置阴影避免性能问题
+                    ctx.fill(); ctx.shadowBlur = 0;
                 }
             }
         }
 
         const stars = [];
-        // 生成 300 颗星星，营造宏大宇宙感
         for(let i=0; i<300; i++) stars.push(new Star());
 
-        // 预设几颗带有文字的星星
-        const dummyTexts = ["今天很累，但看到了很美的夕阳。", "考研二战，不想再失败了。", "如果重来一次，我不会推开你。"];
-        dummyTexts.forEach(t => stars.push(new Star(t, false)));
-
         function render() {
-            // 保留极少残影，增强深空飞行感
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)'; 
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'; 
             ctx.fillRect(0, 0, width, height);
-            
-            // 速度衰减回到基础速度
-            if (warpSpeed > baseSpeed) warpSpeed -= 0.5; 
-            else warpSpeed = baseSpeed;
-            
-            // 平滑旋转
-            rotX += (targetRotX - rotX) * 0.1; 
-            rotY += (targetRotY - rotY) * 0.1;
-
-            // 如果没交互，微微自转增加生命力
-            if(warpSpeed === baseSpeed) {
-                targetRotY += 0.001;
-                targetRotX += 0.0005;
-            }
-
+            if (warpSpeed > 1.0) warpSpeed -= 0.5; else warpSpeed = 1.0;
+            rotX += (targetRotX - rotX) * 0.1; rotY += (targetRotY - rotY) * 0.1;
+            if(warpSpeed === 1.0) { targetRotY += 0.001; targetRotX += 0.0005; }
             stars.forEach(s => s.draw());
             requestAnimationFrame(render);
         }
         render();
 
-        // 交互控制视角滑动
+        // ==========================================
+        // 交互逻辑：点击触发颂钵治愈音
+        // ==========================================
         let isDragging = false, prevX, prevY, moveDist = 0;
         
-        canvas.addEventListener('touchstart', e => { initAudio(); isDragging=true; moveDist=0; prevX=e.touches[0].clientX; prevY=e.touches[0].clientY; }, {passive:true});
+        canvas.addEventListener('touchstart', e => { 
+            initAudio(); // 第一次触摸解锁音频
+            isDragging=true; moveDist=0; prevX=e.touches[0].clientX; prevY=e.touches[0].clientY; 
+        }, {passive:true});
+        
         canvas.addEventListener('touchmove', e => {
             if(!isDragging) return;
             const dx = e.touches[0].clientX - prevX; const dy = e.touches[0].clientY - prevY;
@@ -338,182 +305,47 @@
             isDragging = false;
         });
 
+        // 兼容 PC 测试
+        canvas.addEventListener('mousedown', e => { initAudio(); isDragging=true; moveDist=0; prevX=e.clientX; prevY=e.clientY; });
+        canvas.addEventListener('mousemove', e => {
+            if(!isDragging) return;
+            targetRotY += (e.clientX - prevX) * 0.005; targetRotX += (e.clientY - prevY) * 0.005;
+            prevX = e.clientX; prevY = e.clientY; moveDist += 1;
+        });
+        canvas.addEventListener('mouseup', e => {
+            if(isDragging && moveDist < 10) checkClick(prevX, prevY);
+            isDragging = false;
+        });
+
         const resBox = document.getElementById('resBox');
         function checkClick(mx, my) {
             let hit = null;
             stars.forEach(s => {
                 if(s.screenX && s.text) {
                     const d = Math.hypot(s.screenX - mx, s.screenY - my);
-                    if(d < 30) hit = s; // 点击判定范围
+                    if(d < 40) hit = s; // 增大点击判定区域
                 }
             });
             
             if(hit) {
-                playChime(600); // 发现灵魂的回响
-                resBox.innerHTML = `
-                    <div class="rb-id">来自星河深处的共鸣</div>
-                    <div class="rb-text">“${hit.text}”</div>
-                `;
-                resBox.style.left = '50%';
-                resBox.style.top = '40%';
+                playCrystalChime(); // 触发神仙治愈音效
+                resBox.innerHTML = `<div class="rb-text">“${hit.text}”</div>`;
+                resBox.style.left = '50%'; resBox.style.top = '40%';
                 resBox.classList.add('active');
-                warpSpeed = 0.2; // 停下来看文字
-                
-                setTimeout(() => { resBox.classList.remove('active'); warpSpeed = baseSpeed; }, 4000);
+                warpSpeed = 0.1; // 停下来感受
+                setTimeout(() => { resBox.classList.remove('active'); warpSpeed = 1.0; }, 4000);
             } else {
                 resBox.classList.remove('active');
-                warpSpeed = baseSpeed;
+                warpSpeed = 1.0;
             }
         }
 
-        // --- 核心音频：彻底重写，深空频段与水晶回响 ---
-        let audioCtx = null;
-        let isAudioOn = false;
-        let padNodes = [];
-
-        function initAudio() {
-            if (audioCtx) return;
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-
-        function toggleCosmicAudio() {
+        function triggerSupernova() {
             initAudio();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            
-            const btn = document.getElementById('audioBtn');
-            
-            if (isAudioOn) {
-                // 缓慢淡出
-                padNodes.forEach(node => {
-                    node.gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 3);
-                    setTimeout(() => node.source.stop(), 3000);
-                });
-                padNodes = []; isAudioOn = false;
-                btn.innerHTML = '<span>🔇</span> 深空频段';
-                btn.classList.remove('active');
-            } else {
-                // 构建深空宇宙环境音 (Space Drone)
-                // 使用 432Hz 体系的低频和弦制造神圣感/空灵感
-                const frequencies = [108, 162, 216]; // 极低频的基础嗡鸣
-                
-                frequencies.forEach(freq => {
-                    const osc = audioCtx.createOscillator();
-                    osc.type = 'triangle'; // 选用柔和的三角波
-                    osc.frequency.value = freq;
-                    
-                    const gainNode = audioCtx.createGain();
-                    gainNode.gain.value = 0;
-                    // 缓慢推入，像呼吸一样
-                    gainNode.gain.linearRampToValueAtTime(0.05, audioCtx.currentTime + 5);
-                    
-                    // 用低频振荡器(LFO)给音量加上起伏的呼吸感
-                    const lfo = audioCtx.createOscillator();
-                    lfo.type = 'sine';
-                    lfo.frequency.value = 0.05 + Math.random() * 0.02; // 每20秒一次起伏
-                    const lfoGain = audioCtx.createGain();
-                    lfoGain.gain.value = 0.02;
-                    lfo.connect(lfoGain);
-                    lfoGain.connect(gainNode.gain);
-
-                    osc.connect(gainNode);
-                    gainNode.connect(audioCtx.destination);
-                    
-                    osc.start(); lfo.start();
-                    padNodes.push({source: osc, gain: gainNode});
-                    padNodes.push({source: lfo, gain: lfoGain});
-                });
-                
-                isAudioOn = true;
-                btn.innerHTML = '<span>🎵</span> 沉浸共鸣中';
-                btn.classList.add('active');
-            }
+            playCrystalChime(); 
+            warpSpeed = 40.0; // 模拟释放时的急速跃迁
+            setTimeout(() => { playCrystalChime(); }, 200); // 连响两声
         }
-
-        // 清脆的水晶回响音（用于点击和发射）
-        function playChime(baseFreq = 432) {
-            initAudio();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const now = audioCtx.currentTime;
-            
-            function createTone(freq, duration, volume) {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(freq, now);
-                
-                // 极其清脆的打击感和长尾音衰减
-                gain.gain.setValueAtTime(0, now);
-                gain.gain.linearRampToValueAtTime(volume, now + 0.02);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
-                
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now);
-                osc.stop(now + duration);
-            }
-            
-            // 叠加出类似空灵鼓/水晶的泛音
-            createTone(baseFreq, 3, 0.15);
-            createTone(baseFreq * 1.5, 2.5, 0.08);
-            createTone(baseFreq * 2, 2, 0.05);
-        }
-
-        // --- 业务与 UI 逻辑 ---
-        let isSupernova = false;
-        function openInput() { document.getElementById('inputModal').style.display = 'flex'; initAudio(); }
-        function closeInput() { document.getElementById('inputModal').style.display = 'none'; isSupernova = false; updateBtn(); }
-
-        function toggleSupernova() {
-            isSupernova = !isSupernova;
-            const t = document.getElementById('supernovaToggle');
-            const btn = document.querySelector('.btn-solid');
-            if(isSupernova) {
-                t.style.background = 'rgba(213,0,249,0.2)';
-                t.style.borderColor = '#d500f9';
-                btn.innerText = '化作超新星 (-100星尘)';
-                btn.style.boxShadow = '0 5px 25px rgba(255,64,129,0.6)';
-            } else {
-                t.style.background = 'rgba(255,64,129,0.1)';
-                t.style.borderColor = 'rgba(255,64,129,0.3)';
-                btn.innerText = '静默发射';
-                btn.style.boxShadow = '0 5px 15px rgba(213,0,249,0.4)';
-            }
-        }
-        function updateBtn() { toggleSupernova(); toggleSupernova(); }
-
-        function submitWish() {
-            const val = document.getElementById('wishText').value.trim();
-            if(!val) return;
-            
-            // 发射音效 (更高音阶)
-            playChime(864);
-            
-            // 宇宙穿梭视觉反馈
-            warpSpeed = 30.0; 
-            
-            // 将你的执念化作星星推入宇宙前端
-            const newStar = new Star(val, isSupernova);
-            newStar.z = 100; // 放在眼前飞出去
-            newStar.screenX = cx; newStar.screenY = cy;
-            stars.push(newStar);
-            
-            closeInput();
-            document.getElementById('wishText').value = '';
-            
-            if(isSupernova) {
-                const b = document.getElementById('broadcast');
-                b.innerHTML = `📢 <span>[天鹅座 · 暗物质]</span> 点亮了一颗超新星`;
-                b.style.display = 'block';
-            }
-        }
-
-        const bTexts = ["宇宙浩瀚，你能容下自己。", "这里没有引力，你可以放下重担。", "闭上眼，向着星流深处坠落。"];
-        let bIdx = 0;
-        setInterval(() => {
-            bIdx = (bIdx + 1) % bTexts.length;
-            document.getElementById('breathingText').innerHTML = bTexts[bIdx];
-        }, 8000);
-
     </script>
 </body>
 </html>
