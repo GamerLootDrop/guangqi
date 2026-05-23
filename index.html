@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>星海微茫 · 3D灵魂共鸣版</title>
+    <title>星海微茫 · 3D灵魂移动端优化版</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html {
@@ -33,11 +33,11 @@
         .charge-btn:hover { transform: scale(1.05); box-shadow: 0 0 10px rgba(255,215,0,0.4); }
 
         .ambient-container {
-            position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%);
+            position: absolute; top: 38%; left: 50%; transform: translate(-50%, -50%);
             width: 85%; max-width: 500px; text-align: center; z-index: 2; pointer-events: none;
         }
         .breathing-text {
-            font-size: 1.15rem; color: rgba(196, 185, 163, 0.85); line-height: 2.2;
+            font-size: 1.1rem; color: rgba(196, 185, 163, 0.85); line-height: 2.2;
             letter-spacing: 4px; font-weight: 300;
             animation: spacePulse 15s infinite ease-in-out;
             text-shadow: 0 0 12px rgba(196, 185, 163, 0.2);
@@ -49,7 +49,7 @@
 
         .guide-hint {
             position: absolute; top: 85px; left: 50%; transform: translateX(-50%);
-            font-size: 0.78rem; color: rgba(140, 135, 125, 0.5); letter-spacing: 2px; z-index: 2;
+            font-size: 0.75rem; color: rgba(140, 135, 125, 0.5); letter-spacing: 2px; z-index: 2;
             pointer-events: none; text-align: center; width: 90%;
         }
 
@@ -226,7 +226,6 @@
     </div>
 
     <script>
-        // 钱包和本地数据
         let starCoins = parseInt(localStorage.getItem('star_coins_balance') || '0');
         document.getElementById('userCoins').innerText = starCoins;
 
@@ -265,13 +264,42 @@
         let isDragging = false; let startX = 0, startY = 0; let prevMouseX = 0, prevMouseY = 0; let totalMoveDist = 0;
         const starNodes = [];
 
+        // 🌟 流星类：专为手机移动端定制，打破死板观感
+        class MobileMeteor {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * (height * 0.4);
+                this.length = Math.random() * 80 + 40;
+                this.speed = Math.random() * 6 + 4;
+                this.alpha = 1;
+                this.active = Math.random() > 0.4; // 随机触发，不流于俗套
+            }
+            updateAndDraw() {
+                if (!this.active) return;
+                this.x -= this.speed; this.y += this.speed * 0.5; this.alpha -= 0.015;
+                if (this.alpha <= 0 || this.x < 0 || this.y > height) { this.reset(); return; }
+                ctx.save();
+                let grad = ctx.createLinearGradient(this.x, this.y, this.x + this.length, this.y - this.length * 0.5);
+                grad.addColorStop(0, `rgba(255, 255, 255, ${this.alpha})`);
+                grad.addColorStop(0.2, `rgba(218, 112, 214, ${this.alpha * 0.6})`);
+                grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                ctx.strokeStyle = grad; ctx.lineWidth = 1.5; ctx.beginPath();
+                ctx.moveTo(this.x, this.y); ctx.lineTo(this.x + this.length, this.y - this.length * 0.5);
+                ctx.stroke(); ctx.restore();
+            }
+        }
+        const meteors = [new MobileMeteor(), new MobileMeteor()];
+
         class StarNode {
             constructor(id, text, sign, isUserGenerated = false, isVip = false) {
                 this.id = id || Math.floor(Math.random() * 1000000);
                 const theta = Math.random() * Math.PI * 2;
                 const phi = Math.acos((Math.random() * 2) - 1);
-                const baseDist = isMobile ? 240 : 320;
-                const dist = isUserGenerated ? (baseDist * 0.4) : (baseDist + Math.random() * (baseDist * 1.2));
+                
+                // 📱 核心调优：针对手机窄长屏进行 3D 景深半径自适应重算
+                const baseDist = isMobile ? 360 : 320; 
+                const dist = isUserGenerated ? (baseDist * 0.3) : (baseDist + Math.random() * (baseDist * 1.5));
 
                 this.x = dist * Math.sin(phi) * Math.cos(theta);
                 this.y = dist * Math.sin(phi) * Math.sin(theta);
@@ -279,9 +307,9 @@
                 this.text = text; this.sign = sign || "远方微尘"; 
                 this.isUser = isUserGenerated; this.isVip = isVip;
 
-                const sizeMultiplier = isMobile ? 1.5 : 1.1;
-                this.size = isVip ? (6 * sizeMultiplier) : (isUserGenerated ? (4.5 * sizeMultiplier) : ((Math.random() * 1.4 + 0.6) * sizeMultiplier));
-                this.baseAlpha = isUserGenerated ? 0.95 : (Math.random() * 0.5 + 0.25);
+                const sizeMultiplier = isMobile ? 1.6 : 1.1; // 增大手机端的触点面积，更好看、更好点
+                this.size = isVip ? (6.5 * sizeMultiplier) : (isUserGenerated ? (5 * sizeMultiplier) : ((Math.random() * 1.5 + 0.6) * sizeMultiplier));
+                this.baseAlpha = isUserGenerated ? 0.95 : (Math.random() * 0.6 + 0.3);
                 this.screenX = 0; this.screenY = 0; this.currentScale = 0;
             }
             draw(rotX, rotY, pulse) {
@@ -289,7 +317,9 @@
                 let cosY = Math.cos(rotY), sinY = Math.sin(rotY);
                 let x1 = this.x * cosY - this.z * sinY; let z1 = this.x * sinY + this.z * cosY;
                 let y2 = this.y * cosX - z1 * sinX; let z2 = this.y * sinX + z1 * cosX;
-                const fov = 500;
+                
+                // 🖥️ 智能 FOV 算法适配手机端宽高比
+                const fov = isMobile ? (width * 0.8) : 500; 
                 if (z2 + fov > 0) {
                     this.currentScale = fov / (fov + z2);
                     this.screenX = width / 2 + x1 * this.currentScale; this.screenY = height / 2 + y2 * this.currentScale;
@@ -301,14 +331,15 @@
                     } else if(this.isUser) {
                         ctx.fillStyle = `rgba(242, 226, 177, ${this.baseAlpha})`; ctx.shadowBlur = 15; ctx.shadowColor = "#eddba4"; 
                     } else { 
-                        ctx.fillStyle = `rgba(184, 173, 150, ${this.baseAlpha * pulse})`; ctx.shadowBlur = 0; 
+                        // 普通星辰在移动端加入随机微闪律动
+                        let flash = (Math.sin(this.id + Date.now() * 0.003) * 0.2) + 0.8;
+                        ctx.fillStyle = `rgba(184, 173, 150, ${this.baseAlpha * pulse * flash})`; ctx.shadowBlur = 0; 
                     }
                     ctx.fill(); ctx.shadowBlur = 0;
                 }
             }
         }
 
-        // 灵魂语录池 - 让宇宙里的每一颗星辰都承载一个真正的故事
         function loadLocalSeeds() {
             const localSeeds = [
                 ["今年31岁被裁员了，瞒着父母每天在图书馆假装上班，好累。", "天琴座 · 虚粒子", false],
@@ -320,16 +351,16 @@
                 ["父母年纪越来越大，自己却还在大城市漂泊无依，不知道什么时候才是尽头。", "大熊座 · 暗物质", false]
             ];
             starNodes.length = 0; 
-            for(let i=0; i<180; i++) {
+            // 调整手机端的星星总数，避免过度拥挤
+            const starCount = isMobile ? 130 : 180; 
+            for(let i=0; i<starCount; i++) {
                 const seed = localSeeds[i % localSeeds.length];
-                // 让前几颗星带VIP炫彩特效示例，其余均匀散落
                 const isVipSample = (i === 1 || i === 15);
                 starNodes.push(new StarNode(2000+i, seed[0], seed[1], false, isVipSample));
             }
         }
         loadLocalSeeds();
 
-        // 发射执念
         function submitWhisper(event) {
             if(event) event.stopPropagation();
             const input = document.getElementById('whisperInput'); 
@@ -389,14 +420,18 @@
             fetchRepliesForStar(whisperId, replyContainerId); 
         }
 
-        // 360° 手势拖拽与视角监听驱动
+        // 手势拖拽与视角监听
         window.addEventListener('mousedown', (e) => { if(checkTargetInvalid(e.target)) return; isDragging = true; totalMoveDist = 0; prevMouseX = e.clientX; prevMouseY = e.clientY; });
         window.addEventListener('mousemove', (e) => { if (isDragging) { const deltaX = e.clientX - prevMouseX; const deltaY = e.clientY - prevMouseY; targetRotationY += deltaX * 0.002; targetRotationX += deltaY * 0.002; prevMouseX = e.clientX; prevMouseY = e.clientY; totalMoveDist += Math.hypot(deltaX, deltaY); } });
         window.addEventListener('mouseup', (e) => { if(!isDragging) return; isDragging = false; if(totalMoveDist < 5) checkStarInteraction(e.clientX, e.clientY); });
         
         window.addEventListener('touchstart', (e) => { if(checkTargetInvalid(e.target)) return; isDragging = true; totalMoveDist = 0; startX = prevMouseX = e.touches[0].clientX; startY = prevMouseY = e.touches[0].clientY; }, { passive: true });
-        window.addEventListener('touchmove', (e) => { if (!isDragging) return; const deltaX = e.touches[0].clientX - prevMouseX; const deltaY = e.touches[0].clientY - prevMouseY; targetRotationY += deltaX * 0.004; targetRotationX += deltaY * 0.004; prevMouseX = e.touches[0].clientX; prevMouseY = e.touches[0].clientY; totalMoveDist += Math.hypot(deltaX, deltaY); }, { passive: true });
-        window.addEventListener('touchend', (e) => { if(!isDragging) return; isDragging = false; if (totalMoveDist < 8) checkStarInteraction(startX, startY); });
+        window.addEventListener('touchmove', (e) => { if (!isDragging) return; const deltaX = e.touches[0].clientX - prevMouseX; const deltaY = e.touches[0].clientY - prevMouseY; 
+            // ⚡ 手机端触控灵敏度专属放大，让滑动手感更丝滑、更有惯性
+            targetRotationY += deltaX * 0.005; targetRotationX += deltaY * 0.005; 
+            prevMouseX = e.touches[0].clientX; prevMouseY = e.touches[0].clientY; totalMoveDist += Math.hypot(deltaX, deltaY); 
+        }, { passive: true });
+        window.addEventListener('touchend', (e) => { if(!isDragging) return; isDragging = false; if (totalMoveDist < 12) checkStarInteraction(startX, startY); });
 
         window.addEventListener('click', (e) => {
             if(!resBox.contains(e.target) && !checkTargetInvalid(e.target)) {
@@ -410,9 +445,8 @@
         
         const resBox = document.getElementById('resonanceBox');
         
-        // 点击3D星空中的星星，触发读取别人灵魂消息的核心逻辑
         function checkStarInteraction(mx, my) {
-            let hoveredStar = null; const activeRadius = isMobile ? 35 : 18;
+            let hoveredStar = null; const activeRadius = isMobile ? 38 : 18;
             for(let star of starNodes) { if(star.currentScale > 0) { const dist = Math.hypot(star.screenX - mx, star.screenY - my); if(dist < activeRadius) { hoveredStar = star; break; } } }
             if(hoveredStar) {
                 const containerId = `replies_${hoveredStar.id}`;
@@ -421,7 +455,6 @@
                 if(hoveredStar.isVip) { resBox.classList.add('vip-style'); } 
                 else { resBox.classList.remove('vip-style'); }
 
-                // 注入别人的执念消息，并生成对应的互动回复区
                 resBox.innerHTML = `
                     <button class="reply-action-btn" style="position: absolute; right: 12px; top: 12px; padding: 2px 6px; border-color: rgba(166, 152, 122, 0.4); background: rgba(0,0,0,0.4);" 
                             onclick="event.stopPropagation(); document.getElementById('resonanceBox').classList.remove('active', 'mobile-center', 'vip-style');">✕</button>
@@ -450,10 +483,20 @@
 
         let globalPulse = 1; let pulseDir = 1;
         function render() {
-            ctx.fillStyle = 'rgba(2, 5, 10, 0.18)'; ctx.fillRect(0, 0, width, height);
+            ctx.fillStyle = 'rgba(2, 5, 10, 0.22)'; ctx.fillRect(0, 0, width, height);
             rotationX += (targetRotationX - rotationX) * 0.05; rotationY += (targetRotationY - rotationY) * 0.05; 
-            if (!isDragging) { targetRotationY += 0.00025; targetRotationX += 0.00004; }
+            
+            if (!isDragging) { 
+                // 🌀 手机端无人操作时，自动倾斜和旋转的速度调快 1.5 倍，更显灵动
+                const speedMult = isMobile ? 1.5 : 1.0;
+                targetRotationY += 0.00025 * speedMult; 
+                targetRotationX += 0.00004 * speedMult; 
+            }
             globalPulse += 0.004 * pulseDir; if(globalPulse > 1.15 || globalPulse < 0.85) pulseDir *= -1;
+            
+            // 🌠 渲染流星
+            for (let m of meteors) m.updateAndDraw();
+            
             for (let star of starNodes) star.draw(rotationX, rotationY, globalPulse);
             requestAnimationFrame(render);
         }
@@ -465,7 +508,6 @@
         const texts = ["万物自有其时。<br>你已经做得很好了，不必对自己步步紧逼。", "闭眼，听雨。<br>这一刻，世界不属于任何人，只属于你自己。", "红尘滚滚，总有来路。<br>停下歇歇，本就无需向任何人交代。"];
         let textIndex = 0; setInterval(() => { textIndex = (textIndex + 1) % texts.length; document.getElementById('breathingText').innerHTML = texts[textIndex]; }, 15000);
 
-        // 白噪音与清音
         let audioCtx = null; let bellInterval = null;
         function toggleSpaceAudio(e) {
             if(e) e.stopPropagation(); const btn = document.getElementById('audioBtn');
@@ -473,7 +515,7 @@
             audioCtx = new (window.AudioContext || window.webkitAudioContext)(); btn.innerText = "断开俗世";
             const bufferSize = 2 * audioCtx.sampleRate; const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             const output = noiseBuffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
-            const whiteNoise = whiteNoiseSource = audioCtx.createBufferSource(); whiteNoise.buffer = noiseBuffer; whiteNoise.loop = true;
+            const whiteNoise = audioCtx.createBufferSource(); whiteNoise.buffer = noiseBuffer; whiteNoise.loop = true;
             const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(850, audioCtx.currentTime);
             const rainGain = audioCtx.createGain(); rainGain.gain.setValueAtTime(0.06, audioCtx.currentTime);
             whiteNoise.connect(filter); filter.connect(rainGain); rainGain.connect(audioCtx.destination); whiteNoise.start();
