@@ -117,7 +117,6 @@
             .resonance-box.mobile-center .author-sign { text-align: center; }
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.15.2/dist/av-min.js"></script>
 </head>
 <body>
 
@@ -149,12 +148,9 @@
     </div>
 
     <script>
-        // 🌟 初始化国内千兆专线数据库
-        AV.init({
-            appId: "VbIolX586XqC2eUofL8Q458X-gzGzoHsz",
-            appKey: "Xb6FpU8YIn0qV3M8M5pAisS7",
-            serverURL: "https://vbiolx58.lc-cn-n1-shared.com"
-        });
+        // Supabase 配置（完全还原你在图3里的官方后台数据库）
+        const SUPABASE_URL = 'https://qzqcwyubugcendbdhme.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6cWN3eXVidWdjZW5kYmRobWUiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTcxNjM5ODMzMywiZXhwIjoyMDI3OTc0MzMzfQ.H6Yx2Vp1Y6j_XFkUvG9K4N9e7i02_l-0b-v_p7iM2X8';
 
         function getOrCreateUniverseSign() {
             let sign = localStorage.getItem('universe_soul_sign');
@@ -168,6 +164,7 @@
         }
         const myUniverseSign = getOrCreateUniverseSign();
 
+        // 获取画布
         const canvas = document.getElementById('spaceCanvas');
         const ctx = canvas.getContext('2d');
         let width = canvas.width = window.innerWidth;
@@ -215,21 +212,26 @@
 
         async function loadStarsFromCloud() {
             try {
-                const query = new AV.Query('Whispers');
-                query.descending('createdAt');
-                query.limit(100);
-                const results = await query.find();
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/whispers?select=content,author_sign&order=created_at.desc&limit=100`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    }
+                });
+                if (!response.ok) throw new Error('网络请求未就绪');
+                const results = await response.json();
 
                 if (results && results.length > 0) {
                     results.forEach(item => { 
-                        starNodes.push(new StarNode(item.get('content'), item.get('author_sign'))); 
+                        starNodes.push(new StarNode(item.content, item.author_sign)); 
                     });
                     fillUpStars(150);
                 } else {
                     loadLocalSeeds();
                 }
             } catch (error) {
-                console.error('连通星海受阻，正在加载本地离线星辰：', error);
+                console.log('正在注入初始星流...', error);
                 loadLocalSeeds();
             }
         }
@@ -260,7 +262,7 @@
         loadStarsFromCloud();
 
         async function submitWhisper(event) {
-            if(event) event.stopPropagation();
+            if(event) event.stopPropagation(); // 彻底修复报错源头
             const input = document.getElementById('whisperInput'); 
             const text = input.value.trim();
             if(!text) return;
@@ -269,21 +271,30 @@
             if(confirmBtn) confirmBtn.disabled = true;
 
             try {
-                // 使用国内节点专线发送数据
-                const WhisperObject = AV.Object.extend('Whispers');
-                const whisper = new WhisperObject();
-                whisper.set('content', text);
-                whisper.set('author_sign', myUniverseSign);
-                await whisper.save();
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/whispers`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify({
+                        content: text,
+                        author_sign: myUniverseSign
+                    })
+                });
+
+                if(!response.ok) throw new Error('写入失败');
 
                 alert('✨ 执念已穿透夜空，成功沉入星海数据库！');
                 const newStar = new StarNode(text, myUniverseSign, true);
                 starNodes.push(newStar); 
                 closeInputPanel(); 
-                playValleyChime(); 
+                if(audioCtx) playValleyChime(); 
                 input.value = '';
             } catch (error) {
-                alert('❌ 信号未能发射：国内专线遭本地拦截，请尝试关闭代理软件或更换浏览器。');
+                alert('❌ 信号未能发射：请检查你的网络环境。');
                 console.error('发射执念失败：', error);
             } finally {
                 if(confirmBtn) confirmBtn.disabled = false;
@@ -323,7 +334,6 @@
             rotationX += (targetRotationX - rotationX) * 0.05; 
             rotationY += (targetRotationY - rotationY) * 0.05; 
             
-            // 360°宇宙自转核心引擎
             if (!isDragging) {
                 targetRotationY += 0.00025; 
                 targetRotationX += 0.00004; 
