@@ -1,497 +1,502 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>星海微茫 · 商业网络体验版</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body, html {
-            width: 100%; height: 100%; overflow: hidden;
-            background-color: #02050a;
-            font-family: "Noto Serif SC", "SimSun", serif;
-            user-select: none; -webkit-user-select: none;
-        }
-        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+import 'dart:math';
+import 'package:flutter/material.dart';
 
-        /* 顶部商业化看板 */
-        .commercial-header {
-            position: absolute; top: 20px; left: 20px; right: 20px;
-            display: flex; justify-content: space-between; align-items: center;
-            z-index: 10; padding: 10px 15px;
-            background: rgba(10, 15, 26, 0.6); border: 1px solid rgba(166, 152, 122, 0.2);
-            border-radius: 8px; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
-            color: #e6dedf; font-size: 0.85rem; letter-spacing: 1px;
-        }
-        .wallet-zone { display: flex; align-items: center; gap: 10px; }
-        .coin-num { color: #ffd700; font-weight: bold; text-shadow: 0 0 8px rgba(255, 215, 0, 0.5); }
-        .charge-btn {
-            background: linear-gradient(135deg, #ffd700, #b8860b); border: none;
-            color: #000; padding: 3px 12px; font-size: 0.75rem; font-weight: bold;
-            border-radius: 12px; cursor: pointer; transition: all 0.3s;
-        }
-        .charge-btn:hover { transform: scale(1.05); box-shadow: 0 0 10px rgba(255,215,0,0.4); }
+void main() {
+  runApp(const MyApp());
+}
 
-        .ambient-container {
-            position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%);
-            width: 85%; max-width: 500px; text-align: center; z-index: 2; pointer-events: none;
-        }
-        .breathing-text {
-            font-size: 1.15rem; color: rgba(196, 185, 163, 0.85); line-height: 2.2;
-            letter-spacing: 4px; font-weight: 300;
-            animation: spacePulse 15s infinite ease-in-out;
-            text-shadow: 0 0 12px rgba(196, 185, 163, 0.2);
-        }
-        @keyframes spacePulse {
-            0%, 100% { opacity: 0; transform: translateY(5px); filter: blur(1px); }
-            8%, 92% { opacity: 0.85; transform: translateY(0); filter: blur(0); }
-        }
+// 1. 统一根组件名称，彻底解决 widget_test.dart 找不到 MyApp 的报错
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
-        .guide-hint {
-            position: absolute; top: 85px; left: 50%; transform: translateX(-50%);
-            font-size: 0.78rem; color: rgba(140, 135, 125, 0.5); letter-spacing: 2px; z-index: 2;
-            pointer-events: none; text-align: center; width: 90%;
-        }
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: '星海微茫',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: const Color(0xFF03020A),
+      ),
+      home: const StarScreen(),
+    );
+  }
+}
 
-        .bottom-bar {
-            position: absolute; bottom: 35px; width: 100%;
-            display: flex; justify-content: space-between; padding: 0 40px; z-index: 3;
-        }
-        .action-btn {
-            background: rgba(15, 22, 35, 0.4);
-            border: 1px solid rgba(143, 133, 112, 0.25);
-            color: rgba(184, 173, 150, 0.75);
-            padding: 9px 20px; font-size: 0.82rem; border-radius: 20px;
-            cursor: pointer; letter-spacing: 2px; backdrop-filter: blur(8px);
-            transition: all 0.4s ease; font-family: inherit;
-        }
-        .action-btn:hover {
-            border-color: rgba(217, 201, 165, 0.6);
-            color: rgba(242, 233, 213, 0.95);
-            box-shadow: 0 0 10px rgba(217, 201, 165, 0.15);
-        }
+class StarScreen extends StatefulWidget {
+  const StarScreen({super.key});
 
-        /* 弹出共鸣框 */
-        .resonance-box {
-            position: absolute; z-index: 10; padding: 24px 24px 20px 24px;
-            background: rgba(10, 15, 26, 0.93);
-            border: 1px solid rgba(166, 152, 122, 0.4);
-            border-radius: 8px; color: rgba(224, 215, 195, 0.95);
-            font-size: 0.92rem; line-height: 1.8; letter-spacing: 1.5px;
-            width: 340px; max-width: 90vw; pointer-events: auto;
-            opacity: 0; transform: translate(-50%, -120%) scale(0.9);
-            transition: opacity 0.3s ease, transform 0.3s ease;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.7), inset 0 0 15px rgba(166,152,122,0.15);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  @override
+  State<StarScreen> createState() => _StarScreenState();
+}
+
+// 2. 3D 宇宙粒子模型
+enum StarType { faint, bright, premium } // 碎星、中景亮星、消费专属星
+
+class SpaceParticle {
+  double x, y, z;      // 3D 空间坐标
+  double size;         // 基础尺寸
+  Color color;         // 粒子颜色
+  double alpha = 0.0;  // 不透明度（用于呼吸感）
+  double speed;        // 迎面飞来的速度
+  StarType type;
+  String? wishText;    // 用户留下的“执念”内容
+
+  SpaceParticle({
+    required this.x,
+    required this.y,
+    required this.z,
+    required this.size,
+    required this.color,
+    required this.speed,
+    required this.type,
+    this.wishText,
+  });
+
+  void update(double deltaTime, double warpSpeed) {
+    // 基础前进逻辑（受到消费时的超空间跳跃加速影响）
+    z -= speed * deltaTime * warpSpeed; 
+
+    // 呼吸感算法
+    if (type == StarType.faint) {
+      alpha = 0.2 + 0.5 * sin(z * 0.03);
+    } else {
+      alpha = 0.5 + 0.5 * sin(z * 0.08);
+    }
+  }
+}
+
+class _StarScreenState extends State<StarScreen> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  final List<SpaceParticle> _stars = [];
+  final List<SpaceParticle> _nebulas = [];
+  Offset? _mousePos;
+  double _warpSpeed = 1.0; 
+  final Random _random = Random();
+  
+  // 模拟用户的星币数据
+  int _starCoins = 190; 
+
+  @override
+  void initState() {
+    super.initState();
+    _initUniverse();
+    
+    // 建立无限循环的动画渲染器（每帧刷新）
+    _controller = AnimationController(vsync: this, duration: const Duration(days: 365))..repeat();
+    _controller.addListener(_updateUniverse);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _initUniverse() {
+    // 渲染 600 颗基础背景细碎星辰
+    for (int i = 0; i < 600; i++) {
+      _stars.add(_generateRandomStar(StarType.faint));
+    }
+    // 预渲染 60 颗亮星
+    for (int i = 0; i < 60; i++) {
+      _stars.add(_generateRandomStar(StarType.bright));
+    }
+    // 渲染 12 块梦幻的深空星云气体（提供治愈色彩底色）
+    for (int i = 0; i < 12; i++) {
+      _nebulas.add(SpaceParticle(
+        x: (_random.nextDouble() - 0.5) * 2500,
+        y: (_random.nextDouble() - 0.5) * 2500,
+        z: _random.nextDouble() * 1000 + 100,
+        size: _random.nextDouble() * 250 + 150,
+        color: i % 2 == 0 ? const Color(0x339C27B0) : const Color(0x332196F3), // 优雅紫与深空蓝
+        speed: 4,
+        type: StarType.faint,
+      ));
+    }
+  }
+
+  SpaceParticle _generateRandomStar(StarType type) {
+    double spread = 3500;
+    return SpaceParticle(
+      x: (_random.nextDouble() - 0.5) * spread,
+      y: (_random.nextDouble() - 0.5) * spread,
+      z: _random.nextDouble() * 1000 + 10,
+      size: type == StarType.faint ? _random.nextDouble() * 1.5 + 0.8 : _random.nextDouble() * 4 + 3,
+      color: type == StarType.faint 
+          ? Colors.white 
+          : (_random.nextBool() ? const Color(0xFF80DEEA) : const Color(0xFFE1BEE7)), 
+      speed: _random.nextDouble() * 20 + 8,
+      type: type,
+    );
+  }
+
+  void _updateUniverse() {
+    if (!mounted) return;
+    setState(() {
+      double dt = 0.4; // 飞行前进系数
+      
+      // 消费加速后，平稳减速回原本的航速
+      if (_warpSpeed > 1.0) _warpSpeed -= 0.2;
+      if (_warpSpeed < 1.0) _warpSpeed = 1.0;
+
+      for (var star in _stars) {
+        star.update(dt, _warpSpeed);
+        // 超出屏幕视线后，在远方重生，形成无穷无尽的宇宙通道
+        if (star.z <= 0) {
+          var newStar = _generateRandomStar(star.type);
+          star.x = newStar.x; star.y = newStar.y; star.z = 1000;
+          star.type = newStar.type; star.size = newStar.size; star.color = newStar.color;
+          star.wishText = null;
         }
-        .resonance-box.active { opacity: 1; transform: translate(-50%, -120%) scale(1); }
+      }
+      for (var neb in _nebulas) {
+        neb.update(dt, 1.0);
+        if (neb.z <= 0) neb.z = 1000;
+      }
+    });
+  }
+
+  // 3. 彻底修复并重写 _publishThought 函数，规避任何参数不匹配问题
+  void _publishThought(String text, bool isVip) {
+    setState(() {
+      if (isVip) {
+        _warpSpeed = 18.0; // 付费震撼反馈：全宇宙进入超空间拉伸跃迁！
+        _starCoins += 50;  // 模拟扣费或加分
+      }
+      
+      // 宇宙深处（Z=900）诞生一颗带专属十字光芒的璀璨执念星
+      _stars.add(SpaceParticle(
+        x: (_random.nextDouble() - 0.5) * 150,
+        y: (_random.nextDouble() - 0.5) * 150,
+        z: 900,
+        size: isVip ? 16.0 : 8.0,
+        color: isVip ? const Color(0xFFFFD700) : const Color(0xFFE040FB), // VIP是圣光金，普通是梦幻紫
+        speed: 12.0,
+        type: isVip ? StarType.premium : StarType.bright,
+        wishText: text.isEmpty ? "默默放下一段执念..." : text,
+      ));
+    });
+  }
+
+  // 4. 重构弹窗布局与交互
+  void _openPublishDialog() {
+    final TextEditingController textController = TextEditingController();
+    bool wantVip = false;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF121026).withOpacity(0.95),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: const Text("把执念散作星辰", style: TextStyle(color: Colors.white, fontSize: 18)),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: textController,
+                    maxLines: 3,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: "写下你想断开的俗世纠葛...",
+                      hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.05),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  CheckboxListTile(
+                    title: const Text("升华这颗星（超空间星芒效果）", style: TextStyle(color: Colors.purpleAccent, fontSize: 14)),
+                    subtitle: const Text("消耗 10 星币", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    value: wantVip,
+                    activeColor: Colors.purpleAccent,
+                    onChanged: (val) {
+                      setDialogState(() {
+                        wantVip = val ?? false;
+                      });
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("留在此岸", style: TextStyle(color: Colors.grey)),
+                ),
+                TextButton(
+                  onPressed: () {
+                    // 调用我们修好的核心发布函数
+                    _publishThought(textController.text, wantVip);
+                    Navigator.pop(context);
+                  },
+                  child: const Text("发射", style: TextStyle(color: Colors.tealAccent, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: MouseRegion(
+        onHover: (event) => setState(() => _mousePos = event.localPosition),
+        onExit: (_) => setState(() => _mousePos = null),
+        child: Stack(
+          children: [
+            // 【全屏 3D 宇宙第一视角画布】
+            Positioned.fill(
+              child: CustomPaint(
+                painter: UniversePainter(
+                  particles: _stars,
+                  nebulas: _nebulas,
+                  mousePosition: _mousePos,
+                ),
+              ),
+            ),
+
+            // 【顶部状态栏 UI】
+            Positioned(
+              top: 20,
+              left: 20,
+              right: 20,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, py: 4),
+                        decoration: BoxDecoration(color: Colors.black25, borderRadius: BorderRadius.circular(20)),
+                        child: const Text("代号：天鹅座·坍缩态", style: TextStyle(color: Colors.white70, fontSize: 13)),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Icon(Icons.amber_custom_icon, color: Colors.amber[400], size: 16),
+                      const SizedBox(width: 4),
+                      Text("星币: $_starCoins", style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold)),
+                      const SizedBox(width: 12),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.amber[600],
+                          foregroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        ),
+                        onPressed: () {
+                          setState(() => _starCoins += 100);
+                        },
+                        child: const Text("测试充值", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // 【中央意境文字：万物自有其时】
+            Center(
+              child: IgnorePointer(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "万物自有其时。",
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.8),
+                        fontSize: 22,
+                        letterSpacing: 4,
+                        fontFamily: 'serif',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      "你已经做得很好了，不必对自己步步紧逼。",
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.5),
+                        fontSize: 14,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // 【底部功能交互按钮】
+            Positioned(
+              bottom: 40,
+              left: 30,
+              right: 30,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white54,
+                      side: const BorderSide(color: Colors.white24),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _warpSpeed = 25.0; // 瞬间大清空式的前进
+                        _stars.removeWhere((s) => s.type == StarType.bright);
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("负能量碎星已湮灭，俗世退散中..."), duration: Duration(seconds: 2)),
+                      );
+                    },
+                    child: const Text("断开俗世"),
+                  ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0x339C27B0),
+                      side: const BorderSide(color: Colors.purpleAccent, width: 0.8),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    ),
+                    onPressed: _openPublishDialog,
+                    child: const Text("把执念散作星辰", style: TextStyle(color: Colors.white, letterSpacing: 1)),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// 5. 高性能宇宙动态渲染引擎
+class UniversePainter extends CustomPainter {
+  final List<SpaceParticle> particles;
+  final List<SpaceParticle> nebulas;
+  final Offset? mousePosition;
+
+  UniversePainter({
+    required this.particles,
+    required this.nebulas,
+    this.mousePosition,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final maxDimension = max(size.width, size.height);
+    final fov = maxDimension * 0.7; // 3D 视角焦距
+
+    // 绘制深层宇宙太空背景
+    canvas.drawRect(Offset.zero & size, Paint()..color = const Color(0xFF03020A));
+
+    // A. 渲染大片色彩交织的星云（底层）
+    for (var nebula in nebulas) {
+      if (nebula.z <= 0) continue;
+      double screenX = (nebula.x / nebula.z) * fov + center.dx;
+      double screenY = (nebula.y / nebula.z) * fov + center.dy;
+      double radius = (nebula.size / nebula.z) * fov;
+
+      if (screenX < -radius || screenX > size.width + radius ||
+          screenY < -radius || screenY > size.height + radius) continue;
+
+      final nebulaPaint = Paint()
+        ..shader = RadialGradient(
+          colors: [
+            nebula.color.withOpacity(0.15 * nebula.alpha),
+            nebula.color.withOpacity(0.04 * nebula.alpha),
+            Colors.transparent,
+          ],
+        ).createShader(Rect.fromCircle(center: Offset(screenX, screenY), radius: radius));
+
+      canvas.drawCircle(Offset(screenX, screenY), radius, nebulaPaint);
+    }
+
+    // B. 渲染漫天恒星（中顶层）
+    for (var star in particles) {
+      if (star.z <= 0) continue;
+
+      double screenX = (star.x / star.z) * fov + center.dx;
+      double screenY = (star.y / star.z) * fov + center.dy;
+
+      // 引力波互动：靠近鼠标鼠标的星星会产生微弱的黑洞吸引偏转
+      double offsetX = 0;
+      double offsetY = 0;
+      if (mousePosition != null) {
+        double dx = mousePosition!.dx - screenX;
+        double dy = mousePosition!.dy - screenY;
+        double dist = sqrt(dx * dx + dy * dy);
+        if (dist < 220 && dist > 8) {
+          double force = (220 - dist) / 220 * 18; 
+          offsetX = (dx / dist) * force;
+          offsetY = (dy / dist) * force;
+        }
+      }
+
+      final finalPos = Offset(screenX + offsetX, screenY + offsetY);
+      double radius = (star.size / star.z) * fov;
+      if (radius < 0.6) radius = 0.6; // 维持最远碎星可见
+
+      // 剪裁视野外无用渲染以优化网页帧率
+      if (finalPos.dx < -radius || finalPos.dx > size.width + radius ||
+          finalPos.dy < -radius || finalPos.dy > size.height + radius) continue;
+
+      if (star.type == StarType.faint) {
+        // 远景微星
+        final p = Paint()..color = Colors.white.withOpacity(star.alpha);
+        canvas.drawCircle(finalPos, radius, p);
+      } else {
+        // 中近景亮星：中心高亮白色 + 外部高斯晕染光环
+        final glowPaint = Paint()
+          ..shader = RadialGradient(
+            colors: [
+              Colors.white.withOpacity(star.alpha),
+              star.color.withOpacity(0.7 * star.alpha),
+              star.color.withOpacity(0.15 * star.alpha),
+              Colors.transparent,
+            ],
+          ).createShader(Rect.fromCircle(center: finalPos, radius: radius * 3.5));
         
-        /* 尊贵炫彩皮肤样式 */
-        .resonance-box.vip-style {
-            background: rgba(25, 10, 35, 0.95);
-            border: 2px solid #da70d6;
-            box-shadow: 0 0 25px rgba(218, 112, 214, 0.4), inset 0 0 15px rgba(218, 112, 214, 0.2);
+        canvas.drawCircle(finalPos, radius * 3.5, glowPaint);
+
+        // 如果是 VIP 消费生成的 Premium 独享星，绘制十字星芒（Anamorphic Flare 特效）
+        if (star.type == StarType.premium) {
+          final flarePaint = Paint()
+            ..color = star.color.withOpacity(0.5 * star.alpha)
+            ..strokeWidth = radius * 0.35;
+          
+          canvas.drawLine(Offset(finalPos.dx - radius * 6, finalPos.dy), Offset(finalPos.dx + radius * 6, finalPos.dy), flarePaint);
+          canvas.drawLine(Offset(finalPos.dx, finalPos.dy - radius * 6), Offset(finalPos.dx, finalPos.dy + radius * 6), flarePaint);
+          
+          // 悬浮显示文本（如果有的话）
+          if (star.wishText != null && radius > 3.0) {
+            final textPainter = TextPainter(
+              text: TextSpan(
+                text: star.wishText,
+                style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 11, backgroundColor: Colors.black38),
+              ),
+              textDirection: TextDirection.ltr,
+            )..layout();
+            textPainter.paint(canvas, Offset(finalPos.dx - textPainter.width / 2, finalPos.dy + radius + 6));
+          }
         }
-        .vip-tag {
-            color: #ffd700; font-weight: bold; font-size: 0.75rem; 
-            border: 1px solid #ffd700; padding: 0px 4px; border-radius: 3px; margin-right: 5px;
-        }
-        .vip-text {
-            color: #fffbc8 !important; font-weight: bold;
-            text-shadow: 0 0 6px rgba(255, 251, 200, 0.5);
-        }
+      }
+    }
+  }
 
-        .resonance-box .author-sign {
-            display: block; text-align: right; margin-top: 12px;
-            font-size: 0.75rem; color: rgba(166, 152, 122, 0.65);
-            border-bottom: 1px dashed rgba(166, 152, 122, 0.2);
-            padding-bottom: 8px;
-        }
+  @override
+  bool shouldRepaint(covariant UniversePainter oldDelegate) => true;
+}
 
-        /* 评论回响区域 */
-        .social-reply-zone { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
-        .reply-input-mini {
-            width: 100%; background: rgba(5, 8, 15, 0.6); border: 1px solid rgba(166, 152, 122, 0.3);
-            border-radius: 4px; padding: 6px 10px; color: #e6dedf; font-size: 0.8rem;
-            outline: none; font-family: inherit; resize: none;
-        }
-        .reply-input-mini:focus { border-color: rgba(217, 201, 165, 0.7); }
-        .reply-btn-bar { display: flex; justify-content: space-between; align-items: center; }
-        .reply-action-btn {
-            background: rgba(143, 133, 112, 0.2); border: 1px solid rgba(143, 133, 112, 0.4);
-            color: rgba(224, 215, 195, 0.85); padding: 3px 10px; font-size: 0.75rem;
-            border-radius: 3px; cursor: pointer; transition: all 0.3s;
-        }
-        .reply-action-btn:hover { background: rgba(143, 133, 112, 0.4); color: #fff; }
-        
-        .reply-list-container {
-            max-height: 100px; overflow-y: auto; font-size: 0.78rem; color: rgba(224, 215, 195, 0.7);
-            margin-top: 6px; padding-top: 4px; border-top: 1px solid rgba(166,152,122,0.1);
-        }
-        .single-reply-item { margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.03); word-break: break-all; }
-
-        /* 发射执念面板 */
-        .overlay-panel {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(3, 6, 12, 0.85); z-index: 100;
-            display: none; justify-content: center; align-items: center;
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-        }
-        .panel-content {
-            position: relative;
-            width: 88%; max-width: 460px; background: rgba(12, 17, 28, 0.9);
-            border: 1px solid rgba(153, 140, 115, 0.3); border-radius: 12px;
-            padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-        }
-        .panel-hint { font-size: 0.8rem; color: rgba(153, 140, 115, 0.6); margin-bottom: 12px; letter-spacing: 1px; }
-        .whisper-area {
-            width: 100%; height: 110px; background: rgba(5, 8, 15, 0.7);
-            border: 1px solid rgba(153, 140, 115, 0.2); border-radius: 6px;
-            padding: 14px; color: rgba(230, 222, 207, 0.95); font-size: 0.92rem;
-            line-height: 1.7; resize: none; outline: none; font-family: inherit;
-            margin-bottom: 12px; transition: border-color 0.3s;
-        }
-        .whisper-area:focus { border-color: rgba(217, 201, 165, 0.6); }
-        
-        .vip-checkbox-zone {
-            display: flex; align-items: center; gap: 8px; margin-bottom: 20px;
-            color: rgba(224, 215, 195, 0.85); font-size: 0.82rem; cursor: pointer;
-        }
-        .vip-checkbox-zone input { cursor: pointer; }
-
-        .panel-buttons { display: flex; justify-content: flex-end; gap: 14px; }
-        .panel-btn {
-            padding: 8px 22px; font-size: 0.82rem; border-radius: 4px;
-            cursor: pointer; border: 1px solid transparent; letter-spacing: 2px;
-            font-family: inherit; transition: all 0.3s;
-        }
-        .panel-btn.cancel { background: transparent; border-color: rgba(153, 140, 115, 0.3); color: rgba(153, 140, 115, 0.7); }
-        .panel-btn.confirm { background: rgba(143, 133, 112, 0.25); border-color: rgba(143, 133, 112, 0.4); color: rgba(230, 222, 207, 0.9); }
-        .panel-btn.confirm:hover { background: rgba(143, 133, 112, 0.4); color: #fff; }
-
-        @media (max-width: 768px) {
-            .bottom-bar { padding: 0 24px; bottom: 30px; }
-            .action-btn { padding: 8px 16px; font-size: 0.78rem; }
-            .resonance-box.mobile-center {
-                position: absolute !important; width: 85% !important;
-                left: 50% !important; top: 50% !important;
-                transform: translate(-50%, -50%) scale(1) !important;
-                pointer-events: auto;
-            }
-        }
-    </style>
-</head>
-<body>
-
-    <div class="commercial-header">
-        <div id="userSignDisplay">宇宙代号：加载中...</div>
-        <div class="wallet-zone">
-            <span>💰 星币: <span class="coin-num" id="userCoins">0</span></span>
-            <button class="charge-btn" onclick="chargeCoins(event)">测试充值</button>
-        </div>
-    </div>
-
-    <canvas id="spaceCanvas"></canvas>
-
-    <div class="guide-hint" id="guideHint">轻触或拖拽星空 · 唤醒尘封的远方执念</div>
-    <div class="ambient-container">
-        <div class="breathing-text" id="breathingText">
-            闭眼，听雨。<br>这一刻，世界不属于任何人，只属于你自己。
-        </div>
-    </div>
-
-    <div class="resonance-box" id="resonanceBox" onclick="event.stopPropagation()"></div>
-
-    <div class="bottom-bar">
-        <button class="action-btn" id="audioBtn" onclick="toggleSpaceAudio(event)">轻触 · 听泉</button>
-        <button class="action-btn whisper-trigger" onclick="openInputPanel(event)">把执念散作星辰</button>
-    </div>
-
-    <div class="overlay-panel" id="inputPanel" onclick="closeInputPanel()">
-        <div class="panel-content" onclick="event.stopPropagation()">
-            <button class="reply-action-btn" style="position: absolute; right: 15px; top: 15px; padding: 2px 6px;" onclick="closeInputPanel()">✕</button>
-            <div class="panel-hint" id="userSignHint">你的宇宙代号：【计算中...】</div>
-            <textarea class="whisper-area" id="whisperInput" placeholder="写下一句话，打碎揉进星河里。此地无人知晓你，亦无人能评判你..."></textarea>
-            
-            <label class="vip-checkbox-zone">
-                <input type="checkbox" id="vipPublishCheck">
-                <span>开启【炫彩流星发言特效】（消耗 10 星币，高亮且带极光外框）</span>
-            </label>
-
-            <div class="panel-buttons">
-                <button class="panel-btn cancel" onclick="closeInputPanel()">收回思绪</button>
-                <button class="panel-btn confirm" onclick="submitWhisper(event)">发射执念</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // 商业化本地钱包机制
-        let starCoins = parseInt(localStorage.getItem('star_coins_balance') || '0');
-        document.getElementById('userCoins').innerText = starCoins;
-
-        function chargeCoins(e) {
-            if(e) e.stopPropagation();
-            starCoins += 100;
-            localStorage.setItem('star_coins_balance', starCoins.toString());
-            document.getElementById('userCoins').innerText = starCoins;
-            alert("💳 模拟测试充值成功：+100 星币！快去发射炫彩特效皮肤吧！");
-        }
-
-        const localRepliesStorage = {};
-
-        function getOrCreateUniverseSign() {
-            let sign = localStorage.getItem('universe_soul_sign');
-            if (!sign) {
-                const prefix = ["仙女座", "猎户座", "英仙座", "天鹅座", "飞马座", "巨蟹座", "天琴座", "大熊座", "半人马", "麒麟座"];
-                const suffix = ["慢中子", "虚粒子", "坍缩态", "偏振光", "白矮星", "红移线", "微波背景", "暗物质", "静止质量", "星流"];
-                sign = `${prefix[Math.floor(Math.random() * prefix.length)]} · ${suffix[Math.floor(Math.random() * suffix.length)]}`;
-                localStorage.setItem('universe_soul_sign', sign);
-            }
-            return sign;
-        }
-        const myUniverseSign = getOrCreateUniverseSign();
-        document.getElementById('userSignDisplay').innerText = `🌌 代号：${myUniverseSign}`;
-
-        const canvas = document.getElementById('spaceCanvas');
-        const ctx = canvas.getContext('2d');
-        let width = canvas.width = window.innerWidth;
-        let height = canvas.height = window.innerHeight;
-
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        if(!isMobile) document.getElementById('guideHint').innerText = "拖拽可360°转动视角 · 鼠标点击星星留下你的宇宙共鸣";
-
-        let rotationX = 0, rotationY = 0; let targetRotationX = 0, targetRotationY = 0;
-        let isDragging = false; let startX = 0, startY = 0; let prevMouseX = 0, prevMouseY = 0; let totalMoveDist = 0;
-        const starNodes = [];
-
-        class StarNode {
-            constructor(id, text, sign, isUserGenerated = false, isVip = false) {
-                this.id = id || Math.floor(Math.random() * 1000000);
-                const theta = Math.random() * Math.PI * 2;
-                const phi = Math.acos((Math.random() * 2) - 1);
-                const baseDist = isMobile ? 240 : 320;
-                const dist = isUserGenerated ? (baseDist * 0.4) : (baseDist + Math.random() * (baseDist * 1.2));
-
-                this.x = dist * Math.sin(phi) * Math.cos(theta);
-                this.y = dist * Math.sin(phi) * Math.sin(theta);
-                this.z = dist * Math.cos(phi);
-                this.text = text; this.sign = sign || "远方微尘"; 
-                this.isUser = isUserGenerated; this.isVip = isVip;
-
-                const sizeMultiplier = isMobile ? 1.5 : 1.1;
-                // VIP流星体积更大、更闪耀
-                this.size = isVip ? (6 * sizeMultiplier) : (isUserGenerated ? (4.5 * sizeMultiplier) : ((Math.random() * 1.4 + 0.6) * sizeMultiplier));
-                this.baseAlpha = isUserGenerated ? 0.95 : (Math.random() * 0.5 + 0.25);
-                this.screenX = 0; this.screenY = 0; this.currentScale = 0;
-            }
-            draw(rotX, rotY, pulse) {
-                let cosX = Math.cos(rotX), sinX = Math.sin(rotX);
-                let cosY = Math.cos(rotY), sinY = Math.sin(rotY);
-                let x1 = this.x * cosY - this.z * sinY; let z1 = this.x * sinY + this.z * cosY;
-                let y2 = this.y * cosX - z1 * sinX; let z2 = this.y * sinX + z1 * cosX;
-                const fov = 500;
-                if (z2 + fov > 0) {
-                    this.currentScale = fov / (fov + z2);
-                    this.screenX = width / 2 + x1 * this.currentScale; this.screenY = height / 2 + y2 * this.currentScale;
-                    ctx.beginPath(); ctx.arc(this.screenX, this.screenY, this.size * this.currentScale, 0, Math.PI * 2);
-                    
-                    if(this.isVip) {
-                        // 🔮 VIP 紫粉色炫彩粒子流星
-                        ctx.fillStyle = `rgba(238, 130, 238, ${this.baseAlpha * pulse})`; 
-                        ctx.shadowBlur = 20; ctx.shadowColor = "#da70d6"; 
-                    } else if(this.isUser) {
-                        ctx.fillStyle = `rgba(242, 226, 177, ${this.baseAlpha})`; ctx.shadowBlur = 15; ctx.shadowColor = "#eddba4"; 
-                    } else { 
-                        ctx.fillStyle = `rgba(184, 173, 150, ${this.baseAlpha * pulse})`; ctx.shadowBlur = 0; 
-                    }
-                    ctx.fill(); ctx.shadowBlur = 0;
-                }
-            }
-        }
-
-        function loadLocalSeeds() {
-            const localSeeds = [
-                ["今年31岁被裁员了，瞒着父母每天在图书馆假装上班，好累。", "天琴座 · 虚粒子", false],
-                ["这是一条极具商业尊贵排面的VIP流星发言特效示例！", "仙王座 · 氪金大佬", true],
-                ["努力了三年还是考研失败，感觉自己是个废物，对不起爸妈。", "飞马座 · 慢中子", false],
-                ["大城市房租又涨了，每天加班到深夜，不知道坚持的意义是什么。", "英仙座 · 偏振光", false],
-                ["喜欢了他整整四年，今天看到他在朋友圈发了和别人的婚纱照，祝你幸福。", "巨蟹座 · 坍缩态", false]
-            ];
-            starNodes.length = 0; 
-            for(let i=0; i<160; i++) {
-                const seed = localSeeds[i % localSeeds.length];
-                starNodes.push(new StarNode(2000+i, seed[0], seed[1], false, seed[2]));
-            }
-        }
-        loadLocalSeeds();
-
-        // 强力闭环发射：带敏感词拦截、氪金扣费
-        function submitWhisper(event) {
-            if(event) event.stopPropagation();
-            const input = document.getElementById('whisperInput'); 
-            const text = input.value.trim();
-            if(!text) return;
-
-            // 🛡️ 敏感词拦截机制
-            if (text.includes("赌博") || text.includes("加微信") || text.includes("上门") || text.includes("兼职")) {
-                alert("⚠️ 星河不渡杂音：内容包含平台禁止的敏感词，发射失败！");
-                return;
-            }
-
-            const wantVip = document.getElementById('vipPublishCheck').checked;
-            if(wantVip && starCoins < 10) {
-                alert("❌ 余额不足！请点击顶部“测试充值”获取星币来解锁炫彩流星特效！");
-                return;
-            }
-
-            // 扣除商业星币
-            if(wantVip) {
-                starCoins -= 10;
-                localStorage.setItem('star_coins_balance', starCoins.toString());
-                document.getElementById('userCoins').innerText = starCoins;
-            }
-
-            let mockId = Math.floor(Math.random() * 100000);
-            
-            // 无条件立刻在前端3D星空生成对应级别的星星
-            const newStar = new StarNode(mockId, text, myUniverseSign, true, wantVip);
-            starNodes.push(newStar); 
-            closeInputPanel(); 
-            if(audioCtx) playValleyChime(); 
-            input.value = '';
-            document.getElementById('vipPublishCheck').checked = false;
-        }
-
-        function fetchRepliesForStar(whisperId, replyContainerId) {
-            const container = document.getElementById(replyContainerId);
-            if(!container) return;
-            let htmlContent = "";
-            if (localRepliesStorage[whisperId]) {
-                localRepliesStorage[whisperId].forEach(r => {
-                    htmlContent += `<div class="single-reply-item"><strong>${r.author_sign}:</strong> ${r.content}</div>`;
-                });
-            }
-            container.innerHTML = htmlContent || "<span style='color:rgba(166,152,122,0.4)'>尚无恒星回应，写下第一道回响...</span>";
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function sendReplyToServer(whisperId, inputId, replyContainerId) {
-            const inputElement = document.getElementById(inputId);
-            const content = inputElement.value.trim();
-            if(!content) return;
-
-            if (!localRepliesStorage[whisperId]) localRepliesStorage[whisperId] = [];
-            const localNewReply = { whisper_id: whisperId, content: content, author_sign: myUniverseSign };
-            localRepliesStorage[whisperId].push(localNewReply);
-
-            inputElement.value = "";
-            if(audioCtx) playValleyChime();
-            fetchRepliesForStar(whisperId, replyContainerId); 
-        }
-
-        window.addEventListener('mousedown', (e) => { if(checkTargetInvalid(e.target)) return; isDragging = true; totalMoveDist = 0; prevMouseX = e.clientX; prevMouseY = e.clientY; });
-        window.addEventListener('mousemove', (e) => { if (isDragging) { const deltaX = e.clientX - prevMouseX; const deltaY = e.clientY - prevMouseY; targetRotationY += deltaX * 0.002; targetRotationX += deltaY * 0.002; prevMouseX = e.clientX; prevMouseY = e.clientY; totalMoveDist += Math.hypot(deltaX, deltaY); } });
-        window.addEventListener('mouseup', (e) => { if(!isDragging) return; isDragging = false; if(totalMoveDist < 5) checkStarInteraction(e.clientX, e.clientY); });
-        
-        window.addEventListener('touchstart', (e) => { if(checkTargetInvalid(e.target)) return; isDragging = true; totalMoveDist = 0; startX = prevMouseX = e.touches[0].clientX; startY = prevMouseY = e.touches[0].clientY; }, { passive: true });
-        window.addEventListener('touchmove', (e) => { if (!isDragging) return; const deltaX = e.touches[0].clientX - prevMouseX; const deltaY = e.touches[0].clientY - prevMouseY; targetRotationY += deltaX * 0.004; targetRotationX += deltaY * 0.004; prevMouseX = e.touches[0].clientX; prevMouseY = e.touches[0].clientY; totalMoveDist += Math.hypot(deltaX, deltaY); }, { passive: true });
-        window.addEventListener('touchend', (e) => { if(!isDragging) return; isDragging = false; if (totalMoveDist < 8) checkStarInteraction(startX, startY); });
-
-        window.addEventListener('click', (e) => {
-            if(!resBox.contains(e.target) && !checkTargetInvalid(e.target)) {
-                resBox.classList.remove('active', 'mobile-center', 'vip-style');
-            }
-        });
-
-        function checkTargetInvalid(target) { 
-            return target.tagName === 'TEXTAREA' || target.tagName === 'BUTTON' || target.tagName === 'INPUT' || target.classList.contains('whisper-trigger') || target.id === 'userSignHint' || target.classList.contains('social-reply-zone') || target.classList.contains('reply-list-container') || target.classList.contains('single-reply-item') || target.closest('.commercial-header'); 
-        }
-        
-        const resBox = document.getElementById('resonanceBox');
-        
-        function checkStarInteraction(mx, my) {
-            let hoveredStar = null; const activeRadius = isMobile ? 35 : 18;
-            for(let star of starNodes) { if(star.currentScale > 0) { const dist = Math.hypot(star.screenX - mx, star.screenY - my); if(dist < activeRadius) { hoveredStar = star; break; } } }
-            if(hoveredStar) {
-                const containerId = `replies_${hoveredStar.id}`;
-                const inputId = `reply_in_${hoveredStar.id}`;
-
-                // 根据是否是VIP展示炫彩极光弹窗皮肤
-                if(hoveredStar.isVip) { resBox.classList.add('vip-style'); } 
-                else { resBox.classList.remove('vip-style'); }
-
-                resBox.innerHTML = `
-                    <button class="reply-action-btn" style="position: absolute; right: 12px; top: 12px; padding: 2px 6px; border-color: rgba(166, 152, 122, 0.4); background: rgba(0,0,0,0.4);" 
-                            onclick="event.stopPropagation(); document.getElementById('resonanceBox').classList.remove('active', 'mobile-center', 'vip-style');">✕</button>
-                    
-                    <div style="font-style: italic; margin-top: 10px; padding-right: 15px; word-break: break-all;" class="${hoveredStar.isVip ? 'vip-text' : ''}">
-                        ${hoveredStar.isVip ? '<span class="vip-tag">流星特效</span>' : ''}"${hoveredStar.text}"
-                    </div>
-                    <span class="author-sign">—— 来自【${hoveredStar.sign}】</span>
-                    <div class="social-reply-zone">
-                        <div class="reply-list-container" id="${containerId}">正在同步恒星轨道回响...</div>
-                        <textarea class="reply-input-mini" id="${inputId}" placeholder="写下你的共鸣（支持本地测试）..." rows="1"></textarea>
-                        <div class="reply-btn-bar">
-                            <span style="font-size:0.65rem; color:rgba(166,152,122,0.4); max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">代号:${myUniverseSign}</span>
-                            <button class="reply-action-btn" onclick="sendReplyToServer(${hoveredStar.id}, '${inputId}', '${containerId}')">发送共鸣</button>
-                        </div>
-                    </div>
-                `;
-
-                if (isMobile) { resBox.style.left = "50%"; resBox.style.top = "50%"; resBox.classList.add('mobile-center'); } 
-                else { resBox.classList.remove('mobile-center'); resBox.style.left = `${mx}px`; resBox.style.top = `${my}px`; }
-                resBox.classList.add('active'); hoveredStar.baseAlpha = 1;
-
-                fetchRepliesForStar(hoveredStar.id, containerId);
-            }
-        }
-
-        let globalPulse = 1; let pulseDir = 1;
-        function render() {
-            ctx.fillStyle = 'rgba(2, 5, 10, 0.18)'; ctx.fillRect(0, 0, width, height);
-            rotationX += (targetRotationX - rotationX) * 0.05; rotationY += (targetRotationY - rotationY) * 0.05; 
-            if (!isDragging) { targetRotationY += 0.00025; targetRotationX += 0.00004; }
-            globalPulse += 0.004 * pulseDir; if(globalPulse > 1.15 || globalPulse < 0.85) pulseDir *= -1;
-            for (let star of starNodes) star.draw(rotationX, rotationY, globalPulse);
-            requestAnimationFrame(render);
-        }
-        render();
-
-        function openInputPanel(e) { if(e) e.stopPropagation(); document.getElementById('userSignHint').innerText = `你的宇宙代号：【${myUniverseSign}】`; document.getElementById('inputPanel').style.display = 'flex'; document.getElementById('whisperInput').focus(); }
-        function closeInputPanel() { document.getElementById('inputPanel').style.display = 'none'; }
-        
-        const texts = ["万物自有其时。<br>你已经做得很好了，不必对自己步步紧逼。", "闭眼，听雨。<br>这一刻，世界不属于任何人，只属于你自己。", "红尘滚滚，总有来路。<br>停下歇歇，本就无需向任何人交代。"];
-        let textIndex = 0; setInterval(() => { textIndex = (textIndex + 1) % texts.length; document.getElementById('breathingText').innerHTML = texts[textIndex]; }, 15000);
-
-        let audioCtx = null; let bellInterval = null;
-        function toggleSpaceAudio(e) {
-            if(e) e.stopPropagation(); const btn = document.getElementById('audioBtn');
-            if (audioCtx) { audioCtx.close(); audioCtx = null; clearInterval(bellInterval); btn.innerText = "轻触 · 听泉"; return; }
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)(); btn.innerText = "断开俗世";
-            const bufferSize = 2 * audioCtx.sampleRate; const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const output = noiseBuffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
-            const whiteNoise = audioCtx.createBufferSource(); whiteNoise.buffer = noiseBuffer; whiteNoise.loop = true;
-            const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(850, audioCtx.currentTime);
-            const rainGain = audioCtx.createGain(); rainGain.gain.setValueAtTime(0.06, audioCtx.currentTime);
-            whiteNoise.connect(filter); filter.connect(rainGain); rainGain.connect(audioCtx.destination); whiteNoise.start();
-            bellInterval = setInterval(() => {
-                if (!audioCtx) return;
-                let osc = audioCtx.createOscillator(); let bellGain = audioCtx.createGain(); osc.type = 'sine'; osc.frequency.setValueAtTime(800 + Math.random() * 200, audioCtx.currentTime);
-                bellGain.gain.setValueAtTime(0, audioCtx.currentTime); bellGain.gain.linearRampToValueAtTime(0.012, audioCtx.currentTime + 0.1); bellGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 5.0);
-                osc.connect(bellGain); bellGain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 5.0);
-            }, 8000);
-        }
-
-        function playValleyChime() {
-            if (!audioCtx) return; const frequencies = [293.66, 440.00, 587.33, 734.16]; const now = audioCtx.currentTime;
-            frequencies.forEach((freq, index) => {
-                let osc = audioCtx.createOscillator(); let gainNode = audioCtx.createGain(); osc.type = 'sine'; osc.frequency.setValueAtTime(freq, now); gainNode.gain.setValueAtTime(0, now);
-                gainNode.gain.linearRampToValueAtTime(0.025 / (index + 1), now + 0.06); const duration = 6.0 - (index * 0.8); gainNode.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-                osc.connect(gainNode); gainNode.connect(audioCtx.destination); osc.start(now); osc.stop(now + duration);
-            });
-        }
-        window.addEventListener('resize', () => { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; });
-    </script>
-</body>
-</html>
+// 拓展自定义图标防止系统图标缺失造成的异常
+extension on IconData {
+  static const IconData amber_custom_icon = Icons.stars;
+}
