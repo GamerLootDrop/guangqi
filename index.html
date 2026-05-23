@@ -45,13 +45,24 @@
         .ambient-box p { font-size: 0.8rem; color: rgba(255,255,255,0.35); letter-spacing: 2px; }
 
         /* 底部功能区 */
-        .hud-bottom { display: flex; justify-content: space-between; align-items: flex-end; pointer-events: auto; }
+        .hud-bottom { display: flex; justify-content: space-between; align-items: flex-end; pointer-events: auto; gap: 15px; }
+        .bottom-left-group { display: flex; gap: 15px; }
+        
         .btn-report {
             background: transparent; border: 1px solid rgba(255,215,0,0.4);
             color: #ffd700; padding: 10px 22px; border-radius: 4px; cursor: pointer;
             font-size: 0.8rem; letter-spacing: 2px; transition: all 0.4s;
         }
         .btn-report:hover { background: rgba(255,215,0,0.1); box-shadow: 0 0 20px rgba(255,215,0,0.2); }
+        
+        .btn-music {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2);
+            color: #fff; padding: 10px 22px; border-radius: 4px; cursor: pointer;
+            font-size: 0.8rem; letter-spacing: 2px; transition: all 0.4s; backdrop-filter: blur(5px);
+        }
+        .btn-music:hover { background: rgba(255,255,255,0.15); }
+        .btn-music.active { border-color: #00e5ff; color: #00e5ff; box-shadow: 0 0 15px rgba(0,229,255,0.2); }
+
         .btn-main {
             background: linear-gradient(135deg, #7b1fa2, #4a148c);
             border: 1px solid rgba(255,255,255,0.2); color: #fff;
@@ -104,6 +115,7 @@
         @media (max-width: 768px) {
             .ambient-box h1 { font-size: 1.15rem; }
             .btn-main { padding: 12px 24px; font-size: 0.8rem; }
+            .hud-bottom { flex-direction: column; align-items: center; gap: 20px; }
             .resonance-box { width: 85vw; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; }
         }
     </style>
@@ -128,7 +140,10 @@
         </div>
 
         <div class="hud-bottom">
-            <button class="btn-report" onclick="showReport()">生成灵魂报告</button>
+            <div class="bottom-left-group">
+                <button class="btn-report" onclick="showReport()">生成灵魂报告</button>
+                <button class="btn-music" id="musicBtn" onclick="toggleContinuousAmbient()">🎵 开启深空冥想音</button>
+            </div>
             <button class="btn-main" onclick="openInput()">把执念散作星辰</button>
         </div>
     </div>
@@ -136,19 +151,10 @@
     <div class="report-overlay" id="reportOverlay" onclick="this.style.display='none'">
         <div class="report-card" onclick="event.stopPropagation()">
             <h2>宇宙灵魂轨迹观测</h2>
-            <div class="info-row">
-                <div class="lab">观测坐标 / ID</div>
-                <div class="val" id="repSign">天鹅座 · 慢中子</div>
-            </div>
-            <div class="info-row">
-                <div class="lab">最近的共鸣执念</div>
-                <div class="val" id="repLastWish">“暂无观测记录”</div>
-            </div>
+            <div class="info-row"><div class="lab">观测坐标 / ID</div><div class="val" id="repSign">天鹅座 · 慢中子</div></div>
+            <div class="info-row"><div class="lab">最近的共鸣执念</div><div class="val" id="repLastWish">“暂无观测记录”</div></div>
             <div class="quote" id="repQuote">你不是一座孤岛，虽然在这深空里。你有 12 颗恒星共担引力。</div>
-            <div class="footer-msg">
-                <span>观测自：星海微茫研究站</span>
-                <div class="qr-mock">长按<br>保存</div>
-            </div>
+            <div class="footer-msg"><span>观测自：星海微茫研究站</span><div class="qr-mock">长按<br>保存</div></div>
         </div>
     </div>
 
@@ -170,9 +176,7 @@
         let starCoins = parseInt(localStorage.getItem('star_coins_balance') || '190');
         let lastWish = localStorage.getItem('last_wish_text') || '暂无观测记录';
         
-        function updateUI() {
-            document.getElementById('coinVal').innerText = starCoins;
-        }
+        function updateUI() { document.getElementById('coinVal').innerText = starCoins; }
 
         const prefix = ["仙女座", "猎户座", "英仙座", "天鹅座", "天琴座", "半人马", "麒麟座"];
         const suffix = ["虚粒子", "慢中子", "坍缩态", "偏振光", "红移线", "暗物质", "星流"];
@@ -192,89 +196,133 @@
         window.addEventListener('resize', resize);
         resize();
 
-        // --- 纯代码级·432Hz 治愈声学引擎 ---
+        // --- 全新音频核心：包含“单次点击音效”与“持续冥想背景音” ---
         let audioCtx = null;
-        let ambientBgm = null;
+        let isAmbientPlaying = false;
+        let ambientNodes = [];
 
         function initAudio() {
             if (audioCtx) return;
-            // 兼容各种浏览器创建音频上下文
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            playDeepSpaceAmbience(); // 启动深空低鸣背景音
         }
 
-        // 机制1：心理学50Hz深海引力共鸣波（Brown Noise）
-        function playDeepSpaceAmbience() {
-            const bufferSize = 2 * audioCtx.sampleRate;
-            const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const output = noiseBuffer.getChannelData(0);
-            
-            let lastOut = 0.0;
-            for (let i = 0; i < bufferSize; i++) {
-                const white = Math.random() * 2 - 1;
-                // 红棕噪音滤波算法，滤掉高频刺耳部分，保留令人极度安心的低频暖流
-                output[i] = (lastOut + (0.02 * white)) / 1.02;
-                lastOut = output[i];
-                output[i] *= 3.5; // 适当放大低频舒适感
-            }
-
-            ambientBgm = audioCtx.createBufferSource();
-            ambientBgm.buffer = noiseBuffer;
-            ambientBgm.loop = true;
-
-            const lowpass = audioCtx.createBiquadFilter();
-            lowpass.type = 'lowpass';
-            lowpass.frequency.value = 60; // 严格控制在60Hz以下，极度类似母体内部的安全感
-
-            const gainNode = audioCtx.createGain();
-            gainNode.gain.value = 0.04; // 极其微弱柔和，润物细无声
-
-            ambientBgm.connect(lowpass);
-            lowpass.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            ambientBgm.start();
-        }
-
-        // 机制2：432Hz 圣殿颂钵延音（点击、发射时触发）
-        function playCosmicChime() {
-            if (!audioCtx) return;
+        // 功能 1：可以一直播放的“治愈系连续背景音” (深空听雨 + 呼吸颂钵)
+        function toggleContinuousAmbient() {
+            initAudio();
             if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const btn = document.getElementById('musicBtn');
 
+            if (isAmbientPlaying) {
+                // 关闭持续音乐：让声音缓慢淡出，而不是突然掐断
+                ambientNodes.forEach(node => {
+                    node.gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 3.0); // 3秒缓缓消失
+                    setTimeout(() => node.source.stop(), 3000);
+                });
+                ambientNodes = [];
+                isAmbientPlaying = false;
+                btn.innerText = "🎵 开启深空冥想音";
+                btn.classList.remove("active");
+            } else {
+                // 开启持续音乐
+                // 1. 生成连续的“深空宇宙雨声”（低通粉红噪音）
+                const bufferSize = 2 * audioCtx.sampleRate;
+                const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const output = noiseBuffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    output[i] = Math.random() * 2 - 1; 
+                }
+                const noiseSrc = audioCtx.createBufferSource();
+                noiseSrc.buffer = noiseBuffer;
+                noiseSrc.loop = true;
+
+                const noiseFilter = audioCtx.createBiquadFilter();
+                noiseFilter.type = 'lowpass';
+                noiseFilter.frequency.value = 350; // 极低频，听起来像沉闷遥远的雨声或母体心跳
+
+                const noiseGain = audioCtx.createGain();
+                noiseGain.gain.value = 0; // 初始为0，缓慢渐入
+                noiseGain.gain.linearRampToValueAtTime(0.08, audioCtx.currentTime + 4.0); // 4秒内缓慢变大
+
+                noiseSrc.connect(noiseFilter);
+                noiseFilter.connect(noiseGain);
+                noiseGain.connect(audioCtx.destination);
+                noiseSrc.start();
+
+                // 2. 生成连续的“呼吸颂钵音”（带有 LFO 律动的 432Hz 基础共鸣）
+                const osc = audioCtx.createOscillator();
+                osc.type = 'sine';
+                osc.frequency.value = 108; // 极其深沉的次声波底盘 (432Hz 的四分之一)
+
+                const oscGain = audioCtx.createGain();
+                oscGain.gain.value = 0;
+
+                // LFO (低频振荡器)：制造“呼吸感”
+                const lfo = audioCtx.createOscillator();
+                lfo.type = 'sine';
+                lfo.frequency.value = 0.08; // 约每12秒一个完整的呼吸循环
+                
+                const lfoGain = audioCtx.createGain();
+                lfoGain.gain.value = 0.04; // 呼吸起伏的幅度
+
+                lfo.connect(lfoGain);
+                lfoGain.connect(oscGain.gain);
+
+                osc.connect(oscGain);
+                oscGain.connect(audioCtx.destination);
+                
+                osc.start();
+                lfo.start();
+
+                // 把节点存起来，为了等下关掉它们
+                ambientNodes.push({source: noiseSrc, gain: noiseGain});
+                ambientNodes.push({source: osc, gain: oscGain});
+                ambientNodes.push({source: lfo, gain: lfoGain});
+
+                isAmbientPlaying = true;
+                btn.innerText = "🔇 沉浸中...点击安静";
+                btn.classList.add("active");
+            }
+        }
+
+        // 功能 2：单次点击时的交互空灵音效（保持你刚刚体验过的高级双声道版本）
+        function playCosmicChime() {
+            initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
             const now = audioCtx.currentTime;
             
-            // 创造双泛音列：432Hz(基音，让人静心) + 864Hz(高纯度空灵感)
-            createSineOscillator(432, 0.12, 4.5);
-            createSineOscillator(864, 0.04, 3.0);
-            
-            // 辅助低频荡漾，制造“直击灵魂”的扩散震动
-            createSineOscillator(108, 0.15, 5.0); 
+            const pannerL = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+            const pannerR = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+            if(pannerL) pannerL.pan.value = -0.6;
+            if(pannerR) pannerR.pan.value = 0.6;
 
-            function createSineOscillator(freq, volume, duration) {
+            createTone(54, 0.25, 6.0, 'triangle', null); 
+            createTone(432, 0.12, 5.0, 'sine', pannerL);
+            createTone(435, 0.12, 5.0, 'sine', pannerR);
+            createTone(540, 0.05, 3.5, 'sine', null);
+
+            function createTone(freq, volume, duration, type, pannerNode) {
                 const osc = audioCtx.createOscillator();
                 const gainNode = audioCtx.createGain();
-                
-                osc.type = 'sine'; // 纯净无杂质的正弦波
-                osc.frequency.value = freq;
-                
-                // 指数级衰减曲线：声音撞击后，像在无边深渊中渐渐远去，产生无尽释怀感
+                osc.type = type; osc.frequency.value = freq;
                 gainNode.gain.setValueAtTime(0, now);
-                gainNode.gain.linearRampToValueAtTime(volume, now + 0.08); // 柔和渐入
-                gainNode.gain.exponentialRampToValueAtTime(0.0001, now + duration); // 漫长淡出
-
-                osc.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                
-                osc.start(now);
-                osc.stop(now + duration);
+                gainNode.gain.linearRampToValueAtTime(volume, now + 0.06);
+                gainNode.gain.exponentialRampToValueAtTime(0.00001, now + duration);
+                if (pannerNode) {
+                    osc.connect(gainNode); gainNode.connect(pannerNode); pannerNode.connect(audioCtx.destination);
+                } else {
+                    osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+                }
+                osc.start(now); osc.stop(now + duration);
             }
         }
 
-        // --- 核心物理引擎 ---
+        // --- 核心物理引擎 (视觉逻辑不变) ---
         let rotationX = 0, rotationY = 0;
         let targetRotX = 0, targetRotY = 0;
         let isDragging = false;
         let prevX, prevY, moveDist = 0;
-        let warpSpeed = 1.0; // 跃迁拉伸系数
+        let warpSpeed = 1.0; 
 
         class Star {
             constructor(text, sign, isUser = false) {
@@ -284,40 +332,25 @@
                 this.x = dist * Math.sin(phi) * Math.cos(theta);
                 this.y = dist * Math.sin(phi) * Math.sin(theta);
                 this.z = dist * Math.cos(phi);
-                this.text = text;
-                this.sign = sign;
-                this.isUser = isUser;
+                this.text = text; this.sign = sign; this.isUser = isUser;
                 this.size = isUser ? 4.5 : (0.6 + Math.random() * 1.5);
-                this.alpha = Math.random() * 0.5 + 0.3;
-                this.id = Math.random();
+                this.alpha = Math.random() * 0.5 + 0.3; this.id = Math.random();
             }
             draw(rotX, rotY) {
-                // 基于超空间拉伸系数更新Z轴位置（拉伸向前飞行感）
                 if (warpSpeed > 1.0) {
                     this.z -= (15 * (warpSpeed - 0.9));
-                    if (this.z < -200) {
-                        this.z = 600 + Math.random() * 200; // 循环重生
-                    }
+                    if (this.z < -200) this.z = 600 + Math.random() * 200;
                 }
-
-                const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
-                const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
-                let x1 = this.x * cosY - this.z * sinY;
-                let z1 = this.x * sinY + this.z * cosY;
-                let y2 = this.y * cosX - z1 * sinX;
-                let z2 = this.y * sinX + z1 * cosX;
-                
+                const cosX = Math.cos(rotX), sinX = Math.sin(rotX), cosY = Math.cos(rotY), sinY = Math.sin(rotY);
+                let x1 = this.x * cosY - this.z * sinY, z1 = this.x * sinY + this.z * cosY;
+                let y2 = this.y * cosX - z1 * sinX, z2 = this.y * sinX + z1 * cosX;
                 const fov = isMobile ? (width * 0.8) : 600;
                 if (z2 + fov > 0) {
                     const scale = fov / (fov + z2);
-                    this.screenX = width / 2 + x1 * scale;
-                    this.screenY = height / 2 + y2 * scale;
+                    this.screenX = width / 2 + x1 * scale; this.screenY = height / 2 + y2 * scale;
                     this.currentScale = scale;
-                    
                     const flash = (Math.sin(this.id + Date.now() * 0.002) * 0.3) + 0.7;
                     ctx.beginPath();
-                    
-                    // 如果正在跃迁拉伸，把星星绘制成“流星线段”
                     if (warpSpeed > 2.0) {
                         ctx.lineWidth = this.size * scale * 0.5;
                         ctx.strokeStyle = this.isUser ? `rgba(224, 64, 251, ${flash})` : `rgba(184, 173, 150, ${this.alpha * flash})`;
@@ -345,7 +378,6 @@
             stars.push(new Star(s[0], s[1]));
         }
 
-        // --- 流星逻辑 ---
         class Meteor {
             constructor() { this.reset(); }
             reset() {
@@ -367,33 +399,19 @@
         }
         const meteors = [new Meteor(), new Meteor()];
 
-        // --- 渲染循环 ---
         function render() {
             ctx.fillStyle = '#03040a'; ctx.fillRect(0,0,width,height);
-            
-            // 减速缓冲，平稳回到正常状态
-            if (warpSpeed > 1.0) warpSpeed -= 0.2;
-            else warpSpeed = 1.0;
+            if (warpSpeed > 1.0) warpSpeed -= 0.2; else warpSpeed = 1.0;
+            rotationX += (targetRotX - rotationX) * 0.05; rotationY += (targetRotY - rotationY) * 0.05;
+            if(!isDragging && warpSpeed === 1.0) { targetRotY += 0.0004; targetRotX += 0.00008; }
 
-            rotationX += (targetRotX - rotationX) * 0.05;
-            rotationY += (targetRotY - rotationY) * 0.05;
-            
-            if(!isDragging && warpSpeed === 1.0) { 
-                targetRotY += 0.0004; targetRotX += 0.00008; 
-            }
-
-            // 动态连线（共鸣网）
-            ctx.save();
-            ctx.strokeStyle = "rgba(123,31,162,0.12)";
-            ctx.beginPath();
+            ctx.save(); ctx.strokeStyle = "rgba(123,31,162,0.12)"; ctx.beginPath();
             const userStars = stars.filter(s => s.isUser);
             userStars.forEach(us => {
                 stars.forEach(s => {
                     const d = Math.hypot(us.x-s.x, us.y-s.y, us.z-s.z);
-                    if(d < 160) {
-                        if(us.currentScale && s.currentScale) {
-                            ctx.moveTo(us.screenX, us.screenY); ctx.lineTo(s.screenX, s.screenY);
-                        }
+                    if(d < 160 && us.currentScale && s.currentScale) {
+                        ctx.moveTo(us.screenX, us.screenY); ctx.lineTo(s.screenX, s.screenY);
                     }
                 });
             });
@@ -405,9 +423,7 @@
         }
         render();
 
-        // 交互逻辑
-        window.addEventListener('click', () => { initAudio(); }); // 激活音频上下文
-        
+        window.addEventListener('click', () => { initAudio(); }); 
         canvas.addEventListener('mousedown', e => { isDragging=true; moveDist=0; prevX=e.clientX; prevY=e.clientY; });
         window.addEventListener('mousemove', e => {
             if(!isDragging) return;
@@ -435,15 +451,12 @@
         const resBox = document.getElementById('resBox');
         function checkClick(mx, my) {
             let hit = null;
-            stars.forEach(s => {
-                const d = Math.hypot(s.screenX - mx, s.screenY - my);
-                if(d < (isMobile?35:18)) hit = s;
-            });
+            stars.forEach(s => { const d = Math.hypot(s.screenX - mx, s.screenY - my); if(d < (isMobile?35:18)) hit = s; });
             if(hit) {
-                playCosmicChime(); // 点击别人的故事，激荡起空灵钟声
+                playCosmicChime(); 
                 resBox.innerHTML = `<div style="font-size:0.7rem; color:#888; margin-bottom:10px;">${hit.sign}</div>
                                     <div style="font-style:italic; line-height:1.6; color:#fff;">"${hit.text}"</div>
-                                    <div style="margin-top:15px; border-top:1px solid #222; padding-top:10px; font-size:0.7rem; color:#9c27b0;">点击星空静音关闭</div>`;
+                                    <div style="margin-top:15px; border-top:1px solid #222; padding-top:10px; font-size:0.7rem; color:#9c27b0;">点击星空关闭</div>`;
                 resBox.style.left = isMobile ? '50%' : mx + 'px';
                 resBox.style.top = isMobile ? '50%' : my + 'px';
                 resBox.classList.add('active');
@@ -454,11 +467,8 @@
 
         // --- UI 功能 ---
         function chargeCoins() {
-            starCoins += 100;
-            localStorage.setItem('star_coins_balance', starCoins);
-            updateUI();
-            playCosmicChime();
-            alert("💳 充值成功：+100 星币！");
+            starCoins += 100; localStorage.setItem('star_coins_balance', starCoins); updateUI();
+            playCosmicChime(); alert("💳 充值成功：+100 星币！");
         }
 
         function openInput() { document.getElementById('inputPanel').style.display = 'flex'; }
@@ -467,23 +477,14 @@
         function submitWish() {
             const val = document.getElementById('wishText').value.trim();
             if(!val) return;
-            
-            // 将自己的话射进星海
-            stars.push(new Star(val, mySign, true));
-            lastWish = val;
-            localStorage.setItem('last_wish_text', val);
-            closeInput();
-            document.getElementById('wishText').value = '';
-            
-            // 震撼回馈：音效爆开 + 超空间拉伸视觉冲击
-            playCosmicChime();
-            warpSpeed = 12.0; 
+            stars.push(new Star(val, mySign, true)); lastWish = val; localStorage.setItem('last_wish_text', val);
+            closeInput(); document.getElementById('wishText').value = '';
+            playCosmicChime(); warpSpeed = 12.0; 
         }
 
         function showReport() {
             playCosmicChime();
-            document.getElementById('repSign').innerText = mySign;
-            document.getElementById('repLastWish').innerText = `“${lastWish}”`;
+            document.getElementById('repSign').innerText = mySign; document.getElementById('repLastWish').innerText = `“${lastWish}”`;
             const quotes = [
                 "你在黑夜中坍缩，但有无数恒星正在分担你的重力。你不是孤岛。",
                 "宇宙的广袤，恰好能包容你所有的不知所措。",
@@ -493,7 +494,6 @@
             document.getElementById('reportOverlay').style.display = 'flex';
         }
 
-        // 智能呼吸文字交替
         const bTexts = ["万物自有其时。", "闭眼，听雨。这一刻只属于你。", "你已经很棒了，不必步步紧逼。"];
         let bIdx = 0;
         setInterval(() => {
