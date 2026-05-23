@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>星海微茫 · 商业网络体验版</title>
+    <title>星海微茫 · 3D灵魂共鸣版</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html {
@@ -14,7 +14,7 @@
         }
         canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
 
-        /* 顶部商业化看板 */
+        /* 顶部看板 */
         .commercial-header {
             position: absolute; top: 20px; left: 20px; right: 20px;
             display: flex; justify-content: space-between; align-items: center;
@@ -86,7 +86,7 @@
         }
         .resonance-box.active { opacity: 1; transform: translate(-50%, -120%) scale(1); }
         
-        /* 尊贵炫彩皮肤样式 */
+        /* VIP炫彩皮肤 */
         .resonance-box.vip-style {
             background: rgba(25, 10, 35, 0.95);
             border: 2px solid #da70d6;
@@ -108,7 +108,7 @@
             padding-bottom: 8px;
         }
 
-        /* 评论回响区域 */
+        /* 评论区 */
         .social-reply-zone { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
         .reply-input-mini {
             width: 100%; background: rgba(5, 8, 15, 0.6); border: 1px solid rgba(166, 152, 122, 0.3);
@@ -226,7 +226,7 @@
     </div>
 
     <script>
-        // 商业化本地钱包机制
+        // 钱包和本地数据
         let starCoins = parseInt(localStorage.getItem('star_coins_balance') || '0');
         document.getElementById('userCoins').innerText = starCoins;
 
@@ -280,7 +280,6 @@
                 this.isUser = isUserGenerated; this.isVip = isVip;
 
                 const sizeMultiplier = isMobile ? 1.5 : 1.1;
-                // VIP流星体积更大、更闪耀
                 this.size = isVip ? (6 * sizeMultiplier) : (isUserGenerated ? (4.5 * sizeMultiplier) : ((Math.random() * 1.4 + 0.6) * sizeMultiplier));
                 this.baseAlpha = isUserGenerated ? 0.95 : (Math.random() * 0.5 + 0.25);
                 this.screenX = 0; this.screenY = 0; this.currentScale = 0;
@@ -297,7 +296,6 @@
                     ctx.beginPath(); ctx.arc(this.screenX, this.screenY, this.size * this.currentScale, 0, Math.PI * 2);
                     
                     if(this.isVip) {
-                        // 🔮 VIP 紫粉色炫彩粒子流星
                         ctx.fillStyle = `rgba(238, 130, 238, ${this.baseAlpha * pulse})`; 
                         ctx.shadowBlur = 20; ctx.shadowColor = "#da70d6"; 
                     } else if(this.isUser) {
@@ -310,30 +308,34 @@
             }
         }
 
+        // 灵魂语录池 - 让宇宙里的每一颗星辰都承载一个真正的故事
         function loadLocalSeeds() {
             const localSeeds = [
                 ["今年31岁被裁员了，瞒着父母每天在图书馆假装上班，好累。", "天琴座 · 虚粒子", false],
-                ["这是一条极具商业尊贵排面的VIP流星发言特效示例！", "仙王座 · 氪金大佬", true],
                 ["努力了三年还是考研失败，感觉自己是个废物，对不起爸妈。", "飞马座 · 慢中子", false],
                 ["大城市房租又涨了，每天加班到深夜，不知道坚持的意义是什么。", "英仙座 · 偏振光", false],
-                ["喜欢了他整整四年，今天看到他在朋友圈发了和别人的婚纱照，祝你幸福。", "巨蟹座 · 坍缩态", false]
+                ["喜欢了他整整四年，今天看到他在朋友圈发了和别人的婚纱照，祝你幸福。", "巨蟹座 · 坍缩态", false],
+                ["大病初愈，坐在路边看着人来人往，突然觉得除了生死，都是小事。", "天鹅座 · 慢质量", false],
+                ["创业失败欠了二十万，今天晚上吃了碗面，看着星空，我决定明天去送外卖，不能倒下。", "麒麟座 · 星流", false],
+                ["父母年纪越来越大，自己却还在大城市漂泊无依，不知道什么时候才是尽头。", "大熊座 · 暗物质", false]
             ];
             starNodes.length = 0; 
-            for(let i=0; i<160; i++) {
+            for(let i=0; i<180; i++) {
                 const seed = localSeeds[i % localSeeds.length];
-                starNodes.push(new StarNode(2000+i, seed[0], seed[1], false, seed[2]));
+                // 让前几颗星带VIP炫彩特效示例，其余均匀散落
+                const isVipSample = (i === 1 || i === 15);
+                starNodes.push(new StarNode(2000+i, seed[0], seed[1], false, isVipSample));
             }
         }
         loadLocalSeeds();
 
-        // 强力闭环发射：带敏感词拦截、氪金扣费
+        // 发射执念
         function submitWhisper(event) {
             if(event) event.stopPropagation();
             const input = document.getElementById('whisperInput'); 
             const text = input.value.trim();
             if(!text) return;
 
-            // 🛡️ 敏感词拦截机制
             if (text.includes("赌博") || text.includes("加微信") || text.includes("上门") || text.includes("兼职")) {
                 alert("⚠️ 星河不渡杂音：内容包含平台禁止的敏感词，发射失败！");
                 return;
@@ -345,7 +347,6 @@
                 return;
             }
 
-            // 扣除商业星币
             if(wantVip) {
                 starCoins -= 10;
                 localStorage.setItem('star_coins_balance', starCoins.toString());
@@ -353,8 +354,6 @@
             }
 
             let mockId = Math.floor(Math.random() * 100000);
-            
-            // 无条件立刻在前端3D星空生成对应级别的星星
             const newStar = new StarNode(mockId, text, myUniverseSign, true, wantVip);
             starNodes.push(newStar); 
             closeInputPanel(); 
@@ -390,6 +389,7 @@
             fetchRepliesForStar(whisperId, replyContainerId); 
         }
 
+        // 360° 手势拖拽与视角监听驱动
         window.addEventListener('mousedown', (e) => { if(checkTargetInvalid(e.target)) return; isDragging = true; totalMoveDist = 0; prevMouseX = e.clientX; prevMouseY = e.clientY; });
         window.addEventListener('mousemove', (e) => { if (isDragging) { const deltaX = e.clientX - prevMouseX; const deltaY = e.clientY - prevMouseY; targetRotationY += deltaX * 0.002; targetRotationX += deltaY * 0.002; prevMouseX = e.clientX; prevMouseY = e.clientY; totalMoveDist += Math.hypot(deltaX, deltaY); } });
         window.addEventListener('mouseup', (e) => { if(!isDragging) return; isDragging = false; if(totalMoveDist < 5) checkStarInteraction(e.clientX, e.clientY); });
@@ -410,6 +410,7 @@
         
         const resBox = document.getElementById('resonanceBox');
         
+        // 点击3D星空中的星星，触发读取别人灵魂消息的核心逻辑
         function checkStarInteraction(mx, my) {
             let hoveredStar = null; const activeRadius = isMobile ? 35 : 18;
             for(let star of starNodes) { if(star.currentScale > 0) { const dist = Math.hypot(star.screenX - mx, star.screenY - my); if(dist < activeRadius) { hoveredStar = star; break; } } }
@@ -417,10 +418,10 @@
                 const containerId = `replies_${hoveredStar.id}`;
                 const inputId = `reply_in_${hoveredStar.id}`;
 
-                // 根据是否是VIP展示炫彩极光弹窗皮肤
                 if(hoveredStar.isVip) { resBox.classList.add('vip-style'); } 
                 else { resBox.classList.remove('vip-style'); }
 
+                // 注入别人的执念消息，并生成对应的互动回复区
                 resBox.innerHTML = `
                     <button class="reply-action-btn" style="position: absolute; right: 12px; top: 12px; padding: 2px 6px; border-color: rgba(166, 152, 122, 0.4); background: rgba(0,0,0,0.4);" 
                             onclick="event.stopPropagation(); document.getElementById('resonanceBox').classList.remove('active', 'mobile-center', 'vip-style');">✕</button>
@@ -464,6 +465,7 @@
         const texts = ["万物自有其时。<br>你已经做得很好了，不必对自己步步紧逼。", "闭眼，听雨。<br>这一刻，世界不属于任何人，只属于你自己。", "红尘滚滚，总有来路。<br>停下歇歇，本就无需向任何人交代。"];
         let textIndex = 0; setInterval(() => { textIndex = (textIndex + 1) % texts.length; document.getElementById('breathingText').innerHTML = texts[textIndex]; }, 15000);
 
+        // 白噪音与清音
         let audioCtx = null; let bellInterval = null;
         function toggleSpaceAudio(e) {
             if(e) e.stopPropagation(); const btn = document.getElementById('audioBtn');
@@ -471,7 +473,7 @@
             audioCtx = new (window.AudioContext || window.webkitAudioContext)(); btn.innerText = "断开俗世";
             const bufferSize = 2 * audioCtx.sampleRate; const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             const output = noiseBuffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
-            const whiteNoise = audioCtx.createBufferSource(); whiteNoise.buffer = noiseBuffer; whiteNoise.loop = true;
+            const whiteNoise = whiteNoiseSource = audioCtx.createBufferSource(); whiteNoise.buffer = noiseBuffer; whiteNoise.loop = true;
             const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(850, audioCtx.currentTime);
             const rainGain = audioCtx.createGain(); rainGain.gain.setValueAtTime(0.06, audioCtx.currentTime);
             whiteNoise.connect(filter); filter.connect(rainGain); rainGain.connect(audioCtx.destination); whiteNoise.start();
