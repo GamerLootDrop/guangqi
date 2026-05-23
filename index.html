@@ -117,6 +117,7 @@
             .resonance-box.mobile-center .author-sign { text-align: center; }
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.15.2/dist/av-min.js"></script>
 </head>
 <body>
 
@@ -148,8 +149,12 @@
     </div>
 
     <script>
-        const SUPABASE_URL = 'https://qzqcwyubugcendbdhme.supabase.co'; 
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6cWN3dnl1YnVnY2VuZGJkaG1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0NDI5NzEsImV4cCI6MjA5NTAxODk3MX0.Sl2AxvDKZ7OSWT-uDCxGagGmIWWqWd_zQC_QiWbC7VI';
+        // 🌟 初始化国内千兆专线数据库
+        AV.init({
+            appId: "VbIolX586XqC2eUofL8Q458X-gzGzoHsz",
+            appKey: "Xb6FpU8YIn0qV3M8M5pAisS7",
+            serverURL: "https://vbiolx58.lc-cn-n1-shared.com"
+        });
 
         function getOrCreateUniverseSign() {
             let sign = localStorage.getItem('universe_soul_sign');
@@ -210,19 +215,15 @@
 
         async function loadStarsFromCloud() {
             try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/whispers?select=content,author_sign&order=id.desc&limit=100`, {
-                    method: 'GET',
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${SUPABASE_KEY}`
-                    }
-                });
-                
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                const data = await response.json();
+                const query = new AV.Query('Whispers');
+                query.descending('createdAt');
+                query.limit(100);
+                const results = await query.find();
 
-                if (data && data.length > 0) {
-                    data.forEach(item => { starNodes.push(new StarNode(item.content, item.author_sign)); });
+                if (results && results.length > 0) {
+                    results.forEach(item => { 
+                        starNodes.push(new StarNode(item.get('content'), item.get('author_sign'))); 
+                    });
                     fillUpStars(150);
                 } else {
                     loadLocalSeeds();
@@ -268,29 +269,21 @@
             if(confirmBtn) confirmBtn.disabled = true;
 
             try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/whispers`, {
-                    method: 'POST',
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${SUPABASE_KEY}`,
-                        'Content-Type': 'application/json',
-                        'Prefer': 'return=minimal'
-                    },
-                    body: JSON.stringify({ content: text, author_sign: myUniverseSign })
-                });
+                // 使用国内节点专线发送数据
+                const WhisperObject = AV.Object.extend('Whispers');
+                const whisper = new WhisperObject();
+                whisper.set('content', text);
+                whisper.set('author_sign', myUniverseSign);
+                await whisper.save();
 
-                if (response.ok) {
-                    alert('✨ 执念已穿透夜空，成功沉入星海数据库！');
-                    const newStar = new StarNode(text, myUniverseSign, true);
-                    starNodes.push(newStar); 
-                    closeInputPanel(); 
-                    playValleyChime(); 
-                    input.value = '';
-                } else {
-                    alert(`❌ 传导失败：服务器返回错误码 ${response.status}`);
-                }
+                alert('✨ 执念已穿透夜空，成功沉入星海数据库！');
+                const newStar = new StarNode(text, myUniverseSign, true);
+                starNodes.push(newStar); 
+                closeInputPanel(); 
+                playValleyChime(); 
+                input.value = '';
             } catch (error) {
-                alert('❌ 信号未能发射：网络连接阻断，请确认网络连接。');
+                alert('❌ 信号未能发射：国内专线遭本地拦截，请尝试关闭代理软件或更换浏览器。');
                 console.error('发射执念失败：', error);
             } finally {
                 if(confirmBtn) confirmBtn.disabled = false;
@@ -327,14 +320,13 @@
             ctx.fillStyle = 'rgba(2, 5, 10, 0.18)'; 
             ctx.fillRect(0, 0, width, height);
             
-            // 🌟 核心动效升级：平滑的缓动偏转
             rotationX += (targetRotationX - rotationX) * 0.05; 
             rotationY += (targetRotationY - rotationY) * 0.05; 
             
-            // 🌟 核心动效升级：在没有拖拽或触摸时，开启第一视角浩瀚宇宙缓慢无死角漂移
+            // 360°宇宙自转核心引擎
             if (!isDragging) {
-                targetRotationY += 0.00025; // 保持静谧优雅的 Y 轴旋转
-                targetRotationX += 0.00004; // 配合轻微的 X 轴俯仰感，实现真正的星海沉浸
+                targetRotationY += 0.00025; 
+                targetRotationX += 0.00004; 
             }
             
             globalPulse += 0.004 * pulseDir; 
