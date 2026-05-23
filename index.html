@@ -163,7 +163,6 @@
         }
         const myUniverseSign = getOrCreateUniverseSign();
 
-        // 🌟 确保 Canvas 已经存在后进行初始化
         const canvas = document.getElementById('spaceCanvas');
         const ctx = canvas.getContext('2d');
         let width = canvas.width = window.innerWidth;
@@ -240,7 +239,7 @@
                 ["努力了三年还是考研失败，感觉自己是个废物，对不起爸妈。", "飞马座 · 慢中子"],
                 ["大城市房租又涨了，每天加班到深夜，不知道坚持的意义是什么。", "英仙座 · 偏振光"],
                 ["喜欢了他整整四年，今天看到他在朋友圈发了和别人的婚纱照，祝你幸福。", "巨蟹座 · 坍缩态"],
-                ["今天走在路上，突然抬头看到一朵很好看的云，可惜没人可以分享。", "天鹅座 · Red线"],
+                ["今天走在路上，突然抬头看到一朵很好看的云，可惜没人可以分享。", "天鹅座 · 红移线"],
                 ["如果累了就睡一觉吧，在这个星球上你已经坚持很久了。", "半人马 · 星流"]
             ];
             for(let i=0; i<150; i++) {
@@ -251,13 +250,12 @@
 
         function fillUpStars(targetCount) {
             const currentCount = starNodes.length;
-            const fallbackTexts = ["漫步在虚空中的一段无声频率。", "宇宙辽阔，这里留下了你曾存在过的痕迹。", "晚安，在这个微小的尘埃世界上努力生活的你。"];
+            const fallbackTexts = ["漫步在虚空中的一段无声频率。", "宇宙辽阔，这里留下了你曾存在过的痕迹。", "晚安，在这个微小的尘埃声音界上努力生活的你。"];
             for(let i=0; i < (targetCount - currentCount); i++) {
                 starNodes.push(new StarNode(fallbackTexts[i % fallbackTexts.length], "寂静深空"));
             }
         }
         
-        // 🌟 初始化调用
         loadStarsFromCloud();
 
         async function submitWhisper(event) {
@@ -292,7 +290,7 @@
                     alert(`❌ 传导失败：服务器返回错误码 ${response.status}`);
                 }
             } catch (error) {
-                alert('❌ 信号未能发射：网络连接阻断，请确认 Supabase 配置是否正确。');
+                alert('❌ 信号未能发射：网络连接阻断，请确认网络连接。');
                 console.error('发射执念失败：', error);
             } finally {
                 if(confirmBtn) confirmBtn.disabled = false;
@@ -324,10 +322,24 @@
         }
 
         let globalPulse = 1; let pulseDir = 1;
+        
         function render() {
-            ctx.fillStyle = 'rgba(2, 5, 10, 0.18)'; ctx.fillRect(0, 0, width, height);
-            rotationX += (targetRotationX - rotationX) * 0.05; rotationY += (targetRotationY - rotationY) * 0.05; targetRotationY += 0.00008;
-            globalPulse += 0.004 * pulseDir; if(globalPulse > 1.15 || globalPulse < 0.85) pulseDir *= -1;
+            ctx.fillStyle = 'rgba(2, 5, 10, 0.18)'; 
+            ctx.fillRect(0, 0, width, height);
+            
+            // 🌟 核心改动：插值平滑旋转
+            rotationX += (targetRotationX - rotationX) * 0.05; 
+            rotationY += (targetRotationY - rotationY) * 0.05; 
+            
+            // 🌟 核心改动：当用户不用手拖拽时，星空自己保持极其微妙的、慢速的宇宙第一视角漂移自转
+            if (!isDragging) {
+                targetRotationY += 0.0003;  // Y轴微弱漂移
+                targetRotationX += 0.00005; // X轴极其轻微的上下起伏晃动
+            }
+            
+            globalPulse += 0.004 * pulseDir; 
+            if(globalPulse > 1.15 || globalPulse < 0.85) pulseDir *= -1;
+            
             for (let star of starNodes) star.draw(rotationX, rotationY, globalPulse);
             requestAnimationFrame(render);
         }
