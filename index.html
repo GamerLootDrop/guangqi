@@ -61,10 +61,9 @@
             }
         }
 
-        // --- ✨ 终极修正一：纯原生 fetch 干净拉取，绕过官方库的代理判定 Bug ✨ ---
-        async loadStarsFromCloud() {
+        // --- ✨ 修复核心：加上了 async function 关键字，并处理跨域与异常兜底 ✨ ---
+        async function loadStarsFromCloud() {
             try {
-                // 精准组装经过 Worker 代理的直通 RESTful 接口
                 const response = await fetch(`${PROXY_URL}/rest/v1/whispers?select=content,author_sign&order=id.desc&limit=100`, {
                     method: 'GET',
                     headers: {
@@ -73,21 +72,19 @@
                     }
                 });
                 
-                if (!response.ok) throw new Error(`HTTP 状态码异常: ${response.status}`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const data = await response.json();
 
                 if (data && data.length > 0) {
                     data.forEach(item => { starNodes.push(new StarNode(item.content, item.author_sign)); });
                     const currentCount = starNodes.length;
-                    // 如果真实数据不够 120 条，用浪漫填充补齐
                     for(let i=0; i < (120 - currentCount); i++) starNodes.push(new StarNode("漫步在虚空中的一段无声频率。", "寂静深空"));
                 } else {
-                    // 若数据库彻底为空，加载本地种子
                     loadLocalSeeds();
                 }
             } catch (error) {
-                console.error('连通星海受阻：', error);
-                for(let i=0; i<80; i++) starNodes.push(new StarNode("信号微弱，星辰正在离线闪烁。", "本地孤岛"));
+                console.error('连通星海受阻，正在加载本地离线星辰：', error);
+                loadLocalSeeds();
             }
         }
 
@@ -95,16 +92,17 @@
             const localSeeds = [
                 ["今年31岁被裁员了，瞒着父母每天在图书馆假装上班，好累。", "天琴座 · 虚粒子"],
                 ["努力了三年还是考研失败，感觉自己是个废物，对不起爸妈。", "飞马座 · 慢中子"],
-                ["大城市房租又涨了，每天加班到深夜，不知道坚持的意义是什么。", "英仙座 · 偏振光"]
+                ["大城市房租又涨了，每天加班到深夜，不知道坚持的意义是什么。", "英仙座 · 偏振光"],
+                ["第一颗星星点亮啦！", "宇宙探险家"]
             ];
-            for(let i=0; i<100; i++) {
+            for(let i=0; i<120; i++) {
                 const seed = localSeeds[i % localSeeds.length];
                 starNodes.push(new StarNode(seed[0], seed[1]));
             }
         }
         loadStarsFromCloud();
 
-        // --- ✨ 终极修正二：纯原生 fetch 干净发送，确保手机不挂梯子也能完美存入 ✨ ---
+        // --- ✨ 发送心声模块：同步修复语法 ✨ ---
         async function submitWhisper() {
             const input = document.getElementById('whisperInput'); const text = input.value.trim();
             if(!text) return;
@@ -123,7 +121,7 @@
                     },
                     body: JSON.stringify({ content: text, author_sign: myUniverseSign })
                 });
-                if (!response.ok) throw new Error(`写入失败: ${response.status}`);
+                if (!response.ok) throw new Error(`Status: ${response.status}`);
             } catch (error) {
                 console.error('发射执念失败：', error);
             }
