@@ -327,14 +327,14 @@
             ctx.fillStyle = 'rgba(2, 5, 10, 0.18)'; 
             ctx.fillRect(0, 0, width, height);
             
-            // 🌟 核心改动：插值平滑旋转
+            // 🌟 核心动效升级：平滑的缓动偏转
             rotationX += (targetRotationX - rotationX) * 0.05; 
             rotationY += (targetRotationY - rotationY) * 0.05; 
             
-            // 🌟 核心改动：当用户不用手拖拽时，星空自己保持极其微妙的、慢速的宇宙第一视角漂移自转
+            // 🌟 核心动效升级：在没有拖拽或触摸时，开启第一视角浩瀚宇宙缓慢无死角漂移
             if (!isDragging) {
-                targetRotationY += 0.0003;  // Y轴微弱漂移
-                targetRotationX += 0.00005; // X轴极其轻微的上下起伏晃动
+                targetRotationY += 0.00025; // 保持静谧优雅的 Y 轴旋转
+                targetRotationX += 0.00004; // 配合轻微的 X 轴俯仰感，实现真正的星海沉浸
             }
             
             globalPulse += 0.004 * pulseDir; 
