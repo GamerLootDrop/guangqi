@@ -3,537 +3,525 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>星海微茫 · 动感灵魂治愈版</title>
+    <title>星海微茫 · 灵魂轨迹观测站</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;400&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html {
             width: 100%; height: 100%; overflow: hidden;
-            background-color: #02050a;
-            font-family: "Noto Serif SC", "SimSun", serif;
+            /* 升级1：深空径向渐变背景 */
+            background: radial-gradient(circle at 50% 50%, #0d1124 0%, #03040a 100%);
+            font-family: "Noto Serif SC", serif;
             user-select: none; -webkit-user-select: none;
         }
         canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
 
         /* --- 高级 HUD 界面 --- */
-        .commercial-header {
-            position: absolute; top: 20px; left: 20px; right: 20px;
-            display: flex; justify-content: space-between; align-items: center;
-            z-index: 10; padding: 10px 15px;
-            background: rgba(10, 15, 26, 0.6); border: 1px solid rgba(166, 152, 122, 0.2);
-            border-radius: 8px; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
-            color: #e6dedf; font-size: 0.85rem; letter-spacing: 1px;
+        .hud-overlay {
+            position: absolute; width: 100%; height: 100%; top: 0; left: 0;
+            z-index: 10; pointer-events: none; padding: 30px;
+            display: flex; flex-direction: column; justify-content: space-between;
         }
-        .wallet-zone { display: flex; align-items: center; gap: 10px; }
-        .coin-num { color: #ffd700; font-weight: bold; text-shadow: 0 0 8px rgba(255, 215, 0, 0.5); }
-        .charge-btn {
-            background: linear-gradient(135deg, #ffd700, #b8860b); border: none;
-            color: #000; padding: 3px 12px; font-size: 0.75rem; font-weight: bold;
-            border-radius: 12px; cursor: pointer; transition: all 0.3s;
+        .hud-top { display: flex; justify-content: space-between; align-items: flex-start; pointer-events: auto; }
+        .soul-badge {
+            background: rgba(20, 22, 35, 0.4); border-left: 3px solid #b8860b;
+            padding: 12px 20px; border-radius: 4px 12px 12px 4px;
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border-top: 1px solid rgba(255,255,255,0.05);
         }
-        .charge-btn:hover { transform: scale(1.05); box-shadow: 0 0 10px rgba(255,215,0,0.4); }
+        .soul-badge .label { font-size: 0.7rem; color: rgba(255,255,255,0.5); letter-spacing: 2px; margin-bottom: 6px; }
+        .soul-badge .value { font-size: 0.95rem; color: #fff; letter-spacing: 1px; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
 
-        .ambient-container {
-            position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%);
-            width: 85%; max-width: 500px; text-align: center; z-index: 2; pointer-events: none;
+        .currency-hub { text-align: right; }
+        .currency-hub .coin-info { color: #ffd700; font-weight: bold; font-size: 1.1rem; margin-bottom: 10px; display: block; text-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
+        .btn-glass {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2);
+            color: #fff; padding: 8px 18px; border-radius: 20px; font-size: 0.75rem;
+            cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(5px);
         }
-        .breathing-text {
-            font-size: 1.1rem; color: rgba(196, 185, 163, 0.85); line-height: 2.2;
-            letter-spacing: 4px; font-weight: 300;
-            animation: spacePulse 15s infinite ease-in-out;
-            text-shadow: 0 0 12px rgba(196, 185, 163, 0.2);
-        }
-        @keyframes spacePulse {
-            0%, 100% { opacity: 0; transform: translateY(5px); filter: blur(1px); }
-            8%, 92% { opacity: 0.85; transform: translateY(0); filter: blur(0); }
-        }
+        .btn-glass:hover { background: rgba(255,215,0,0.9); color: #000; border-color: #ffd700; box-shadow: 0 0 20px rgba(255,215,0,0.4); transform: scale(1.05); }
 
-        .guide-hint {
-            position: absolute; top: 85px; left: 50%; transform: translateX(-50%);
-            font-size: 0.75rem; color: rgba(140, 135, 125, 0.5); letter-spacing: 2px; z-index: 2;
-            pointer-events: none; text-align: center; width: 90%;
-        }
+        /* 中央意境文字 */
+        .ambient-box { text-align: center; margin-top: -15vh; pointer-events: none; }
+        .ambient-box h1 { font-size: 1.5rem; font-weight: 200; color: rgba(255,255,255,0.9); letter-spacing: 8px; margin-bottom: 18px; text-shadow: 0 0 20px rgba(255,255,255,0.2); }
+        .ambient-box p { font-size: 0.85rem; color: rgba(255,255,255,0.4); letter-spacing: 3px; }
 
-        .bottom-bar {
-            position: absolute; bottom: 35px; width: 100%;
-            display: flex; justify-content: space-between; padding: 0 40px; z-index: 3;
+        /* 底部功能区 */
+        .hud-bottom { display: flex; justify-content: space-between; align-items: flex-end; pointer-events: auto; gap: 15px; }
+        .bottom-left-group { display: flex; gap: 15px; }
+        
+        .btn-report {
+            background: transparent; border: 1px solid rgba(255,215,0,0.4);
+            color: #ffd700; padding: 12px 24px; border-radius: 6px; cursor: pointer;
+            font-size: 0.85rem; letter-spacing: 2px; transition: all 0.4s;
         }
-        .action-btn {
-            background: rgba(15, 22, 35, 0.4);
-            border: 1px solid rgba(143, 133, 112, 0.25);
-            color: rgba(184, 173, 150, 0.75);
-            padding: 9px 20px; font-size: 0.82rem; border-radius: 20px;
-            cursor: pointer; letter-spacing: 2px; backdrop-filter: blur(8px);
-            transition: all 0.4s ease; font-family: inherit;
+        .btn-report:hover { background: rgba(255,215,0,0.15); box-shadow: 0 0 25px rgba(255,215,0,0.3); transform: translateY(-2px); }
+        
+        .btn-music {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2);
+            color: #fff; padding: 12px 24px; border-radius: 6px; cursor: pointer;
+            font-size: 0.85rem; letter-spacing: 2px; transition: all 0.4s; backdrop-filter: blur(10px);
         }
-        .action-btn:hover {
-            border-color: rgba(217, 201, 165, 0.6);
-            color: rgba(242, 233, 213, 0.95);
-            box-shadow: 0 0 10px rgba(217, 201, 165, 0.15);
-        }
+        .btn-music:hover { background: rgba(255,255,255,0.15); transform: translateY(-2px); }
+        .btn-music.active { border-color: #00e5ff; color: #00e5ff; box-shadow: 0 0 20px rgba(0,229,255,0.3); background: rgba(0,229,255,0.05); }
 
-        /* 弹出共鸣框 */
+        .btn-main {
+            background: linear-gradient(135deg, #9c27b0, #4a148c);
+            border: 1px solid rgba(255,255,255,0.3); color: #fff;
+            padding: 16px 36px; border-radius: 30px; cursor: pointer; font-size: 0.95rem;
+            letter-spacing: 3px; box-shadow: 0 10px 30px rgba(74, 20, 140, 0.6); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .btn-main:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 15px 45px rgba(156, 39, 176, 0.6); }
+
+        /* --- 灵魂报告生成的卡片 --- */
+        .report-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(3, 4, 10, 0.85); backdrop-filter: blur(25px); z-index: 1000;
+            display: none; justify-content: center; align-items: center; padding: 30px;
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .report-card {
+            background: linear-gradient(180deg, rgba(20,22,35,0.95) 0%, rgba(10,11,18,0.95) 100%);
+            border: 1px solid rgba(255,255,255,0.1); width: 100%; max-width: 420px;
+            padding: 45px; position: relative; color: #fff; text-align: left;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(255,255,255,0.05);
+            border-radius: 16px; transform: translateY(0); transition: transform 0.3s;
+        }
+        .report-card::before { content: 'OBSERVATION DATA'; position: absolute; top: 25px; right: 25px; font-size: 0.6rem; color: #ffd700; opacity: 0.6; letter-spacing: 1px; }
+        .report-card h2 { font-size: 1.8rem; font-weight: 200; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; margin-bottom: 30px; letter-spacing: 4px; }
+        .report-card .info-row { margin-bottom: 25px; }
+        .report-card .info-row .lab { font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-bottom: 8px; letter-spacing: 1px; }
+        .report-card .info-row .val { font-size: 1.05rem; color: #e0e0e0; letter-spacing: 1px; }
+        .report-card .quote { font-style: italic; color: #ffd700; line-height: 1.9; margin: 35px 0; font-size: 1rem; text-shadow: 0 0 10px rgba(255,215,0,0.2); }
+        .report-card .footer-msg { font-size: 0.75rem; color: rgba(255,255,255,0.3); border-top: 1px solid rgba(255,255,255,0.1); padding-top: 25px; display: flex; justify-content: space-between; align-items: center; }
+        .qr-mock { width: 50px; height: 50px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 0.5rem; color: rgba(255,255,255,0.5); border-radius: 4px; }
+
+        /* 执念输入面板 */
+        .input-panel {
+            position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8);
+            z-index: 200; display: none; align-items: center; justify-content: center; backdrop-filter: blur(15px);
+        }
+        .input-content { 
+            background: rgba(18, 19, 26, 0.95); border: 1px solid rgba(255,255,255,0.1); 
+            padding: 40px; border-radius: 16px; width: 90%; max-width: 480px; 
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+        }
+        .input-content textarea {
+            width: 100%; height: 140px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px; padding: 20px; color: #fff; font-size: 1rem; font-family: inherit;
+            outline: none; margin-bottom: 25px; resize: none; line-height: 1.6;
+            transition: border-color 0.3s;
+        }
+        .input-content textarea:focus { border-color: #9c27b0; box-shadow: inset 0 0 10px rgba(156, 39, 176, 0.2); }
+        .input-actions { display: flex; justify-content: flex-end; gap: 15px; }
+
         .resonance-box {
-            position: absolute; z-index: 10; padding: 24px 24px 20px 24px;
-            background: rgba(10, 15, 26, 0.93);
-            border: 1px solid rgba(166, 152, 122, 0.4);
-            border-radius: 8px; color: rgba(224, 215, 195, 0.95);
-            font-size: 0.92rem; line-height: 1.8; letter-spacing: 1.5px;
-            width: 340px; max-width: 90vw; pointer-events: auto;
-            opacity: 0; transform: translate(-50%, -120%) scale(0.9);
-            transition: opacity 0.3s ease, transform 0.3s ease;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.7), inset 0 0 15px rgba(166,152,122,0.15);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            position: absolute; z-index: 50; padding: 25px 30px; background: rgba(13,14,20,0.85);
+            border: 1px solid rgba(255,215,0,0.4); border-radius: 12px; color: #eee;
+            width: 340px; opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 25px 70px rgba(0,0,0,0.9); backdrop-filter: blur(10px); transform: scale(0.9) translate(-50%, -100%);
         }
-        .resonance-box.active { opacity: 1; transform: translate(-50%, -120%) scale(1); }
-        
-        /* VIP炫彩皮肤 */
-        .resonance-box.vip-style {
-            background: rgba(25, 10, 35, 0.95);
-            border: 2px solid #da70d6;
-            box-shadow: 0 0 25px rgba(218, 112, 214, 0.4), inset 0 0 15px rgba(218, 112, 214, 0.2);
-        }
-        .vip-tag {
-            color: #ffd700; font-weight: bold; font-size: 0.75rem; 
-            border: 1px solid #ffd700; padding: 0px 4px; border-radius: 3px; margin-right: 5px;
-        }
-        .vip-text {
-            color: #fffbc8 !important; font-weight: bold;
-            text-shadow: 0 0 6px rgba(255, 251, 200, 0.5);
-        }
-
-        .resonance-box .author-sign {
-            display: block; text-align: right; margin-top: 12px;
-            font-size: 0.75rem; color: rgba(166, 152, 122, 0.65);
-            border-bottom: 1px dashed rgba(166, 152, 122, 0.2);
-            padding-bottom: 8px;
-        }
-
-        /* 评论区 */
-        .social-reply-zone { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
-        .reply-input-mini {
-            width: 100%; background: rgba(5, 8, 15, 0.6); border: 1px solid rgba(166, 152, 122, 0.3);
-            border-radius: 4px; padding: 6px 10px; color: #e6dedf; font-size: 0.8rem;
-            outline: none; font-family: inherit; resize: none;
-        }
-        .reply-input-mini:focus { border-color: rgba(217, 201, 165, 0.7); }
-        .reply-btn-bar { display: flex; justify-content: space-between; align-items: center; }
-        .reply-action-btn {
-            background: rgba(143, 133, 112, 0.2); border: 1px solid rgba(143, 133, 112, 0.4);
-            color: rgba(224, 215, 195, 0.85); padding: 3px 10px; font-size: 0.75rem;
-            border-radius: 3px; cursor: pointer; transition: all 0.3s;
-        }
-        .reply-action-btn:hover { background: rgba(143, 133, 112, 0.4); color: #fff; }
-        
-        .reply-list-container {
-            max-height: 100px; overflow-y: auto; font-size: 0.78rem; color: rgba(224, 215, 195, 0.7);
-            margin-top: 6px; padding-top: 4px; border-top: 1px solid rgba(166,152,122,0.1);
-        }
-        .single-reply-item { margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.03); word-break: break-all; }
-
-        /* 发射执念面板 */
-        .overlay-panel {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(3, 6, 12, 0.85); z-index: 100;
-            display: none; justify-content: center; align-items: center;
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-        }
-        .panel-content {
-            position: relative;
-            width: 88%; max-width: 460px; background: rgba(12, 17, 28, 0.9);
-            border: 1px solid rgba(153, 140, 115, 0.3); border-radius: 12px;
-            padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-        }
-        .panel-hint { font-size: 0.8rem; color: rgba(153, 140, 115, 0.6); margin-bottom: 12px; letter-spacing: 1px; }
-        .whisper-area {
-            width: 100%; height: 110px; background: rgba(5, 8, 15, 0.7);
-            border: 1px solid rgba(153, 140, 115, 0.2); border-radius: 6px;
-            padding: 14px; color: rgba(230, 222, 207, 0.95); font-size: 0.92rem;
-            line-height: 1.7; resize: none; outline: none; font-family: inherit;
-            margin-bottom: 12px; transition: border-color 0.3s;
-        }
-        .whisper-area:focus { border-color: rgba(217, 201, 165, 0.6); }
-        
-        .vip-checkbox-zone {
-            display: flex; align-items: center; gap: 8px; margin-bottom: 20px;
-            color: rgba(224, 215, 195, 0.85); font-size: 0.82rem; cursor: pointer;
-        }
-        .vip-checkbox-zone input { cursor: pointer; }
-
-        .panel-buttons { display: flex; justify-content: flex-end; gap: 14px; }
-        .panel-btn {
-            padding: 8px 22px; font-size: 0.82rem; border-radius: 4px;
-            cursor: pointer; border: 1px solid transparent; letter-spacing: 2px;
-            font-family: inherit; transition: all 0.3s;
-        }
-        .panel-btn.cancel { background: transparent; border-color: rgba(153, 140, 115, 0.3); color: rgba(153, 140, 115, 0.7); }
-        .panel-btn.confirm { background: rgba(143, 133, 112, 0.25); border-color: rgba(143, 133, 112, 0.4); color: rgba(230, 222, 207, 0.9); }
-        .panel-btn.confirm:hover { background: rgba(143, 133, 112, 0.4); color: #fff; }
+        .resonance-box.active { opacity: 1; pointer-events: auto; transform: scale(1) translate(-50%, -120%); }
 
         @media (max-width: 768px) {
-            .bottom-bar { padding: 0 24px; bottom: 30px; }
-            .action-btn { padding: 8px 16px; font-size: 0.78rem; }
-            .resonance-box.mobile-center {
-                position: absolute !important; width: 85% !important;
-                left: 50% !important; top: 50% !important;
-                transform: translate(-50%, -50%) scale(1) !important;
-                pointer-events: auto;
-            }
+            .hud-overlay { padding: 20px; }
+            .ambient-box h1 { font-size: 1.2rem; }
+            .btn-main { padding: 14px 28px; font-size: 0.85rem; width: 100%; }
+            .hud-bottom { flex-direction: column; align-items: stretch; gap: 20px; }
+            .bottom-left-group { justify-content: space-between; }
+            .resonance-box { width: 85vw; left: 50% !important; top: 50% !important; transform: scale(0.9) translate(-50%, -50%) !important; }
+            .resonance-box.active { transform: scale(1) translate(-50%, -50%) !important; }
         }
     </style>
 </head>
 <body>
 
-    <div class="commercial-header">
-        <div id="userSignDisplay">宇宙代号：加载中...</div>
-        <div class="wallet-zone">
-            <span>💰 星币: <span class="coin-num" id="userCoins">0</span></span>
-            <button class="charge-btn" onclick="chargeCoins(event)">测试充值</button>
+    <div class="hud-overlay">
+        <div class="hud-top">
+            <div class="soul-badge">
+                <div class="label">SOUL TRACKING</div>
+                <div class="value" id="userSign">天鹅座 · 慢中子</div>
+            </div>
+            <div class="currency-hub">
+                <span class="coin-info">💰 <span id="coinVal">190</span></span>
+                <button class="btn-glass" onclick="chargeCoins()">补充星尘</button>
+            </div>
+        </div>
+
+        <div class="ambient-box">
+            <h1 id="breathingText">闭眼，听雨。这一刻只属于你。</h1>
+            <p>星河不渡杂音 · 唯有灵魂共鸣</p>
+        </div>
+
+        <div class="hud-bottom">
+            <div class="bottom-left-group">
+                <button class="btn-report" onclick="showReport()">生成观测报告</button>
+                <button class="btn-music" id="musicBtn" onclick="toggleContinuousAmbient()">🎵 开启深空冥想</button>
+            </div>
+            <button class="btn-main" onclick="openInput()">把执念散作星辰</button>
         </div>
     </div>
 
-    <canvas id="spaceCanvas"></canvas>
-
-    <div class="guide-hint" id="guideHint">轻触或拖拽星空 · 唤醒尘封的远方执念</div>
-    <div class="ambient-container">
-        <div class="breathing-text" id="breathingText">
-            闭眼，听雨。<br>这一刻，世界不属于任何人，只属于你自己。
+    <div class="report-overlay" id="reportOverlay" onclick="this.style.display='none'">
+        <div class="report-card" onclick="event.stopPropagation()">
+            <h2>宇宙灵魂轨迹观测</h2>
+            <div class="info-row"><div class="lab">观测坐标 / ID</div><div class="val" id="repSign">天鹅座 · 慢中子</div></div>
+            <div class="info-row"><div class="lab">最近的共鸣执念</div><div class="val" id="repLastWish">“暂无观测记录”</div></div>
+            <div class="quote" id="repQuote">你不是一座孤岛，虽然在这深空里。你有 12 颗恒星共担引力。</div>
+            <div class="footer-msg"><span>观测自：星海微茫研究站</span><div class="qr-mock">长按<br>保存</div></div>
         </div>
     </div>
 
-    <div class="resonance-box" id="resonanceBox" onclick="event.stopPropagation()"></div>
-
-    <div class="bottom-bar">
-        <button class="action-btn" id="audioBtn" onclick="toggleSpaceAudio(event)">轻触 · 听泉</button>
-        <button class="action-btn whisper-trigger" onclick="openInputPanel(event)">把执念散作星辰</button>
-    </div>
-
-    <div class="overlay-panel" id="inputPanel" onclick="closeInputPanel()">
-        <div class="panel-content" onclick="event.stopPropagation()">
-            <button class="reply-action-btn" style="position: absolute; right: 15px; top: 15px; padding: 2px 6px;" onclick="closeInputPanel()">✕</button>
-            <div class="panel-hint" id="userSignHint">你的宇宙代号：【计算中...】</div>
-            <textarea class="whisper-area" id="whisperInput" placeholder="写下一句话，打碎揉进星河里。此地无人知晓你，亦无人能评判你..."></textarea>
-            
-            <label class="vip-checkbox-zone">
-                <input type="checkbox" id="vipPublishCheck">
-                <span>开启【炫彩流星发言特效】（消耗 10 星币，高亮且带极光外框）</span>
-            </label>
-
-            <div class="panel-buttons">
-                <button class="panel-btn cancel" onclick="closeInputPanel()">收回思绪</button>
-                <button class="panel-btn confirm" onclick="submitWhisper(event)">发射执念</button>
+    <div class="input-panel" id="inputPanel">
+        <div class="input-content">
+            <textarea id="wishText" placeholder="写下一句话，打碎揉进星河里..."></textarea>
+            <div class="input-actions">
+                <button class="btn-glass" onclick="closeInput()">收回思绪</button>
+                <button class="btn-main" onclick="submitWish()">执行跃迁发射</button>
             </div>
         </div>
     </div>
 
+    <div class="resonance-box" id="resBox"></div>
+    <canvas id="spaceCanvas"></canvas>
+
     <script>
-        // 本地钱包
-        let starCoins = parseInt(localStorage.getItem('star_coins_balance') || '0');
-        document.getElementById('userCoins').innerText = starCoins;
+        // --- 初始化数据 ---
+        let starCoins = parseInt(localStorage.getItem('star_coins_balance') || '190');
+        let lastWish = localStorage.getItem('last_wish_text') || '暂无观测记录';
+        
+        function updateUI() { document.getElementById('coinVal').innerText = starCoins; }
 
-        function chargeCoins(e) {
-            if(e) e.stopPropagation();
-            starCoins += 100;
-            localStorage.setItem('star_coins_balance', starCoins.toString());
-            document.getElementById('userCoins').innerText = starCoins;
-            alert("模拟测试充值成功：+100 星币！");
-        }
-
-        const localRepliesStorage = {};
-
-        function getOrCreateUniverseSign() {
-            let sign = localStorage.getItem('universe_soul_sign');
-            if (!sign) {
-                const prefix = ["仙女座", "猎户座", "英仙座", "天鹅座", "飞马座", "巨蟹座", "天琴座", "大熊座", "半人马", "麒麟座"];
-                const suffix = ["慢中子", "虚粒子", "坍缩态", "偏振光", "白矮星", "红移线", "微波背景", "暗物质", "静止质量", "星流"];
-                sign = `${prefix[Math.floor(Math.random() * prefix.length)]} · ${suffix[Math.floor(Math.random() * suffix.length)]}`;
-                localStorage.setItem('universe_soul_sign', sign);
-            }
-            return sign;
-        }
-        const myUniverseSign = getOrCreateUniverseSign();
-        document.getElementById('userSignDisplay').innerText = `🌌 代号：${myUniverseSign}`;
+        const prefix = ["仙女座", "猎户座", "英仙座", "天鹅座", "天琴座", "半人马", "麒麟座"];
+        const suffix = ["虚粒子", "慢中子", "坍缩态", "偏振光", "红移线", "暗物质", "星流"];
+        let mySign = localStorage.getItem('soul_sign') || `${prefix[Math.floor(Math.random()*prefix.length)]} · ${suffix[Math.floor(Math.random()*suffix.length)]}`;
+        localStorage.setItem('soul_sign', mySign);
+        document.getElementById('userSign').innerText = mySign;
 
         const canvas = document.getElementById('spaceCanvas');
         const ctx = canvas.getContext('2d');
-        let width = canvas.width = window.innerWidth;
-        let height = canvas.height = window.innerHeight;
+        let width, height;
+        let isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        if(!isMobile) document.getElementById('guideHint').innerText = "拖拽可360°转动视角 · 鼠标点击星星留下你的宇宙共鸣";
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
 
-        let rotationX = 0, rotationY = 0; let targetRotationX = 0, targetRotationY = 0;
-        let isDragging = false; let startX = 0, startY = 0; let prevMouseX = 0, prevMouseY = 0; let totalMoveDist = 0;
-        const starNodes = [];
+        // --- 全新音频核心：完全保留 ---
+        let audioCtx = null;
+        let isAmbientPlaying = false;
+        let ambientNodes = [];
 
-        // 🌟 流星类：时不时划过夜空的唯美点缀
-        class MobileMeteor {
-            constructor() { this.reset(); }
-            reset() {
-                this.x = Math.random() * width; this.y = Math.random() * height * 0.3;
-                this.len = Math.random() * 90 + 30; // 30-120像素长
-                this.speed = Math.random() * 5 + 7; // 7-12像素每帧，很快
-                this.alpha = 1; this.active = Math.random() > 0.4; // 随机概率激活
-            }
-            updateAndDraw() {
-                if (!this.active) return;
-                this.x -= this.speed; this.y += this.speed * 0.5; // 抛物线轨迹
-                this.alpha -= 0.012; // 缓慢淡出
-                if (this.alpha <= 0 || this.x < -this.len || this.y > height) { this.reset(); return; }
+        function initAudio() {
+            if (audioCtx) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        // 治愈系连续背景音
+        function toggleContinuousAmbient() {
+            initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const btn = document.getElementById('musicBtn');
+
+            if (isAmbientPlaying) {
+                ambientNodes.forEach(node => {
+                    node.gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 3.0); 
+                    setTimeout(() => node.source.stop(), 3000);
+                });
+                ambientNodes = [];
+                isAmbientPlaying = false;
+                btn.innerText = "🎵 开启深空冥想";
+                btn.classList.remove("active");
+            } else {
+                const bufferSize = 2 * audioCtx.sampleRate;
+                const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const output = noiseBuffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1; 
                 
-                ctx.save();
-                let grad = ctx.createLinearGradient(this.x, this.y, this.x + this.len, this.y - this.len * 0.5);
-                grad.addColorStop(0, `rgba(255, 255, 255, ${this.alpha})`);
-                grad.addColorStop(0.2, `rgba(218, 112, 214, ${this.alpha * 0.6})`); // 紫白色尾迹
-                grad.addColorStop(1, 'rgba(0,0,0,0)');
-                ctx.strokeStyle = grad; ctx.lineWidth = isMobile ? 2 : 1; ctx.beginPath();
-                ctx.moveTo(this.x, this.y); ctx.lineTo(this.x + this.len, this.y - this.len * 0.5);
-                ctx.stroke(); ctx.restore();
+                const noiseSrc = audioCtx.createBufferSource();
+                noiseSrc.buffer = noiseBuffer; noiseSrc.loop = true;
+
+                const noiseFilter = audioCtx.createBiquadFilter();
+                noiseFilter.type = 'lowpass'; noiseFilter.frequency.value = 350; 
+
+                const noiseGain = audioCtx.createGain();
+                noiseGain.gain.value = 0; 
+                noiseGain.gain.linearRampToValueAtTime(0.08, audioCtx.currentTime + 4.0); 
+
+                noiseSrc.connect(noiseFilter); noiseFilter.connect(noiseGain); noiseGain.connect(audioCtx.destination);
+                noiseSrc.start();
+
+                const osc = audioCtx.createOscillator();
+                osc.type = 'sine'; osc.frequency.value = 108; 
+
+                const oscGain = audioCtx.createGain(); oscGain.gain.value = 0;
+
+                const lfo = audioCtx.createOscillator();
+                lfo.type = 'sine'; lfo.frequency.value = 0.08; 
+                
+                const lfoGain = audioCtx.createGain(); lfoGain.gain.value = 0.04; 
+
+                lfo.connect(lfoGain); lfoGain.connect(oscGain.gain);
+                osc.connect(oscGain); oscGain.connect(audioCtx.destination);
+                
+                osc.start(); lfo.start();
+
+                ambientNodes.push({source: noiseSrc, gain: noiseGain});
+                ambientNodes.push({source: osc, gain: oscGain});
+                ambientNodes.push({source: lfo, gain: lfoGain});
+
+                isAmbientPlaying = true;
+                btn.innerText = "🔇 沉浸中...点击安静";
+                btn.classList.add("active");
             }
         }
-        // 生成两颗流星粒子，增加触发概率
-        const meteors = [new MobileMeteor(), new MobileMeteor()];
 
-        class StarNode {
-            constructor(id, text, sign, isUserGenerated = false, isVip = false) {
-                this.id = id || Math.floor(Math.random() * 1000000);
+        // 单次点击空灵音效
+        function playCosmicChime() {
+            initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
+            
+            const pannerL = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+            const pannerR = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+            if(pannerL) pannerL.pan.value = -0.6;
+            if(pannerR) pannerR.pan.value = 0.6;
+
+            createTone(54, 0.25, 6.0, 'triangle', null); 
+            createTone(432, 0.12, 5.0, 'sine', pannerL);
+            createTone(435, 0.12, 5.0, 'sine', pannerR);
+            createTone(540, 0.05, 3.5, 'sine', null);
+
+            function createTone(freq, volume, duration, type, pannerNode) {
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                osc.type = type; osc.frequency.value = freq;
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(volume, now + 0.06);
+                gainNode.gain.exponentialRampToValueAtTime(0.00001, now + duration);
+                if (pannerNode) {
+                    osc.connect(gainNode); gainNode.connect(pannerNode); pannerNode.connect(audioCtx.destination);
+                } else {
+                    osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+                }
+                osc.start(now); osc.stop(now + duration);
+            }
+        }
+
+        // --- 核心物理引擎 ---
+        let rotationX = 0, rotationY = 0;
+        let targetRotX = 0, targetRotY = 0;
+        let isDragging = false;
+        let prevX, prevY, moveDist = 0;
+        let warpSpeed = 1.0; 
+
+        class Star {
+            constructor(text, sign, isUser = false) {
                 const theta = Math.random() * Math.PI * 2;
-                const phi = Math.acos((Math.random() * 2) - 1);
-                const baseDist = isMobile ? 320 : 320; // 维持景深
-                const dist = isUserGenerated ? (baseDist * 0.4) : (baseDist + Math.random() * (baseDist * 1.5));
-
+                const phi = Math.acos(Math.random() * 2 - 1);
+                const dist = isUser ? 120 : (200 + Math.random() * 500);
                 this.x = dist * Math.sin(phi) * Math.cos(theta);
                 this.y = dist * Math.sin(phi) * Math.sin(theta);
                 this.z = dist * Math.cos(phi);
-                this.text = text; this.sign = sign || "远方微尘"; 
-                this.isUser = isUserGenerated; this.isVip = isVip;
-
-                const sizeMultiplier = isMobile ? 1.6 : 1.1; // 增大触点
-                this.size = isVip ? (6.5 * sizeMultiplier) : (isUserGenerated ? (5 * sizeMultiplier) : ((Math.random() * 1.5 + 0.6) * sizeMultiplier));
-                this.baseAlpha = isUserGenerated ? 0.95 : (Math.random() * 0.6 + 0.3);
-                this.screenX = 0; this.screenY = 0; this.currentScale = 0;
+                this.text = text; this.sign = sign; this.isUser = isUser;
+                this.size = isUser ? 5 : (0.5 + Math.random() * 1.8);
+                this.alpha = Math.random() * 0.6 + 0.2; 
+                this.id = Math.random();
+                // 升级：给普通星星赋予极其微弱的色彩倾向
+                this.color = `hsla(${Math.random()*60 + 200}, 30%, 80%, `; 
             }
-            draw(rotX, rotY, pulse) {
-                let cosX = Math.cos(rotX), sinX = Math.sin(rotX);
-                let cosY = Math.cos(rotY), sinY = Math.sin(rotY);
-                let x1 = this.x * cosY - this.z * sinY; let z1 = this.x * sinY + this.z * cosY;
-                let y2 = this.y * cosX - z1 * sinX; let z2 = this.y * sinX + z1 * cosX;
-                const fov = 500;
+            draw(rotX, rotY) {
+                if (warpSpeed > 1.0) {
+                    this.z -= (18 * (warpSpeed - 0.9));
+                    if (this.z < -200) this.z = 700 + Math.random() * 200;
+                }
+                const cosX = Math.cos(rotX), sinX = Math.sin(rotX), cosY = Math.cos(rotY), sinY = Math.sin(rotY);
+                let x1 = this.x * cosY - this.z * sinY, z1 = this.x * sinY + this.z * cosY;
+                let y2 = this.y * cosX - z1 * sinX, z2 = this.y * sinX + z1 * cosX;
+                const fov = isMobile ? (width * 0.8) : 600;
+                
                 if (z2 + fov > 0) {
-                    this.currentScale = fov / (fov + z2);
-                    this.screenX = width / 2 + x1 * this.currentScale; this.screenY = height / 2 + y2 * this.currentScale;
-                    ctx.beginPath(); ctx.arc(this.screenX, this.screenY, this.size * this.currentScale, 0, Math.PI * 2);
+                    const scale = fov / (fov + z2);
+                    this.screenX = width / 2 + x1 * scale; this.screenY = height / 2 + y2 * scale;
+                    this.currentScale = scale;
+                    const flash = (Math.sin(this.id + Date.now() * 0.0015) * 0.4) + 0.6;
                     
-                    if(this.isVip) {
-                        ctx.fillStyle = `rgba(238, 130, 238, ${this.baseAlpha * pulse})`; 
-                        ctx.shadowBlur = 20; ctx.shadowColor = "#da70d6"; 
-                    } else if(this.isUser) {
-                        ctx.fillStyle = `rgba(242, 226, 177, ${this.baseAlpha})`; ctx.shadowBlur = 15; ctx.shadowColor = "#eddba4"; 
-                    } else { 
-                        // 普通星辰在手机端加入随机微闪律动，增加动态感
-                        let flash = isMobile ? (Math.sin(this.id + Date.now() * 0.003) * 0.2) + 0.8 : 1;
-                        ctx.fillStyle = `rgba(184, 173, 150, ${this.baseAlpha * pulse * flash})`; ctx.shadowBlur = 0; 
+                    ctx.beginPath();
+                    if (warpSpeed > 2.0) {
+                        // 升级：跃迁拉丝特效增强
+                        ctx.lineWidth = this.size * scale * (warpSpeed * 0.1);
+                        ctx.strokeStyle = this.isUser ? `rgba(224, 64, 251, ${flash})` : `${this.color} ${this.alpha * flash})`;
+                        ctx.moveTo(this.screenX, this.screenY);
+                        ctx.lineTo(this.screenX + (x1 * 0.05 * warpSpeed), this.screenY + (y2 * 0.05 * warpSpeed));
+                        ctx.stroke();
+                    } else {
+                        ctx.arc(this.screenX, this.screenY, this.size * scale, 0, Math.PI * 2);
+                        ctx.fillStyle = this.isUser ? `rgba(224, 64, 251, ${flash})` : `${this.color} ${this.alpha * flash})`;
+                        if(this.isUser) { ctx.shadowBlur = 20; ctx.shadowColor = "#e040fb"; }
+                        ctx.fill(); ctx.shadowBlur = 0;
                     }
-                    ctx.fill(); ctx.shadowBlur = 0;
                 }
             }
         }
 
-        function loadLocalSeeds() {
-            const localSeeds = [
-                ["今年31岁被裁员了，瞒着父母每天在图书馆假装上班，好累。", "天琴座 · 虚粒子", false],
-                ["这是一条极具商业尊贵排面的VIP流星发言特效示例！", "仙王座 · 氪金大佬", true],
-                ["努力了三年还是考研失败，感觉自己是个废物，对不起爸妈。", "飞马座 · 慢中子", false],
-                ["大城市房租又涨了，每天加班到深夜，不知道坚持的意义是什么。", "英仙座 · 偏振光", false],
-                ["喜欢了他整整四年，今天看到他在朋友圈发了和别人的婚纱照，祝你幸福。", "巨蟹座 · 坍缩态", false]
-            ];
-            starNodes.length = 0; 
-            // 降低手机端的星星密度，突出移动效果
-            const starCount = isMobile ? 120 : 160; 
-            for(let i=0; i<starCount; i++) {
-                const seed = localSeeds[i % localSeeds.length];
-                starNodes.push(new StarNode(2000+i, seed[0], seed[1], false, seed[2]));
-            }
-        }
-        loadLocalSeeds();
-
-        // 发射执念
-        function submitWhisper(event) {
-            if(event) event.stopPropagation();
-            const input = document.getElementById('whisperInput'); 
-            const text = input.value.trim();
-            if(!text) return;
-
-            if (text.includes("赌博") || text.includes("加微信") || text.includes("上门") || text.includes("兼职")) {
-                alert("⚠️ 星河不渡杂音：内容包含平台禁止的敏感词，发射失败！");
-                return;
-            }
-
-            const wantVip = document.getElementById('vipPublishCheck').checked;
-            if(wantVip && starCoins < 10) {
-                alert("❌ 余额不足！请充值获取星币！");
-                return;
-            }
-
-            if(wantVip) {
-                starCoins -= 10;
-                localStorage.setItem('star_coins_balance', starCoins.toString());
-                document.getElementById('userCoins').innerText = starCoins;
-            }
-
-            let mockId = Math.floor(Math.random() * 100000);
-            const newStar = new StarNode(mockId, text, myUniverseSign, true, wantVip);
-            starNodes.push(newStar); 
-            closeInputPanel(); 
-            if(audioCtx) playValleyChime(); 
-            input.value = '';
-            document.getElementById('vipPublishCheck').checked = false;
+        const stars = [];
+        const seeds = [
+            ["今年31岁被裁员了，瞒着父母每天在图书馆假装上班。", "英仙座 · 偏振光"],
+            ["如果累了就睡一觉吧，这个星球上你已经坚持很久了。", "天鹅座 · 红移线"],
+            ["努力了三年还是考研失败，感觉自己是个废物。", "天琴座 · 坍缩态"],
+            ["今天路过花店，给自己买了一束向日葵。", "仙女座 · 虚粒子"]
+        ];
+        for(let i=0; i< (isMobile?150:280); i++) {
+            const s = seeds[i%seeds.length];
+            stars.push(new Star(s[0], s[1]));
         }
 
-        function fetchRepliesForStar(whisperId, replyContainerId) {
-            const container = document.getElementById(replyContainerId);
-            if(!container) return;
-            let htmlContent = "";
-            if (localRepliesStorage[whisperId]) {
-                localRepliesStorage[whisperId].forEach(r => {
-                    htmlContent += `<div class="single-reply-item"><strong>${r.author_sign}:</strong> ${r.content}</div>`;
-                });
+        // 升级：流星特效更细腻
+        class Meteor {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * width * 1.5; this.y = Math.random() * height * 0.2 - 100;
+                this.len = Math.random() * 150 + 80; this.speed = 6 + Math.random() * 8;
+                this.alpha = 1; this.active = Math.random() > 0.7;
             }
-            container.innerHTML = htmlContent || "<span style='color:rgba(166,152,122,0.4)'>尚无恒星回应，写下第一道回响...</span>";
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function sendReplyToServer(whisperId, inputId, replyContainerId) {
-            const inputElement = document.getElementById(inputId);
-            const content = inputElement.value.trim();
-            if(!content) return;
-
-            if (!localRepliesStorage[whisperId]) localRepliesStorage[whisperId] = [];
-            const localNewReply = { whisper_id: whisperId, content: content, author_sign: myUniverseSign };
-            localRepliesStorage[whisperId].push(localNewReply);
-
-            inputElement.value = "";
-            if(audioCtx) playValleyChime();
-            fetchRepliesForStar(whisperId, replyContainerId); 
-        }
-
-        // 手势拖拽与视角监听
-        window.addEventListener('mousedown', (e) => { if(checkTargetInvalid(e.target)) return; isDragging = true; totalMoveDist = 0; prevMouseX = e.clientX; prevMouseY = e.clientY; });
-        window.addEventListener('mousemove', (e) => { if (isDragging) { const deltaX = e.clientX - prevMouseX; const deltaY = e.clientY - prevMouseY; targetRotationY += deltaX * 0.002; targetRotationX += deltaY * 0.002; prevMouseX = e.clientX; prevMouseY = e.clientY; totalMoveDist += Math.hypot(deltaX, deltaY); } });
-        window.addEventListener('mouseup', (e) => { if(!isDragging) return; isDragging = false; if(totalMoveDist < 5) checkStarInteraction(e.clientX, e.clientY); });
-        
-        window.addEventListener('touchstart', (e) => { if(checkTargetInvalid(e.target)) return; isDragging = true; totalMoveDist = 0; startX = prevMouseX = e.touches[0].clientX; startY = prevMouseY = e.touches[0].clientY; }, { passive: true });
-        window.addEventListener('touchmove', (e) => { if (!isDragging) return; const deltaX = e.touches[0].clientX - prevMouseX; const deltaY = e.touches[0].clientY - prevMouseY; 
-            // ⚡ 手机端触控灵敏度升级：滑动手感更丝滑，更有空间拉伸感
-            targetRotationY += deltaX * 0.006; targetRotationX += deltaY * 0.006; 
-            prevMouseX = e.touches[0].clientX; prevMouseY = e.touches[0].clientY; totalMoveDist += Math.hypot(deltaX, deltaY); 
-        }, { passive: true });
-        window.addEventListener('touchend', (e) => { if(!isDragging) return; isDragging = false; if (totalMoveDist < 12) checkStarInteraction(startX, startY); });
-
-        window.addEventListener('click', (e) => {
-            if(!resBox.contains(e.target) && !checkTargetInvalid(e.target)) {
-                resBox.classList.remove('active', 'mobile-center', 'vip-style');
-            }
-        });
-
-        function checkTargetInvalid(target) { 
-            return target.tagName === 'TEXTAREA' || target.tagName === 'BUTTON' || target.tagName === 'INPUT' || target.classList.contains('whisper-trigger') || target.id === 'userSignHint' || target.classList.contains('social-reply-zone') || target.classList.contains('reply-list-container') || target.classList.contains('single-reply-item') || target.closest('.commercial-header'); 
-        }
-        
-        const resBox = document.getElementById('resonanceBox');
-        
-        function checkStarInteraction(mx, my) {
-            let hoveredStar = null; const activeRadius = isMobile ? 38 : 18;
-            for(let star of starNodes) { if(star.currentScale > 0) { const dist = Math.hypot(star.screenX - mx, star.screenY - my); if(dist < activeRadius) { hoveredStar = star; break; } } }
-            if(hoveredStar) {
-                const containerId = `replies_${hoveredStar.id}`;
-                const inputId = `reply_in_${hoveredStar.id}`;
-
-                if(hoveredStar.isVip) { resBox.classList.add('vip-style'); } 
-                else { resBox.classList.remove('vip-style'); }
-
-                resBox.innerHTML = `
-                    <button class="reply-action-btn" style="position: absolute; right: 12px; top: 12px; padding: 2px 6px; border-color: rgba(166, 152, 122, 0.4); background: rgba(0,0,0,0.4);" 
-                            onclick="event.stopPropagation(); document.getElementById('resonanceBox').classList.remove('active', 'mobile-center', 'vip-style');">✕</button>
-                    
-                    <div style="font-style: italic; margin-top: 10px; padding-right: 15px; word-break: break-all;" class="${hoveredStar.isVip ? 'vip-text' : ''}">
-                        ${hoveredStar.isVip ? '<span class="vip-tag">流星特效</span>' : ''}"${hoveredStar.text}"
-                    </div>
-                    <span class="author-sign">—— 来自【${hoveredStar.sign}】</span>
-                    <div class="social-reply-zone">
-                        <div class="reply-list-container" id="${containerId}">正在同步恒星轨道回响...</div>
-                        <textarea class="reply-input-mini" id="${inputId}" placeholder="写下你的共鸣（支持本地测试）..." rows="1"></textarea>
-                        <div class="reply-btn-bar">
-                            <span style="font-size:0.65rem; color:rgba(166,152,122,0.4); max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">代号:${myUniverseSign}</span>
-                            <button class="reply-action-btn" onclick="sendReplyToServer(${hoveredStar.id}, '${inputId}', '${containerId}')">发送共鸣</button>
-                        </div>
-                    </div>
-                `;
-
-                if (isMobile) { resBox.style.left = "50%"; resBox.style.top = "50%"; resBox.classList.add('mobile-center'); } 
-                else { resBox.classList.remove('mobile-center'); resBox.style.left = `${mx}px`; resBox.style.top = `${my}px`; }
-                resBox.classList.add('active'); hoveredStar.baseAlpha = 1;
-
-                fetchRepliesForStar(hoveredStar.id, containerId);
+            update() {
+                if(!this.active) return;
+                this.x -= this.speed; this.y += this.speed * 0.6; this.alpha -= 0.008;
+                if(this.alpha <= 0 || this.y > height) this.reset();
+                ctx.save();
+                let g = ctx.createLinearGradient(this.x, this.y, this.x + this.len, this.y - this.len*0.6);
+                g.addColorStop(0, `rgba(255, 255, 255, ${this.alpha})`); 
+                g.addColorStop(1, 'rgba(0, 229, 255, 0)');
+                ctx.strokeStyle = g; ctx.lineWidth = 1.5; ctx.beginPath();
+                ctx.moveTo(this.x, this.y); ctx.lineTo(this.x+this.len, this.y-this.len*0.6);
+                ctx.stroke(); ctx.restore();
             }
         }
+        const meteors = [new Meteor(), new Meteor(), new Meteor()];
 
-        let globalPulse = 1; let pulseDir = 1;
         function render() {
-            ctx.fillStyle = 'rgba(2, 5, 10, 0.2)'; ctx.fillRect(0, 0, width, height); // 背景淡出
-            rotationX += (targetRotationX - rotationX) * 0.05; rotationY += (targetRotationY - rotationY) * 0.05; 
+            ctx.clearRect(0,0,width,height); // 移除了死板的纯黑填充，让CSS渐变背景透出来
             
-            if (!isDragging) { 
-                // 🌀 手机端无人操作时，倾斜速度和旋转速度调快 3.0 倍，重现深空穿梭感
-                const speedMult = isMobile ? 3.0 : 1.0;
-                targetRotationY += 0.00025 * speedMult; 
-                targetRotationX += 0.00004 * speedMult; 
-            }
-            globalPulse += 0.004 * pulseDir; if(globalPulse > 1.15 || globalPulse < 0.85) pulseDir *= -1;
-            
-            // 🌠 渲染流星粒子
-            for (let m of meteors) m.updateAndDraw();
-            
-            for (let star of starNodes) star.draw(rotationX, rotationY, globalPulse);
+            if (warpSpeed > 1.0) warpSpeed -= 0.15; else warpSpeed = 1.0;
+            rotationX += (targetRotX - rotationX) * 0.08; rotationY += (targetRotY - rotationY) * 0.08;
+            if(!isDragging && warpSpeed === 1.0) { targetRotY += 0.0003; targetRotX += 0.00005; }
+
+            // 升级：引力网连线呼吸特效
+            ctx.save(); 
+            const pulse = (Math.sin(Date.now() * 0.002) + 1) / 2; // 0 to 1
+            ctx.strokeStyle = `rgba(156, 39, 176, ${0.05 + pulse * 0.15})`; 
+            ctx.lineWidth = 0.8;
+            ctx.beginPath();
+            const userStars = stars.filter(s => s.isUser);
+            userStars.forEach(us => {
+                stars.forEach(s => {
+                    const d = Math.hypot(us.x-s.x, us.y-s.y, us.z-s.z);
+                    if(d < 180 && us.currentScale && s.currentScale) {
+                        ctx.moveTo(us.screenX, us.screenY); ctx.lineTo(s.screenX, s.screenY);
+                    }
+                });
+            });
+            ctx.stroke(); ctx.restore();
+
+            meteors.forEach(m => m.update());
+            stars.forEach(s => s.draw(rotationX, rotationY));
             requestAnimationFrame(render);
         }
         render();
 
-        function openInputPanel(e) { if(e) e.stopPropagation(); document.getElementById('userSignHint').innerText = `你的宇宙代号：【${myUniverseSign}】`; document.getElementById('inputPanel').style.display = 'flex'; document.getElementById('whisperInput').focus(); }
-        function closeInputPanel() { document.getElementById('inputPanel').style.display = 'none'; }
-        
-        const texts = ["万物自有其时。", "闭眼，听雨。这一刻只属于你。", "你已经很棒了，不必步步紧逼。"];
-        let textIndex = 0; setInterval(() => { textIndex = (textIndex + 1) % texts.length; document.getElementById('breathingText').innerHTML = texts[textIndex]; }, 15000);
+        window.addEventListener('click', () => { initAudio(); }); 
+        canvas.addEventListener('mousedown', e => { isDragging=true; moveDist=0; prevX=e.clientX; prevY=e.clientY; });
+        window.addEventListener('mousemove', e => {
+            if(!isDragging) return;
+            const dx = e.clientX - prevX; const dy = e.clientY - prevY;
+            targetRotY += dx * 0.002; targetRotX += dy * 0.002;
+            prevX = e.clientX; prevY = e.clientY; moveDist += Math.abs(dx)+Math.abs(dy);
+        });
+        window.addEventListener('mouseup', e => {
+            if(isDragging && moveDist < 5) checkClick(e.clientX, e.clientY);
+            isDragging = false;
+        });
 
-        // 白噪音与清音
-        let audioCtx = null; let bellInterval = null;
-        function toggleSpaceAudio(e) {
-            if(e) e.stopPropagation(); const btn = document.getElementById('audioBtn');
-            if (audioCtx) { audioCtx.close(); audioCtx = null; clearInterval(bellInterval); btn.innerText = "轻触 · 听泉"; return; }
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)(); btn.innerText = "断开俗世";
-            const bufferSize = 2 * audioCtx.sampleRate; const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const output = noiseBuffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
-            const whiteNoise = audioCtx.createBufferSource(); whiteNoise.buffer = noiseBuffer; whiteNoise.loop = true;
-            const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(850, audioCtx.currentTime);
-            const rainGain = audioCtx.createGain(); rainGain.gain.setValueAtTime(0.06, audioCtx.currentTime);
-            whiteNoise.connect(filter); filter.connect(rainGain); rainGain.connect(audioCtx.destination); whiteNoise.start();
-            bellInterval = setInterval(() => {
-                if (!audioCtx) return;
-                let osc = audioCtx.createOscillator(); let bellGain = audioCtx.createGain(); osc.type = 'sine'; osc.frequency.setValueAtTime(800 + Math.random() * 200, audioCtx.currentTime);
-                bellGain.gain.setValueAtTime(0, audioCtx.currentTime); bellGain.gain.linearRampToValueAtTime(0.012, audioCtx.currentTime + 0.1); bellGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 5.0);
-                osc.connect(bellGain); bellGain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 5.0);
-            }, 8000);
+        canvas.addEventListener('touchstart', e => { initAudio(); isDragging=true; moveDist=0; prevX=e.touches[0].clientX; prevY=e.touches[0].clientY; }, {passive:true});
+        canvas.addEventListener('touchmove', e => {
+            if(!isDragging) return;
+            const dx = e.touches[0].clientX - prevX; const dy = e.touches[0].clientY - prevY;
+            targetRotY += dx * 0.004; targetRotX += dy * 0.004;
+            prevX = e.touches[0].clientX; prevY = e.touches[0].clientY; moveDist += Math.abs(dx)+Math.abs(dy);
+        }, {passive:true});
+        canvas.addEventListener('touchend', e => {
+            if(isDragging && moveDist < 10) checkClick(prevX, prevY);
+            isDragging = false;
+        });
+
+        const resBox = document.getElementById('resBox');
+        function checkClick(mx, my) {
+            let hit = null;
+            stars.forEach(s => { const d = Math.hypot(s.screenX - mx, s.screenY - my); if(d < (isMobile?35:20)) hit = s; });
+            if(hit) {
+                playCosmicChime(); 
+                resBox.innerHTML = `<div style="font-size:0.75rem; color:#ffd700; margin-bottom:12px; letter-spacing:1px;">观测坐标：${hit.sign}</div>
+                                    <div style="font-style:italic; line-height:1.8; color:#fff; font-size: 0.95rem;">"${hit.text}"</div>
+                                    <div style="margin-top:18px; border-top:1px solid rgba(255,255,255,0.1); padding-top:12px; font-size:0.7rem; color:#9c27b0; text-align:right;">[ 频率同步完成 ]</div>`;
+                resBox.style.left = isMobile ? '50%' : mx + 'px';
+                resBox.style.top = isMobile ? '50%' : (my - 20) + 'px';
+                resBox.classList.add('active');
+            } else {
+                resBox.classList.remove('active');
+            }
         }
 
-        function playValleyChime() {
-            if (!audioCtx) return; const frequencies = [293.66, 440.00, 587.33, 734.16]; const now = audioCtx.currentTime;
-            frequencies.forEach((freq, index) => {
-                let osc = audioCtx.createOscillator(); let gainNode = audioCtx.createGain(); osc.type = 'sine'; osc.frequency.setValueAtTime(freq, now); gainNode.gain.setValueAtTime(0, now);
-                gainNode.gain.linearRampToValueAtTime(0.025 / (index + 1), now + 0.06); const duration = 6.0 - (index * 0.8); gainNode.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-                osc.connect(gainNode); gainNode.connect(audioCtx.destination); osc.start(now); osc.stop(now + duration);
-            });
+        // --- UI 功能 ---
+        function chargeCoins() {
+            starCoins += 100; localStorage.setItem('star_coins_balance', starCoins); updateUI();
+            playCosmicChime(); alert("✨ 观测站能量补充：+100 星尘！");
         }
-        window.addEventListener('resize', () => { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; });
+
+        function openInput() { document.getElementById('inputPanel').style.display = 'flex'; }
+        function closeInput() { document.getElementById('inputPanel').style.display = 'none'; }
+
+        function submitWish() {
+            const val = document.getElementById('wishText').value.trim();
+            if(!val) return;
+            stars.push(new Star(val, mySign, true)); lastWish = val; localStorage.setItem('last_wish_text', val);
+            closeInput(); document.getElementById('wishText').value = '';
+            playCosmicChime(); warpSpeed = 15.0; // 跃迁速度提升，视觉冲击更强
+        }
+
+        function showReport() {
+            playCosmicChime();
+            document.getElementById('repSign').innerText = mySign; document.getElementById('repLastWish').innerText = `“${lastWish}”`;
+            const quotes = [
+                "你在黑夜中坍缩，但有无数恒星正在分担你的重力。你不是孤岛。",
+                "宇宙的广袤，恰好能包容你所有的不知所措。",
+                "每一粒星尘，都曾是某个灵魂不熄的执念。",
+                "光到达这里需要数万年，你的存在本身就是个奇迹。"
+            ];
+            document.getElementById('repQuote').innerText = quotes[Math.floor(Math.random()*quotes.length)];
+            document.getElementById('reportOverlay').style.display = 'flex';
+        }
+
+        const bTexts = ["万物自有其时。", "闭眼，听雨。这一刻只属于你。", "你已经很棒了，不必步步紧逼。", "星光穿越数万年，只为照亮你此刻。"];
+        let bIdx = 0;
+        setInterval(() => {
+            bIdx = (bIdx + 1) % bTexts.length;
+            const bEl = document.getElementById('breathingText');
+            bEl.style.opacity = 0;
+            setTimeout(() => { bEl.innerHTML = bTexts[bIdx]; bEl.style.opacity = 1; }, 500);
+        }, 12000);
+
+        // 添加简单的呼吸渐变动画
+        document.getElementById('breathingText').style.transition = 'opacity 0.8s ease';
+
+        updateUI();
     </script>
 </body>
 </html>
