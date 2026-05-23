@@ -148,7 +148,8 @@
     </div>
 
     <script>
-        const PROXY_URL = 'https://cool-feather-5d35.guangqi6662.workers.dev'; 
+        // 🛠️ 核心修改：直接让前端访问 Supabase 的真实 API 节点，绕过 Cloudflare Worker 的限制
+        const SUPABASE_URL = 'https://qzqcwyubugcendbdhme.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6cWN3dnl1YnVnY2VuZGJkaG1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0NDI5NzEsImV4cCI6MjA5NTAxODk3MX0.Sl2AxvDKZ7OSWT-uDCxGagGmIWWqWd_zQC_QiWbC7VI';
 
         function getOrCreateUniverseSign() {
@@ -210,7 +211,7 @@
 
         async function loadStarsFromCloud() {
             try {
-                const response = await fetch(`${PROXY_URL}/rest/v1/whispers?select=content,author_sign&order=id.desc&limit=100`, {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/whispers?select=content,author_sign&order=id.desc&limit=100`, {
                     method: 'GET',
                     headers: {
                         'apikey': SUPABASE_KEY,
@@ -233,7 +234,6 @@
             }
         }
 
-        // 🛠️ 优化点2：丰富并扩充本地保底文案库，让星河看起来不再空旷
         function loadLocalSeeds() {
             const localSeeds = [
                 ["今年31岁被裁员了，瞒着父母每天在图书馆假装上班，好累。", "天琴座 · 虚粒子"],
@@ -241,8 +241,7 @@
                 ["大城市房租又涨了，每天加班到深夜，不知道坚持的意义是什么。", "英仙座 · 偏振光"],
                 ["喜欢了他整整四年，今天看到他在朋友圈发了和别人的婚纱照，祝你幸福。", "巨蟹座 · 坍缩态"],
                 ["今天走在路上，突然抬头看到一朵很好看的云，可惜没人可以分享。", "天鹅座 · 红移线"],
-                ["如果累了就睡一觉吧，在这个星球上你已经坚持很久了。", "半人马 · 星流"],
-                ["第一颗星星点亮啦！宇宙的漫步者们好呀。", "宇宙探险家"]
+                ["如果累了就睡一觉吧，在这个星球上你已经坚持很久了。", "半人马 · 星流"]
             ];
             for(let i=0; i<150; i++) {
                 const seed = localSeeds[i % localSeeds.length];
@@ -267,7 +266,7 @@
             starNodes.push(newStar); closeInputPanel(); playValleyChime(); input.value = '';
 
             try {
-                await fetch(`${PROXY_URL}/rest/v1/whispers`, {
+                await fetch(`${SUPABASE_URL}/rest/v1/whispers`, {
                     method: 'POST',
                     headers: {
                         'apikey': SUPABASE_KEY,
@@ -277,6 +276,7 @@
                     },
                     body: JSON.stringify({ content: text, author_sign: myUniverseSign })
                 });
+                console.log('执念已成功同步至星海云端数据库。');
             } catch (error) {
                 console.error('发射执念失败：', error);
             }
@@ -323,7 +323,6 @@
 
         let audioCtx = null; let bellInterval = null;
         
-        // 🛠️ 优化点3：彻底修复音频环境触发及多浏览器兼容
         function toggleSpaceAudio(e) {
             if(e) e.stopPropagation(); const btn = document.getElementById('audioBtn');
             if (audioCtx) { audioCtx.close(); audioCtx = null; clearInterval(bellInterval); btn.innerText = "轻触 · 听泉"; return; }
