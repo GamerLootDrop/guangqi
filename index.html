@@ -3,29 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ECHOES 星河 · MVP演示</title>
+    <title>ECHOES 星河 · 3D全景灵魂版</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <style>
-        /* 基础重置 */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #030106; font-family: 'Noto Serif SC', serif; color: #fff; user-select: none; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #020105; font-family: 'Noto Serif SC', serif; color: #fff; user-select: none; }
 
-        /* =========================================
-           视觉层：真实视频挂载 + 星雾滤镜
-           ========================================= */
-        /* 实际项目中，这里替换为 4K 暗红星云循环视频 */
-        .video-background {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; object-fit: cover; opacity: 0.6; mix-blend-mode: screen;
-        }
-        
-        /* 兜底星云渐变（在视频加载前或无视频时提供高级感底色） */
-        .nebula-fallback {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;
-            background: radial-gradient(circle at 50% 50%, #1a0b2e 0%, #080311 50%, #030106 100%);
-        }
+        /* 3D 画布 */
+        #webgl-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
 
-        /* 3D 第一视角星辰穿梭画布 */
-        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; opacity: 0.8; }
+        /* 背景氛围柔光 */
+        .nebula-glow { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; background: radial-gradient(circle at 50% 50%, transparent 20%, rgba(20, 5, 30, 0.4) 80%, #000 100%); mix-blend-mode: multiply; }
 
         /* =========================================
            UI 层：完美复刻截图的高级质感
@@ -34,49 +24,46 @@
         
         /* 顶部栏 */
         .top-bar { display: flex; justify-content: space-between; align-items: flex-start; pointer-events: auto; }
-        
-        /* 左上角：个人铭牌 */
-        .user-badge {
-            background: rgba(20, 20, 25, 0.7); backdrop-filter: blur(10px); border-radius: 8px; border-left: 3px solid #d4af37; padding: 12px 18px; display: flex; flex-direction: column; gap: 4px;
-        }
+        .user-badge { background: rgba(20, 20, 25, 0.7); backdrop-filter: blur(10px); border-radius: 8px; border-left: 3px solid #d4af37; padding: 12px 18px; display: flex; flex-direction: column; gap: 4px; border: 1px solid rgba(255,255,255,0.05); border-left: 3px solid #d4af37;}
         .user-badge .title { font-size: 0.65rem; color: #888; letter-spacing: 2px; text-transform: uppercase; font-family: sans-serif; }
         .user-badge .name { font-size: 0.9rem; color: #ddd; letter-spacing: 1px; }
 
-        /* 右上角：资产与充值 */
         .asset-box { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
-        .coin-display { font-size: 1rem; color: #d4af37; font-family: sans-serif; font-weight: bold; display: flex; align-items: center; gap: 6px; }
-        .recharge-btn {
-            background: transparent; border: 1px solid rgba(255,255,255,0.3); color: #ccc; padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; cursor: pointer; transition: 0.3s;
-        }
-        .recharge-btn:active { background: rgba(255,255,255,0.1); }
+        .coin-display { font-size: 1rem; color: #d4af37; font-family: sans-serif; font-weight: bold; }
+        .recharge-btn { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #aaa; padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; cursor: pointer; transition: 0.3s; }
 
-        /* 中央文案 */
-        .center-text {
-            position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); text-align: center; width: 100%;
-        }
-        .center-text h1 { font-size: 1.5rem; font-weight: 300; letter-spacing: 4px; margin-bottom: 12px; text-shadow: 0 0 20px rgba(255,255,255,0.2); }
-        .center-text p { font-size: 0.8rem; color: rgba(255,255,255,0.4); letter-spacing: 2px; }
+        /* 中央文案（默认显示，点击星星后隐藏） */
+        .center-text { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); text-align: center; width: 100%; transition: opacity 0.5s ease; }
+        .center-text h1 { font-size: 1.4rem; font-weight: 300; letter-spacing: 4px; margin-bottom: 12px; text-shadow: 0 0 20px rgba(255,255,255,0.2); }
+        .center-text p { font-size: 0.75rem; color: rgba(255,255,255,0.4); letter-spacing: 2px; }
 
         /* 底部操作栏 */
         .bottom-bar { display: flex; justify-content: space-between; align-items: center; pointer-events: auto; }
-        
-        .report-btn {
-            background: transparent; border: 1px solid #d4af37; color: #d4af37; padding: 12px 24px; border-radius: 6px; font-size: 0.85rem; letter-spacing: 1px; cursor: pointer; transition: 0.3s;
-        }
-        .report-btn:active { background: rgba(212, 175, 55, 0.1); }
+        .report-btn { background: transparent; border: 1px solid #d4af37; color: #d4af37; padding: 12px 24px; border-radius: 6px; font-size: 0.85rem; letter-spacing: 1px; cursor: pointer; }
+        .cast-btn { background: linear-gradient(135deg, #7b1fa2, #4a148c); border: none; color: #fff; padding: 12px 28px; border-radius: 30px; font-size: 0.9rem; font-weight: bold; letter-spacing: 1px; cursor: pointer; box-shadow: 0 4px 15px rgba(123, 31, 162, 0.4); }
 
-        .cast-btn {
-            background: linear-gradient(135deg, #7b1fa2, #4a148c); border: none; color: #fff; padding: 12px 28px; border-radius: 30px; font-size: 0.9rem; font-weight: bold; letter-spacing: 1px; cursor: pointer; box-shadow: 0 4px 15px rgba(123, 31, 162, 0.4); transition: 0.3s;
+        /* =========================================
+           灵魂读取弹窗 (点击星星后出现)
+           ========================================= */
+        .soul-message-box {
+            position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
+            width: 80%; max-width: 320px; text-align: center; pointer-events: none; opacity: 0;
+            transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); z-index: 20;
         }
-        .cast-btn:active { transform: scale(0.95); }
+        .soul-message-box.active { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        .soul-content { font-size: 1.2rem; line-height: 1.8; font-weight: 300; letter-spacing: 2px; color: #fff; text-shadow: 0 0 15px rgba(255,255,255,0.5); margin-bottom: 15px; }
+        .soul-author { font-size: 0.7rem; color: rgba(255,255,255,0.4); letter-spacing: 1px; }
+        
+        /* 交互提示 */
+        .drag-hint { position: absolute; top: 60%; left: 50%; transform: translateX(-50%); font-size: 0.7rem; color: rgba(255,255,255,0.3); letter-spacing: 2px; pointer-events: none; animation: pulse 3s infinite; }
+        @keyframes pulse { 0% { opacity: 0.2; } 50% { opacity: 0.8; } 100% { opacity: 0.2; } }
 
     </style>
 </head>
 <body>
 
-    <div class="nebula-fallback"></div>
-    
-    <canvas id="starfield"></canvas>
+    <div id="webgl-container"></div>
+    <div class="nebula-glow"></div>
 
     <div class="ui-layer">
         <div class="top-bar">
@@ -86,109 +73,210 @@
             </div>
             <div class="asset-box">
                 <div class="coin-display">💰 270</div>
-                <button class="recharge-btn" onclick="alert('唤起充值面板')">测试充值</button>
+                <button class="recharge-btn">测试充值</button>
             </div>
         </div>
 
-        <div class="center-text">
+        <div class="center-text" id="defaultText">
             <h1>你已经很棒了，不必步步紧逼。</h1>
             <p>星河不渡杂音 · 唯有灵魂共鸣</p>
         </div>
 
+        <div class="soul-message-box" id="soulBox">
+            <div class="soul-content" id="soulContent">"如果重来一次，我不会推开你。"</div>
+            <div class="soul-author" id="soulAuthor">- 距离你 3.2 光年的陌生人</div>
+        </div>
+        
+        <div class="drag-hint">滑动屏幕环顾宇宙 · 点击星辰聆听执念</div>
+
         <div class="bottom-bar">
-            <button class="report-btn" onclick="alert('生成并保存专属灵魂轨迹海报')">生成灵魂报告</button>
-            <button class="cast-btn" onclick="playChimeAndCast()">把执念散作星辰</button>
+            <button class="report-btn">生成灵魂报告</button>
+            <button class="cast-btn" onclick="alert('准备发射你的执念...')">把执念散作星辰</button>
         </div>
     </div>
 
-    <audio id="spaceDrone" loop src="https://actions.google.com/sounds/v1/ambiences/space_room_hum.ogg"></audio>
+    <audio id="spaceBgMusic" loop src="https://actions.google.com/sounds/v1/ambiences/deep_space.ogg"></audio>
 
     <script>
         // ==========================================
-        // 核心一：第一视角 3D 星空引擎 (优雅、失重感)
+        // 核心一：生成 432Hz 治愈颂钵音效 (纯代码生成，极其空灵)
         // ==========================================
-        const canvas = document.getElementById('starfield');
-        const ctx = canvas.getContext('2d');
-        let width, height, cx, cy;
+        let audioCtx;
+        function playHealingChime() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const time = audioCtx.currentTime;
+            
+            // 创建振荡器（正弦波最纯净）
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(432, time); // 432Hz 治愈频率
+            
+            // 声音包络：瞬间敲击，缓慢消散（模拟颂钵尾音）
+            gain.gain.setValueAtTime(0, time);
+            gain.gain.linearRampToValueAtTime(0.6, time + 0.05); // 敲击声
+            gain.gain.exponentialRampToValueAtTime(0.001, time + 4); // 长达4秒的回响
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start(time);
+            osc.stop(time + 4);
+        }
+
+        // ==========================================
+        // 核心二：Three.js 360度全景星空与点击交互
+        // ==========================================
+        const container = document.getElementById('webgl-container');
+        const scene = new THREE.Scene();
         
-        function resize() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-            cx = width / 2; cy = height / 2;
+        // 增加宇宙深邃紫红雾效
+        scene.fog = new THREE.FogExp2(0x0a0212, 0.0015);
+
+        // 相机放在宇宙中心
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 2000);
+        camera.position.set(0, 0, 0.1); 
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        container.appendChild(renderer.domElement);
+
+        // 控制器：允许用户 360 度滑动查看
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.enableZoom = false; // 禁止缩放，保持失重感
+        controls.enablePan = false;
+        controls.autoRotate = true; // 极其缓慢的自转
+        controls.autoRotateSpeed = 0.3;
+
+        // 生成灵魂星辰
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 800; // 800 个灵魂
+        const posArray = new Float32Array(particlesCount * 3);
+        const colorsArray = new Float32Array(particlesCount * 3);
+
+        // 模拟真实的灵魂文案库
+        const soulMessages = [
+            "今天真的很累，但还好有这片星空。",
+            "如果重来一次，我不会推开你。",
+            "希望远方的你一切都好。",
+            "宇宙那么大，我们的烦恼那么小。",
+            "我终于决定放过我自己了。",
+            "那个决定，我不后悔。",
+            "晚安，陌生人，祝你做个好梦。"
+        ];
+
+        for(let i = 0; i < particlesCount * 3; i+=3) {
+            // 球面随机分布 (生成一个巨大的星空球体，用户在球心)
+            const r = 400 + Math.random() * 400; 
+            const theta = 2 * Math.PI * Math.random();
+            const phi = Math.acos(2 * Math.random() - 1);
+            
+            posArray[i] = r * Math.sin(phi) * Math.cos(theta);
+            posArray[i+1] = r * Math.sin(phi) * Math.sin(theta);
+            posArray[i+2] = r * Math.cos(phi);
+
+            // 颜色：冷暖星光交替 (紫、蓝、白、金)
+            const mix = Math.random();
+            if(mix < 0.3) { colorsArray[i]=0.8; colorsArray[i+1]=0.6; colorsArray[i+2]=1; } // 紫
+            else if (mix < 0.6) { colorsArray[i]=0.6; colorsArray[i+1]=0.8; colorsArray[i+2]=1; } // 蓝
+            else { colorsArray[i]=1; colorsArray[i+1]=1; colorsArray[i+2]=1; } // 白
         }
-        window.addEventListener('resize', resize);
-        resize();
 
-        const stars = [];
-        const STAR_COUNT = 400; // 星星数量
-        const WARP_SPEED = 0.5; // 极慢的飞行速度，营造静谧感
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colorsArray, 3));
 
-        class Star {
-            constructor() { this.reset(); }
-            reset() {
-                this.x = (Math.random() - 0.5) * 2000;
-                this.y = (Math.random() - 0.5) * 2000;
-                this.z = Math.random() * 2000;
-                this.pz = this.z;
-                // 模拟蓝矮星和红巨星的色温
-                this.color = Math.random() > 0.8 ? 'rgba(213, 175, 255, ' : 'rgba(255, 255, 255, ';
+        // 星星材质：发光、稍微偏大一点方便点击
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 4,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending
+        });
+
+        const starMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(starMesh);
+
+        // ==========================================
+        // 核心三：射线检测 (Raycaster) - 实现精准点击星星
+        // ==========================================
+        const raycaster = new THREE.Raycaster();
+        // 放大点击判定范围（特别是在手机上）
+        raycaster.params.Points.threshold = 15; 
+        const mouse = new THREE.Vector2();
+
+        function onInteraction(event) {
+            // 唤醒背景音（浏览器需要用户交互才能播放音频）
+            document.getElementById('spaceBgMusic').play().catch(e=>{});
+
+            let clientX, clientY;
+            if (event.changedTouches) {
+                clientX = event.changedTouches[0].clientX;
+                clientY = event.changedTouches[0].clientY;
+            } else {
+                clientX = event.clientX;
+                clientY = event.clientY;
             }
-            update() {
-                this.z -= WARP_SPEED;
-                if (this.z < 1) { this.z = 2000; this.x = (Math.random() - 0.5) * 2000; this.y = (Math.random() - 0.5) * 2000; this.pz = this.z; }
-            }
-            draw() {
-                const fov = 300;
-                const scale = fov / (fov + this.z);
-                const x2d = this.x * scale + cx;
-                const y2d = this.y * scale + cy;
-                const size = Math.max(0.1, (1 - this.z / 2000) * 2.5);
-                const alpha = 1 - (this.z / 2000);
 
-                ctx.beginPath();
-                ctx.arc(x2d, y2d, size, 0, Math.PI * 2);
-                ctx.fillStyle = this.color + alpha + ')';
+            mouse.x = (clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObject(starMesh);
+
+            if (intersects.length > 0) {
+                // 点击到了某颗星星！
                 
-                // 柔和发光效果
-                ctx.shadowBlur = size * 4;
-                ctx.shadowColor = this.color.replace(', ', ', 0.8)');
-                ctx.fill();
-                ctx.shadowBlur = 0;
+                // 1. 播放极致空灵的颂钵声音
+                playHealingChime();
+
+                // 2. 随机读取一句灵魂文案
+                const randomMsg = soulMessages[Math.floor(Math.random() * soulMessages.length)];
+                const randomDistance = (Math.random() * 10 + 0.1).toFixed(1);
+
+                // 3. 切换 UI 状态
+                document.getElementById('defaultText').style.opacity = '0';
+                const soulBox = document.getElementById('soulBox');
+                document.getElementById('soulContent').innerText = `"${randomMsg}"`;
+                document.getElementById('soulAuthor').innerText = `- 距离你 ${randomDistance} 光年的陌生人`;
+                
+                soulBox.classList.add('active');
+
+                // 8秒后恢复默认 UI
+                setTimeout(() => {
+                    soulBox.classList.remove('active');
+                    document.getElementById('defaultText').style.opacity = '1';
+                }, 6000);
             }
         }
 
-        for(let i=0; i<STAR_COUNT; i++) stars.push(new Star());
+        // 监听点击和触摸结束
+        window.addEventListener('click', onInteraction);
+        window.addEventListener('touchend', onInteraction);
 
+        // 动画循环
         function animate() {
-            ctx.clearRect(0, 0, width, height);
-            stars.forEach(s => { s.update(); s.draw(); });
             requestAnimationFrame(animate);
+            controls.update(); // 更新 360 度视角
+            
+            // 让星星产生轻微的呼吸闪烁感
+            const time = Date.now() * 0.0005;
+            starMesh.material.opacity = 0.6 + Math.sin(time) * 0.3;
+
+            renderer.render(scene, camera);
         }
         animate();
 
-        // ==========================================
-        // 核心二：灵魂交互与声音 (MVP 临时音效方案)
-        // ==========================================
-        let audioInit = false;
-        const bgm = document.getElementById('spaceDrone');
-
-        function initAudio() {
-            if(audioInit) return;
-            bgm.volume = 0.4;
-            bgm.play().catch(e => console.log("等待用户交互以播放背景音"));
-            audioInit = true;
-        }
-
-        // 监听全局第一次点击，唤醒宇宙底噪
-        document.body.addEventListener('touchstart', initAudio, {once:true});
-        document.body.addEventListener('click', initAudio, {once:true});
-
-        function playChimeAndCast() {
-            initAudio();
-            // 真实商业环境：这里应该直接 new Audio('大教堂混响颂钵.mp3').play();
-            // 这里用代码模拟一声带有物理回响的清脆敲击
-            alert("[MVP演示]：此处播放一声极具混响的“空灵颂钵音”，并弹出文字输入框，引导用户写下执念。");
-        }
+        // 窗口缩放适配
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
     </script>
 </body>
 </html>
