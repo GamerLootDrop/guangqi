@@ -3,208 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>星河宿命 · 真正商业版</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;400;700&display=swap" rel="stylesheet">
+    <title>ECHOES 星河 · MVP演示</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
+        /* 基础重置 */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body, html {
-            width: 100%; height: 100%; overflow: hidden;
-            background: #020105; font-family: "Noto Serif SC", serif; color: #fff;
-        }
+        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #030106; font-family: 'Noto Serif SC', serif; color: #fff; user-select: none; }
 
-        /* 核心：直接使用你截图质感的超高清、带有静谧呼吸感的星云背景 */
-        /* 实际开发中，这里是一段 4K 的暗红/深紫星云循环视频(Video)或者高精贴图 */
-        .universe-background {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;
-            background: radial-gradient(circle at 50% 30%, #1d0a2b 0%, #09030d 60%, #000000 100%);
-            background-size: cover;
-            opacity: 0.9;
-        }
-
-        /* 极细腻的柔光滤镜，制造灵魂失重感 */
-        .nebula-glow {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2;
-            background: radial-gradient(ellipse at 80% 20%, rgba(139, 0, 0, 0.2) 0%, transparent 60%),
-                        radial-gradient(ellipse at 20% 80%, rgba(75, 0, 130, 0.15) 0%, transparent 60%);
-            mix-blend-mode: screen; pointer-events: none;
-        }
-
-        /* --- 顶栏：高级感、去工具化 --- */
-        .app-header {
-            position: absolute; top: 0; left: 0; width: 100%; z-index: 10;
-            padding: calc(env(safe-area-inset-top, 20px) + 10px) 24px 0;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .brand { font-size: 0.9rem; font-weight: 200; letter-spacing: 4px; color: rgba(255,255,255,0.7); }
-        
-        /* 治愈音乐开关 */
-        .music-toggle {
-            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);
-            padding: 6px 14px; border-radius: 20px; font-size: 0.7rem; color: #eee;
-            backdrop-filter: blur(10px); cursor: pointer; display: flex; align-items: center; gap: 6px;
-        }
-        .music-toggle.playing { border-color: #ff4081; color: #ff4081; box-shadow: 0 0 10px rgba(255,64,129,0.2); }
-
-        /* --- 中央文案：直击痛点，引导留存 --- */
-        .center-container {
-            position: absolute; top: 42%; left: 50%; transform: translate(-50%, -50%);
-            text-align: center; z-index: 5; width: 85%; pointer-events: none;
-        }
-        .center-container h1 { font-size: 1.4rem; font-weight: 200; letter-spacing: 6px; margin-bottom: 15px; text-shadow: 0 0 20px rgba(255,255,255,0.3); }
-        .center-container p { font-size: 0.75rem; color: rgba(255,255,255,0.4); letter-spacing: 2px; line-height: 1.8; }
-
-        /* --- 底部商业化操作区 --- */
-        .bottom-area {
-            position: absolute; bottom: 0; left: 0; width: 100%; z-index: 10;
-            padding: 0 24px calc(env(safe-area-inset-bottom, 20px) + 20px);
-            background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.6) 100%);
-            display: flex; flex-direction: column; align-items: center;
+        /* =========================================
+           视觉层：真实视频挂载 + 星雾滤镜
+           ========================================= */
+        /* 实际项目中，这里替换为 4K 暗红星云循环视频 */
+        .video-background {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; object-fit: cover; opacity: 0.6; mix-blend-mode: screen;
         }
         
-        /* 主行动点：极其克制的高级感按钮 */
-        .action-btn {
-            background: #fff; color: #000; width: 100%; max-width: 300px;
-            padding: 15px; border-radius: 30px; font-size: 0.9rem; font-weight: bold;
-            border: none; letter-spacing: 2px; box-shadow: 0 10px 30px rgba(255,255,255,0.15);
-            margin-bottom: 25px; cursor: pointer; transition: 0.2s; text-align: center;
+        /* 兜底星云渐变（在视频加载前或无视频时提供高级感底色） */
+        .nebula-fallback {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;
+            background: radial-gradient(circle at 50% 50%, #1a0b2e 0%, #080311 50%, #030106 100%);
         }
-        .action-btn:active { transform: scale(0.97); opacity: 0.9; }
 
-        /* 真正的商业化多入口导航（观测、共鸣、声音商店、个人中心） */
-        .tab-menu { display: flex; justify-content: space-around; width: 100%; max-width: 360px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 15px; }
-        .tab-item { display: flex; flex-direction: column; align-items: center; font-size: 0.65rem; color: rgba(255,255,255,0.4); gap: 6px; cursor: pointer; }
-        .tab-item.active { color: #fff; font-weight: bold; }
+        /* 3D 第一视角星辰穿梭画布 */
+        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; opacity: 0.8; }
 
-        /* --- 弹出层：商业化充值与付费 --- */
-        .overlay { position: fixed; top:0; left:0; width:100%; height:100%; z-index: 1000; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px); display: none; justify-content: center; align-items: center; padding: 24px; }
-        .premium-card { background: #0f0b14; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; width: 100%; max-width: 340px; padding: 25px 20px; text-align: center;}
-        .card-title { font-size: 1.1rem; letter-spacing: 2px; margin-bottom: 10px; font-weight: 400; }
-        .card-subtitle { font-size: 0.75rem; color: #888; margin-bottom: 20px; }
+        /* =========================================
+           UI 层：完美复刻截图的高级质感
+           ========================================= */
+        .ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 30px; }
         
-        .sku-list { margin-bottom: 25px; }
-        .sku-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 14px; margin-bottom: 12px; cursor: pointer; }
-        .sku-item:hover { border-color: #ff4081; background: rgba(255,64,129,0.05); }
-        .sku-name { text-align: left; font-size: 0.85rem; font-weight: bold; }
-        .sku-desc { font-size: 0.65rem; color: #666; margin-top: 3px; }
-        .sku-price { color: #ff4081; font-weight: bold; font-size: 0.9rem; }
+        /* 顶部栏 */
+        .top-bar { display: flex; justify-content: space-between; align-items: flex-start; pointer-events: auto; }
+        
+        /* 左上角：个人铭牌 */
+        .user-badge {
+            background: rgba(20, 20, 25, 0.7); backdrop-filter: blur(10px); border-radius: 8px; border-left: 3px solid #d4af37; padding: 12px 18px; display: flex; flex-direction: column; gap: 4px;
+        }
+        .user-badge .title { font-size: 0.65rem; color: #888; letter-spacing: 2px; text-transform: uppercase; font-family: sans-serif; }
+        .user-badge .name { font-size: 0.9rem; color: #ddd; letter-spacing: 1px; }
 
-        .close-text { font-size: 0.75rem; color: rgba(255,255,255,0.4); margin-top: 15px; cursor: pointer; display: inline-block; }
+        /* 右上角：资产与充值 */
+        .asset-box { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+        .coin-display { font-size: 1rem; color: #d4af37; font-family: sans-serif; font-weight: bold; display: flex; align-items: center; gap: 6px; }
+        .recharge-btn {
+            background: transparent; border: 1px solid rgba(255,255,255,0.3); color: #ccc; padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; cursor: pointer; transition: 0.3s;
+        }
+        .recharge-btn:active { background: rgba(255,255,255,0.1); }
+
+        /* 中央文案 */
+        .center-text {
+            position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); text-align: center; width: 100%;
+        }
+        .center-text h1 { font-size: 1.5rem; font-weight: 300; letter-spacing: 4px; margin-bottom: 12px; text-shadow: 0 0 20px rgba(255,255,255,0.2); }
+        .center-text p { font-size: 0.8rem; color: rgba(255,255,255,0.4); letter-spacing: 2px; }
+
+        /* 底部操作栏 */
+        .bottom-bar { display: flex; justify-content: space-between; align-items: center; pointer-events: auto; }
+        
+        .report-btn {
+            background: transparent; border: 1px solid #d4af37; color: #d4af37; padding: 12px 24px; border-radius: 6px; font-size: 0.85rem; letter-spacing: 1px; cursor: pointer; transition: 0.3s;
+        }
+        .report-btn:active { background: rgba(212, 175, 55, 0.1); }
+
+        .cast-btn {
+            background: linear-gradient(135deg, #7b1fa2, #4a148c); border: none; color: #fff; padding: 12px 28px; border-radius: 30px; font-size: 0.9rem; font-weight: bold; letter-spacing: 1px; cursor: pointer; box-shadow: 0 4px 15px rgba(123, 31, 162, 0.4); transition: 0.3s;
+        }
+        .cast-btn:active { transform: scale(0.95); }
+
     </style>
 </head>
 <body>
 
-    <div class="universe-background"></div>
-    <div class="nebula-glow"></div>
+    <div class="nebula-fallback"></div>
+    
+    <canvas id="starfield"></canvas>
 
-    <div class="app-header">
-        <div class="brand">ECHOES · 星河</div>
-        <button class="music-toggle" id="musicBtn" onclick="toggleHealingMusic()">
-            <span id="musicIcon">🔇</span> <span id="musicText">静音观测</span>
-        </button>
-    </div>
-
-    <div class="center-container">
-        <h1>允许一切发生。</h1>
-        <p>已有 1,429 位迷茫的灵魂在这里留下了执念<br>带上耳机，听听他们划过夜空的声音</p>
-    </div>
-
-    <div class="bottom-area">
-        <button class="action-btn" onclick="triggerCast()">将无处安放的心事投递出去</button>
-        
-        <div class="tab-menu">
-            <div class="tab-item active"><span>🌌</span><span>冥想深空</span></div>
-            <div class="tab-item" onclick="openStore()"><span>💎</span><span>声音补给站</span></div>
-            <div class="tab-item"><span>📜</span><span>共鸣报告</span></div>
-            <div class="tab-item"><span>👤</span><span>我的星域</span></div>
-        </div>
-    </div>
-
-    <div class="overlay" id="storeOverlay">
-        <div class="premium-card">
-            <div class="card-title">声音与灵魂补给站</div>
-            <div class="card-subtitle">付费解锁大师级实地采样的治愈频段</div>
-            
-            <div class="sku-list">
-                <div class="sku-item" onclick="handlePay(6)">
-                    <div>
-                        <div class="sku-name">喜马拉雅颂钵音频包</div>
-                        <div class="sku-desc">432Hz 真实颂钵敲击敲击回响(包含5首)</div>
-                    </div>
-                    <div class="sku-price">¥6.00</div>
-                </div>
-                <div class="sku-item" onclick="handlePay(12)">
-                    <div>
-                        <div class="sku-name">冰岛极光静谧风声</div>
-                        <div class="sku-desc">实地超高清环境录音，深度助眠专用</div>
-                    </div>
-                    <div class="sku-price">¥12.00</div>
-                </div>
-                <div class="sku-item" onclick="handlePay(30)">
-                    <div>
-                        <div class="sku-name">无限共鸣·终身VIP</div>
-                        <div class="sku-desc">解锁全部声音资产 + 专属超新星全服广播</div>
-                    </div>
-                    <div class="sku-price">¥30.00</div>
-                </div>
+    <div class="ui-layer">
+        <div class="top-bar">
+            <div class="user-badge">
+                <span class="title">Soul Tracking</span>
+                <span class="name">天鹅座 · 暗物质</span>
             </div>
+            <div class="asset-box">
+                <div class="coin-display">💰 270</div>
+                <button class="recharge-btn" onclick="alert('唤起充值面板')">测试充值</button>
+            </div>
+        </div>
 
-            <span class="close-text" onclick="closeStore()">回到星空</span>
+        <div class="center-text">
+            <h1>你已经很棒了，不必步步紧逼。</h1>
+            <p>星河不渡杂音 · 唯有灵魂共鸣</p>
+        </div>
+
+        <div class="bottom-bar">
+            <button class="report-btn" onclick="alert('生成并保存专属灵魂轨迹海报')">生成灵魂报告</button>
+            <button class="cast-btn" onclick="playChimeAndCast()">把执念散作星辰</button>
         </div>
     </div>
 
-    <audio id="bgmAsset" loop src="https://actions.google.com/sounds/v1/ambiences/deep_space.ogg"></audio>
-    <audio id="clickAsset" src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg" style="display:none;"></audio>
+    <audio id="spaceDrone" loop src="https://actions.google.com/sounds/v1/ambiences/space_room_hum.ogg"></audio>
 
     <script>
-        const bgm = document.getElementById('bgmAsset');
-        let isPlaying = false;
+        // ==========================================
+        // 核心一：第一视角 3D 星空引擎 (优雅、失重感)
+        // ==========================================
+        const canvas = document.getElementById('starfield');
+        const ctx = canvas.getContext('2d');
+        let width, height, cx, cy;
+        
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            cx = width / 2; cy = height / 2;
+        }
+        window.addEventListener('resize', resize);
+        resize();
 
-        // 彻底抛弃代码拼凑，用“真实高清音频资产”来治愈
-        function toggleHealingMusic() {
-            const btn = document.getElementById('musicBtn');
-            const icon = document.getElementById('musicIcon');
-            const text = document.getElementById('musicText');
+        const stars = [];
+        const STAR_COUNT = 400; // 星星数量
+        const WARP_SPEED = 0.5; // 极慢的飞行速度，营造静谧感
 
-            if (isPlaying) {
-                bgm.pause();
-                isPlaying = false;
-                btn.classList.remove('playing');
-                icon.innerText = '🔇';
-                text.innerText = '静音观测';
-            } else {
-                // 唤起真实音频
-                bgm.play().then(() => {
-                    isPlaying = true;
-                    btn.classList.add('playing');
-                    icon.innerText = '🎵';
-                    text.innerText = '深空疗愈中';
-                }).catch(err => {
-                    alert("请点击屏幕任意地方激活宇宙音轨");
-                });
+        class Star {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = (Math.random() - 0.5) * 2000;
+                this.y = (Math.random() - 0.5) * 2000;
+                this.z = Math.random() * 2000;
+                this.pz = this.z;
+                // 模拟蓝矮星和红巨星的色温
+                this.color = Math.random() > 0.8 ? 'rgba(213, 175, 255, ' : 'rgba(255, 255, 255, ';
+            }
+            update() {
+                this.z -= WARP_SPEED;
+                if (this.z < 1) { this.z = 2000; this.x = (Math.random() - 0.5) * 2000; this.y = (Math.random() - 0.5) * 2000; this.pz = this.z; }
+            }
+            draw() {
+                const fov = 300;
+                const scale = fov / (fov + this.z);
+                const x2d = this.x * scale + cx;
+                const y2d = this.y * scale + cy;
+                const size = Math.max(0.1, (1 - this.z / 2000) * 2.5);
+                const alpha = 1 - (this.z / 2000);
+
+                ctx.beginPath();
+                ctx.arc(x2d, y2d, size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color + alpha + ')';
+                
+                // 柔和发光效果
+                ctx.shadowBlur = size * 4;
+                ctx.shadowColor = this.color.replace(', ', ', 0.8)');
+                ctx.fill();
+                ctx.shadowBlur = 0;
             }
         }
 
-        function triggerCast() {
-            // 商业逻辑：点击发射时，播放一声清脆的水晶敲击声（加载高质音频文件）
-            // 这里用提示代指
-            alert("[商业提示] 正在唤起文字输入框... 输入完成后，扣除 10 星尘或提示看视频广告免费发射。");
+        for(let i=0; i<STAR_COUNT; i++) stars.push(new Star());
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            stars.forEach(s => { s.update(); s.draw(); });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        // ==========================================
+        // 核心二：灵魂交互与声音 (MVP 临时音效方案)
+        // ==========================================
+        let audioInit = false;
+        const bgm = document.getElementById('spaceDrone');
+
+        function initAudio() {
+            if(audioInit) return;
+            bgm.volume = 0.4;
+            bgm.play().catch(e => console.log("等待用户交互以播放背景音"));
+            audioInit = true;
         }
 
-        function openStore() { document.getElementById('storeOverlay').style.display = 'flex'; }
-        function closeStore() { document.getElementById('storeOverlay').style.display = 'none'; }
+        // 监听全局第一次点击，唤醒宇宙底噪
+        document.body.addEventListener('touchstart', initAudio, {once:true});
+        document.body.addEventListener('click', initAudio, {once:true});
 
-        function handlePay(price) {
-            alert(`[商业转化] 正在唤起微信/苹果支付，金额：¥${price}\n支付成功后后端解锁对应音频包的下载/播放权限。`);
-            closeStore();
+        function playChimeAndCast() {
+            initAudio();
+            // 真实商业环境：这里应该直接 new Audio('大教堂混响颂钵.mp3').play();
+            // 这里用代码模拟一声带有物理回响的清脆敲击
+            alert("[MVP演示]：此处播放一声极具混响的“空灵颂钵音”，并弹出文字输入框，引导用户写下执念。");
         }
-
-        // 监听屏幕点击，模拟点击星星时发出真正的清脆乐器声
-        document.body.addEventListener('click', function(e) {
-            // 排除UI按钮的点击
-            if(e.target.tagName !== 'BUTTON' && e.target.className !== 'sku-item' && e.target.className !== 'close-text') {
-                console.log("点击了星空，这里应该触发：AudioContext播放高质颂钵采样切片");
-            }
-        });
     </script>
 </body>
 </html>
