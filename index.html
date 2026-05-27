@@ -1,478 +1,719 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>星海微茫 · 沉浸视频版</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body, html {
-            width: 100%; height: 100%; overflow: hidden;
-            background-color: #000; /* 纯黑兜底，防止视频加载慢时白屏 */
-            font-family: "Noto Serif SC", "SimSun", serif;
-            user-select: none; -webkit-user-select: none;
-        }
-        
-        /* =========================================
-           核心升级 1：真实视频背景样式
-           ========================================= */
-        #bg-video {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* 保证视频填满整个屏幕，不会变形 */
-            z-index: 0; /* 放在最底层 */
-            opacity: 0.8; /* 稍微调暗一点，让文字和交互的星星更清晰 */
-        }
+// ==========================================
+// 3.0 宇宙深空沉浸版核心中枢（已修复并发锁与时钟重叠）
+// ==========================================
 
-        /* 覆盖在视频上的一层极淡的暗紫遮罩，增加神秘感 */
-        .video-tint {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;
-            background: rgba(15, 5, 25, 0.3); pointer-events: none;
-        }
+const state = {
+  session: null,
+  whispers: [],
+  logs: [],
+  missions: [],
+  selectedWhisper: null,
+  audioCtx: null,
+  audioNodes: null,
+  readMissionCache: new Set(),
+  missionTickHandle: null,
+  pollHandle: null,
+  ambientIndex: 0,
+  isMissionSubmitting: false // 🔐 新增：防暴击并发锁
+};
 
-        /* 交互的画布，放在视频之上 */
-        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; }
+const els = {
+  canvas: document.getElementById("spaceCanvas"),
+  aliasText: document.getElementById("aliasText"),
+  tokenText: document.getElementById("tokenText"),
+  coinText: document.getElementById("coinText"),
+  replyAlertText: document.getElementById("replyAlertText"),
+  ambientText: document.getElementById("ambientText"),
+  audioBtn: document.getElementById("audioBtn"),
+  missionBtn: document.getElementById("missionBtn"),
+  logBtn: document.getElementById("logBtn"),
+  openWhisperBtn: document.getElementById("openWhisperBtn"),
+  refreshLogBtn: document.getElementById("refreshLogBtn"),
+  missionPanel: document.getElementById("missionPanel"),
+  logPanel: document.getElementById("logPanel"),
+  whisperModal: document.getElementById("whisperModal"),
+  whisperInput: document.getElementById("whisperInput"),
+  submitWhisperBtn: document.getElementById("submitWhisperBtn"),
+  vipToggle: document.getElementById("vipToggle"),
+  starDialog: document.getElementById("starDialog"),
+  dialogBadge: document.getElementById("dialogBadge"),
+  dialogTitle: document.getElementById("dialogTitle"),
+  dialogMeta: document.getElementById("dialogMeta"),
+  replyList: document.getElementById("replyList"),
+  replyInput: document.getElementById("replyInput"),
+  sendReplyBtn: document.getElementById("sendReplyBtn"),
+  springBar: document.getElementById("springBar"),
+  springText: document.getElementById("springText"),
+  readBar: document.getElementById("readBar"),
+  readText: document.getElementById("readText"),
+  missionRewardNote: document.getElementById("missionRewardNote"),
+  logList: document.getElementById("logList"),
+  toastStack: document.getElementById("toastStack")
+};
 
-        /* =========================================
-           以下完全保留你原本的高级 UI 样式
-           ========================================= */
-        .commercial-header {
-            position: absolute; top: 20px; left: 20px; right: 20px;
-            display: flex; justify-content: space-between; align-items: center;
-            z-index: 10; padding: 10px 15px;
-            background: rgba(10, 15, 26, 0.5); border: 1px solid rgba(166, 152, 122, 0.2);
-            border-radius: 8px; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
-            color: #e6dedf; font-size: 0.85rem; letter-spacing: 1px;
-        }
-        .wallet-zone { display: flex; align-items: center; gap: 10px; }
-        .coin-num { color: #ffd700; font-weight: bold; text-shadow: 0 0 8px rgba(255, 215, 0, 0.5); }
-        .charge-btn {
-            background: linear-gradient(135deg, #ffd700, #b8860b); border: none;
-            color: #000; padding: 3px 12px; font-size: 0.75rem; font-weight: bold;
-            border-radius: 12px; cursor: pointer; transition: all 0.3s;
-        }
+const ambientTexts = [
+  "闭上眼，听泉。你不必在此刻向任何人证明自己。",
+  "每颗星都在远处慢慢靠近，像终于被看见的情绪。",
+  "如果今晚很重，就先借这片宇宙呼吸一下。"
+];
 
-        .ambient-container {
-            position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%);
-            width: 85%; max-width: 500px; text-align: center; z-index: 3; pointer-events: none;
-        }
-        .breathing-text {
-            font-size: 1.15rem; color: rgba(255, 255, 255, 0.9); line-height: 2.2;
-            letter-spacing: 4px; font-weight: 300;
-            animation: spacePulse 10s infinite ease-in-out;
-            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
-        }
-        @keyframes spacePulse {
-            0%, 100% { opacity: 0; transform: translateY(5px); filter: blur(1px); }
-            10%, 90% { opacity: 1; transform: translateY(0); filter: blur(0); }
-        }
+let ctx = null;
+let width = 0; let height = 0;
+let rotationX = 0; let rotationY = 0;
+let targetRotationX = 0; let targetRotationY = 0;
+let isDragging = false; let dragX = 0; let dragY = 0;
+let dragDistance = 0; let tapPoint = { x: 0, y: 0 };
+let lastFrameTime = 0;
 
-        .guide-hint {
-            position: absolute; top: 85px; left: 50%; transform: translateX(-50%);
-            font-size: 0.78rem; color: rgba(255, 255, 255, 0.5); letter-spacing: 2px; z-index: 3;
-            pointer-events: none; text-align: center; width: 90%;
-        }
+const starNodes = [];
+const backgroundDust = [];
 
-        .bottom-bar {
-            position: absolute; bottom: 35px; width: 100%;
-            display: flex; justify-content: space-between; padding: 0 40px; z-index: 10;
-        }
-        .action-btn {
-            background: rgba(15, 22, 35, 0.6); border: 1px solid rgba(255, 255, 255, 0.25);
-            color: rgba(255, 255, 255, 0.85); padding: 9px 20px; font-size: 0.82rem; border-radius: 20px;
-            cursor: pointer; letter-spacing: 2px; backdrop-filter: blur(8px);
-            transition: all 0.4s ease; font-family: inherit;
-        }
+class WarpStar {
+  constructor(payload, index) {
+    this.applyPayload(payload, index);
+  }
 
-        /* 弹出共鸣框 */
-        .resonance-box {
-            position: absolute; z-index: 20; padding: 24px 24px 20px 24px;
-            background: rgba(10, 15, 26, 0.85); border: 1px solid rgba(166, 152, 122, 0.4);
-            border-radius: 8px; color: rgba(224, 215, 195, 0.95);
-            font-size: 0.92rem; line-height: 1.8; letter-spacing: 1.5px;
-            width: 340px; max-width: 90vw; pointer-events: auto;
-            opacity: 0; transform: translate(-50%, -120%) scale(0.9);
-            transition: opacity 0.3s ease, transform 0.3s ease;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.7); backdrop-filter: blur(12px);
-        }
-        .resonance-box.active { opacity: 1; transform: translate(-50%, -120%) scale(1); }
-        
-        .resonance-box.vip-style { border: 2px solid #da70d6; box-shadow: 0 0 25px rgba(218, 112, 214, 0.4); }
-        .vip-tag { color: #ffd700; font-weight: bold; font-size: 0.75rem; border: 1px solid #ffd700; padding: 0px 4px; border-radius: 3px; margin-right: 5px; }
-        .vip-text { color: #fffbc8 !important; font-weight: bold; }
-        .resonance-box .author-sign { display: block; text-align: right; margin-top: 12px; font-size: 0.75rem; color: rgba(255, 255, 255, 0.5); border-bottom: 1px dashed rgba(255, 255, 255, 0.2); padding-bottom: 8px; }
+  applyPayload(payload, index) {
+    this.id = payload.id;
+    this.text = payload.text;
+    this.authorAlias = payload.authorAlias;
+    this.createdAt = payload.createdAt;
+    this.updatedAt = payload.updatedAt;
+    this.isVip = !!payload.isVip;
+    this.isOwn = !!payload.isOwn;
+    this.replyCount = payload.replyCount || 0;
+    this.hasNewReply = !!payload.hasNewReply;
+    this.recentReplySnippet = payload.recentReplySnippet || "";
+    this.lastReplyAt = payload.lastReplyAt || "";
+    this.seed = payload.starSeed || index * 17 + 11;
+    this.radial = 120 + (this.seed % 180);
+    this.angle = (this.seed * 0.37) % (Math.PI * 2);
+    this.vertical = ((this.seed % 21) - 10) * 17;
+    this.depth = 0.08 + ((this.seed * 19) % 100) / 100;
+    this.speed = 0.001 + (this.seed % 7) * 0.00022;
+    this.size = this.isVip ? 5.2 : this.isOwn ? 4.2 : 2.5 + (this.seed % 5) * 0.42;
+    this.screenX = 0; this.screenY = 0; this.screenRadius = 0;
+    this.visible = true;
+  }
 
-        /* 评论区 */
-        .social-reply-zone { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
-        .reply-input-mini { width: 100%; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; padding: 6px 10px; color: #fff; font-size: 0.8rem; outline: none; font-family: inherit; resize: none; }
-        .reply-btn-bar { display: flex; justify-content: space-between; align-items: center; }
-        .reply-action-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 3px 10px; font-size: 0.75rem; border-radius: 3px; cursor: pointer; }
-        .reply-list-container { max-height: 100px; overflow-y: auto; font-size: 0.78rem; color: rgba(255,255,255,0.7); margin-top: 6px; padding-top: 4px; border-top: 1px solid rgba(255,255,255,0.1); }
-        .single-reply-item { margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+  update(deltaMs) {
+    this.angle += this.speed * deltaMs * 0.06;
+    this.depth += deltaMs * 0.0000042 * (this.isOwn ? 1.15 : 1);
+    if (this.depth > 1.08) { this.depth = 0.06; }
+  }
 
-        /* 发射面板 */
-        .overlay-panel { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 100; display: none; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
-        .panel-content { position: relative; width: 88%; max-width: 460px; background: rgba(15, 15, 20, 0.9); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
-        .panel-hint { font-size: 0.8rem; color: rgba(255, 255, 255, 0.5); margin-bottom: 12px; }
-        .whisper-area { width: 100%; height: 110px; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 6px; padding: 14px; color: #fff; font-size: 0.92rem; resize: none; outline: none; margin-bottom: 12px; }
-        .vip-checkbox-zone { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; color: rgba(255, 255, 255, 0.7); font-size: 0.82rem; cursor: pointer; }
-        .panel-buttons { display: flex; justify-content: flex-end; gap: 14px; }
-        .panel-btn { padding: 8px 22px; font-size: 0.82rem; border-radius: 4px; cursor: pointer; border: 1px solid transparent; letter-spacing: 2px; }
-        .panel-btn.cancel { background: transparent; border-color: rgba(255,255,255,0.3); color: #ccc; }
-        .panel-btn.confirm { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); color: #fff; }
-
-        @media (max-width: 768px) {
-            .bottom-bar { padding: 0 24px; bottom: 30px; }
-            .action-btn { padding: 8px 16px; font-size: 0.78rem; }
-            .resonance-box.mobile-center { position: absolute !important; width: 85% !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) scale(1) !important; }
-        }
-    </style>
-</head>
-<body>
-
-    <video id="bg-video" autoplay loop muted playsinline src="bg-video.mp4"></video>
+  draw(nowMs) {
+    const zTravel = Math.pow(this.depth, 1.85);
+    const push = 1 + zTravel * 6.9;
+    const baseX = Math.cos(this.angle + rotationY * 0.72) * this.radial * push;
+    const baseY = Math.sin(this.angle * 0.7 + rotationX * 0.92) * this.vertical + Math.sin(this.angle) * 28;
+    const swirlX = Math.sin(rotationY + this.angle) * 24;
+    const swirlY = Math.cos(rotationX + this.angle * 0.6) * 18;
+    const screenX = width * 0.5 + baseX + swirlX;
+    const screenY = height * 0.5 + baseY + swirlY;
+    const scale = 0.4 + zTravel * 2.4;
+    const radius = this.size * scale;
+    const alphaBase = this.isVip ? 0.96 : this.isOwn ? 0.9 : 0.3 + zTravel * 0.5;
     
-    <div class="video-tint"></div>
+    // 渲染微调：优化闪烁计算，合并高频震荡
+    const pulse = this.hasNewReply
+      ? 0.7 + Math.sin(nowMs * 0.012 + this.seed) * 0.2 + Math.abs(Math.sin(nowMs * 0.032 + this.seed)) * 0.4
+      : 0.8 + Math.sin(nowMs * 0.0016 + this.seed) * 0.14;
+    const alpha = Math.min(1, alphaBase * pulse);
 
-    <div class="commercial-header">
-        <div id="userSignDisplay">宇宙代号：加载中...</div>
-        <div class="wallet-zone">
-            <span>💰 星币: <span class="coin-num" id="userCoins">0</span></span>
-            <button class="charge-btn" onclick="chargeCoins(event)">测试充值</button>
+    this.screenX = screenX;
+    this.screenY = screenY;
+    this.screenRadius = Math.max(12, radius + 10);
+    this.visible = screenX > -120 && screenX < width + 120 && screenY > -120 && screenY < height + 120;
+
+    if (!this.visible) return;
+
+    ctx.save();
+    ctx.translate(screenX, screenY);
+    ctx.rotate(this.angle + nowMs * 0.00006);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, radius * (1 + zTravel * 2.7), radius, 0, 0, Math.PI * 2);
+
+    if (this.isVip) {
+      ctx.fillStyle = `rgba(255, 212, 142, ${alpha})`;
+      ctx.shadowBlur = 24; ctx.shadowColor = "rgba(255, 190, 120, 0.96)";
+    } else if (this.hasNewReply) {
+      ctx.fillStyle = `rgba(170, 233, 255, ${alpha})`;
+      ctx.shadowBlur = 28; ctx.shadowColor = "rgba(108, 214, 255, 1)";
+    } else if (this.isOwn) {
+      ctx.fillStyle = `rgba(228, 237, 255, ${alpha})`;
+      ctx.shadowBlur = 18; ctx.shadowColor = "rgba(182, 207, 255, 0.92)";
+    } else {
+      ctx.fillStyle = `rgba(196, 212, 255, ${alpha})`;
+      ctx.shadowBlur = 8; ctx.shadowColor = "rgba(152, 194, 255, 0.45)";
+    }
+    ctx.fill();
+
+    if (zTravel > 0.68) {
+      ctx.beginPath();
+      ctx.moveTo(-radius * 4.6, 0);
+      ctx.lineTo(radius * 0.3, 0);
+      ctx.lineWidth = Math.max(0.5, radius * 0.26);
+      ctx.strokeStyle = `rgba(173, 218, 255, ${alpha * 0.35})`;
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
+
+function getRandomId() {
+  if (window.crypto && typeof window.crypto.randomUUID === "function") {
+    return window.crypto.randomUUID();
+  }
+  return `${Date.now()}_${Math.random().toString(16).slice(2)}`;
+}
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function formatTime(value) {
+  if (!value) return "";
+  return new Date(value).toLocaleString("zh-CN", {
+    month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit"
+  });
+}
+
+function getMissionById(id) {
+  for (let i = 0; i < state.missions.length; i += 1) {
+    if (state.missions[i].id === id) return state.missions[i];
+  }
+  return null;
+}
+
+function initCanvas() {
+  ctx = els.canvas.getContext("2d");
+  resizeCanvas();
+  for (let i = 0; i < 220; i += 1) {
+    backgroundDust.push({
+      x: Math.random(), y: Math.random(),
+      radius: Math.random() * 1.7 + 0.4,
+      alpha: Math.random() * 0.5 + 0.08,
+      drift: Math.random() * 0.002 + 0.0002
+    });
+  }
+}
+
+function resizeCanvas() {
+  width = window.innerWidth; height = window.innerHeight;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  els.canvas.width = Math.floor(width * dpr);
+  els.canvas.height = Math.floor(height * dpr);
+  els.canvas.style.width = `${width}px`; els.canvas.style.height = `${height}px`;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function syncStars() {
+  const existing = {};
+  for (let i = 0; i < starNodes.length; i += 1) { existing[starNodes[i].id] = starNodes[i]; }
+  const next = [];
+  for (let i = 0; i < state.whispers.length; i += 1) {
+    const whisper = state.whispers[i];
+    const star = existing[whisper.id] || new WarpStar(whisper, i);
+    star.applyPayload(whisper, i);
+    next.push(star);
+  }
+  starNodes.length = 0;
+  Array.prototype.push.apply(starNodes, next);
+}
+
+function renderScene(nowMs) {
+  if (!lastFrameTime) lastFrameTime = nowMs;
+  const deltaMs = Math.min(33, nowMs - lastFrameTime || 16);
+  lastFrameTime = nowMs;
+
+  ctx.clearRect(0, 0, width, height);
+  ctx.fillStyle = "rgba(4, 8, 20, 0.22)";
+  ctx.fillRect(0, 0, width, height);
+
+  for (let i = 0; i < backgroundDust.length; i += 1) {
+    const dust = backgroundDust[i];
+    dust.y += dust.drift;
+    if (dust.y > 1.05) { dust.y = -0.04; dust.x = Math.random(); }
+    ctx.beginPath();
+    ctx.arc(dust.x * width, dust.y * height, dust.radius, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(180, 206, 255, ${dust.alpha})`;
+    ctx.fill();
+  }
+
+  if (!isDragging) { targetRotationY += 0.00035; targetRotationX += 0.00005; }
+  rotationX += (targetRotationX - rotationX) * 0.06;
+  rotationY += (targetRotationY - rotationY) * 0.06;
+
+  for (let i = 0; i < starNodes.length; i += 1) {
+    starNodes[i].update(deltaMs); starNodes[i].draw(nowMs);
+  }
+  window.requestAnimationFrame(renderScene);
+}
+
+function getOrCreateDeviceId() {
+  let deviceId = localStorage.getItem("starlit_device_id");
+  if (!deviceId) {
+    deviceId = `device_${getRandomId()}`;
+    localStorage.setItem("starlit_device_id", deviceId);
+  }
+  return deviceId;
+}
+
+async function api(path, options) {
+  const response = await fetch(path, {
+    headers: { "Content-Type": "application/json" }, ...(options || {})
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    const error = new Error(data.error || "request_failed");
+    error.code = data.error || "request_failed";
+    throw error;
+  }
+  return data;
+}
+
+function updateSession(session) {
+  state.session = session;
+  els.aliasText.textContent = session.alias;
+  els.tokenText.textContent = `${session.token.slice(0, 18)}...`;
+  els.coinText.textContent = String(session.coins);
+  els.replyAlertText.textContent = String(session.unreadReplyCount);
+}
+
+function updateMissions(missions, rewardGranted) {
+  state.missions = missions || [];
+  const spring = getMissionById("listen_spring");
+  const read = getMissionById("read_obsessions");
+
+  if (spring) {
+    els.springBar.style.width = `${Math.min(100, (spring.progress / spring.target) * 100)}%`;
+    els.springText.textContent = `${spring.progress} / ${spring.target} 秒`;
+  }
+  if (read) {
+    els.readBar.style.width = `${Math.min(100, (read.progress / read.target) * 100)}%`;
+    els.readText.textContent = `${read.progress} / ${read.target} 条`;
+  }
+
+  if (rewardGranted && rewardGranted > 0) {
+    els.missionRewardNote.textContent = `奖励到账 +${rewardGranted} 星币，宇宙在为你的恢复力鼓掌。`;
+  } else {
+    els.missionRewardNote.textContent = "奖励会在完成时自动注入星币。";
+  }
+}
+
+function renderLogs() {
+  if (!state.logs.length) {
+    els.logList.innerHTML = `
+      <div class="log-card">
+        <strong>还没有观测记录</strong>
+        <p>发出第一颗流星后，你的私人日志就会在这里生成。</p>
+      </div>
+    `;
+    return;
+  }
+
+  let html = "";
+  for (let i = 0; i < state.logs.length; i += 1) {
+    const entry = state.logs[i];
+    let repliesHtml = "";
+
+    if (entry.replies.length) {
+      for (let j = 0; j < entry.replies.length; j += 1) {
+        const reply = entry.replies[j];
+        repliesHtml += `
+          <div class="log-reply ${reply.fromSelf ? "self" : ""}">
+            <strong>${escapeHtml(reply.authorAlias)}</strong>
+            <div>${escapeHtml(reply.content)}</div>
+          </div>
+        `;
+      }
+    } else {
+      repliesHtml = `<div class="log-reply"><span class="empty-state">还没有回响抵达这颗流星。</span></div>`;
+    }
+
+    html += `
+      <article class="log-card">
+        <div class="log-card-header">
+          <strong>${entry.isVip ? '<span class="vip-glow">高亮流星</span>' : "普通流星"}</strong>
+          <span class="log-badge">${entry.unreadCount ? `未读 ${entry.unreadCount}` : "已读"}</span>
         </div>
-    </div>
+        <p>${escapeHtml(entry.text)}</p>
+        <div class="log-replies">${repliesHtml}</div>
+      </article>
+    `;
+  }
+  els.logList.innerHTML = html;
+}
 
-    <canvas id="spaceCanvas"></canvas>
+function setWhispers(whispers) {
+  state.whispers = whispers || [];
+  syncStars();
+}
 
-    <div class="guide-hint" id="guideHint">轻触或拖拽星空 · 唤醒尘封的远方执念</div>
-    <div class="ambient-container">
-        <div class="breathing-text" id="breathingText">
-            闭眼，听雨。<br>这一刻，世界不属于任何人，只属于你自己。
+function showToast(title, message, isError) {
+  const toast = document.createElement("div");
+  toast.className = `toast${isError ? " error" : ""}`;
+  toast.innerHTML = `<strong>${escapeHtml(title)}</strong><div>${escapeHtml(message)}</div>`;
+  els.toastStack.appendChild(toast);
+  window.setTimeout(() => { if (toast.parentNode) { toast.parentNode.removeChild(toast); } }, 3200);
+}
+
+async function bootstrap() {
+  const token = localStorage.getItem("starlit_soul_token") || "";
+  const deviceId = getOrCreateDeviceId();
+  const payload = await api("/api/bootstrap", {
+    method: "POST", body: JSON.stringify({ token, deviceId })
+  });
+
+  localStorage.setItem("starlit_soul_token", payload.session.token);
+  updateSession(payload.session);
+  updateMissions(payload.missions, 0);
+  setWhispers(payload.whispers);
+  state.logs = payload.logs || [];
+  renderLogs();
+}
+
+async function refreshState() {
+  if (!state.session) return;
+  const data = await api(`/api/state?token=${encodeURIComponent(state.session.token)}`);
+  updateSession(data.session);
+  updateMissions(data.missions, 0);
+  setWhispers(data.whispers);
+}
+
+async function refreshLogs(ack) {
+  if (!state.session) return;
+  const data = await api(`/api/logs?token=${encodeURIComponent(state.session.token)}&ack=${ack ? "1" : "0"}`);
+  updateSession(data.session);
+  state.logs = data.logs || [];
+  renderLogs();
+}
+
+async function submitWhisper() {
+  const text = els.whisperInput.value.trim();
+  if (!text) {
+    showToast("还没写内容", "先让这颗流星有一句真正想说的话。", true);
+    return;
+  }
+
+  try {
+    const data = await api("/api/whispers", {
+      method: "POST",
+      body: JSON.stringify({
+        token: state.session.token,
+        text,
+        isVip: els.vipToggle.checked
+      })
+    });
+
+    els.whisperInput.value = "";
+    els.vipToggle.checked = false;
+    closePanel("whisperModal");
+    
+    // ✨ 核心修复：这里合并更新完整的钱包面板，防止充值和消费后星币不同步
+    updateSession(data.session);
+    state.logs = data.logs || [];
+    renderLogs();
+    await refreshState();
+    playConfirmTone();
+    showToast("流星已发射", "它已经进入宇宙，也进入了你的个人观测日志。");
+  } catch (error) {
+    const messages = {
+      insufficient_coins: "星币不足，先完成治愈任务再回来点亮高亮流星吧。",
+      sensitive_content: "这条内容里有系统拦截词，换个表达方式试试。",
+      empty_whisper: "输入为空，宇宙暂时还接不到你的心事。"
+    };
+    showToast("发射失败", messages[error.code] || "连接宇宙时发生波动，请稍后再试。", true);
+  }
+}
+
+function renderStarDialog(whisper, replies) {
+  els.dialogBadge.textContent = whisper.isVip ? "高亮流星" : whisper.isOwn ? "我的流星" : "流星碎片";
+  els.dialogTitle.textContent = whisper.text;
+  els.dialogMeta.textContent = `${whisper.authorAlias} · ${formatTime(whisper.createdAt)}`;
+
+  if (!replies.length) {
+    els.replyList.innerHTML = `
+      <div class="reply-item">
+        <span class="empty-state">还没有回响抵达。你可以成为第一个回应这颗流星的人。</span>
+      </div>
+    `;
+  } else {
+    let html = "";
+    for (let i = 0; i < replies.length; i += 1) {
+      const reply = replies[i];
+      html += `
+        <div class="reply-item ${reply.fromSelf ? "self" : ""}">
+          <strong>${escapeHtml(reply.authorAlias)}</strong>
+          <div>${escapeHtml(reply.content)}</div>
+          <time>${formatTime(reply.createdAt)}</time>
         </div>
-    </div>
+      `;
+    }
+    els.replyList.innerHTML = html;
+  }
+  els.replyInput.value = "";
+}
 
-    <div class="resonance-box" id="resonanceBox" onclick="event.stopPropagation()"></div>
+async function progressMission(payload) {
+  // 🔐 核心修复：增加并发锁机制，防止打卡请求高频重叠打满服务器
+  if (state.isMissionSubmitting) return;
+  state.isMissionSubmitting = true;
 
-    <div class="bottom-bar">
-        <button class="action-btn" id="audioBtn" onclick="toggleSpaceAudio(event)">开启环境音</button>
-        <button class="action-btn whisper-trigger" onclick="openInputPanel(event)">把执念散作星辰</button>
-    </div>
+  try {
+    const data = await api("/api/missions/progress", {
+      method: "POST",
+      body: JSON.stringify({
+        token: state.session.token,
+        ...payload
+      })
+    });
 
-    <div class="overlay-panel" id="inputPanel" onclick="closeInputPanel()">
-        <div class="panel-content" onclick="event.stopPropagation()">
-            <button class="reply-action-btn" style="position: absolute; right: 15px; top: 15px; padding: 2px 6px;" onclick="closeInputPanel()">✕</button>
-            <div class="panel-hint" id="userSignHint">你的宇宙代号：【计算中...】</div>
-            <textarea class="whisper-area" id="whisperInput" placeholder="写下一句话，打碎揉进星河里。此地无人知晓你，亦无人能评判你..."></textarea>
-            
-            <label class="vip-checkbox-zone">
-                <input type="checkbox" id="vipPublishCheck">
-                <span>开启【炫彩流星发言特效】（消耗 10 星币）</span>
-            </label>
+    updateSession(data.session);
+    updateMissions(data.missions, data.rewardGranted || 0);
+    if (data.rewardGranted) {
+      playConfirmTone();
+      showToast("任务完成", `奖励到账 +${data.rewardGranted} 星币。`, false);
+    }
+  } finally {
+    state.isMissionSubmitting = false; // 解锁
+  }
+}
 
-            <div class="panel-buttons">
-                <button class="panel-btn cancel" onclick="closeInputPanel()">收回思绪</button>
-                <button class="panel-btn confirm" onclick="submitWhisper(event)">发射执念</button>
-            </div>
-        </div>
-    </div>
+async function openWhisperDialog(star) {
+  try {
+    const data = await api(`/api/whispers/${encodeURIComponent(star.id)}/replies?token=${encodeURIComponent(state.session.token)}`);
+    state.selectedWhisper = star;
+    updateSession(data.session);
+    renderStarDialog(data.whisper, data.replies || []);
+    els.starDialog.classList.add("active");
 
-    <script>
-        // =========================================
-        // 核心音频：深空风声 + 432Hz 颂钵治愈交互音
-        // (保持上一版让你满意的空灵混响音)
-        // =========================================
-        let audioCtx = null;
-        let convolver = null;
-        let masterGain = null;
-        let isAudioInit = false;
+    if (!star.isOwn && !state.readMissionCache.has(star.id)) {
+      state.readMissionCache.add(star.id);
+      await progressMission({ type: "readWhisper", whisperId: star.id });
+    } else if (star.isOwn) {
+      await refreshState();
+      await refreshLogs(true);
+    }
+  } catch (error) {
+    showToast("读取失败", "这颗星星暂时接触不到，稍后再试。", true);
+  }
+}
 
-        function initAudio() {
-            if (isAudioInit) return;
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            audioCtx = new AudioContext();
-            
-            masterGain = audioCtx.createGain();
-            masterGain.gain.value = 0.8;
-            masterGain.connect(audioCtx.destination);
+async function sendReply() {
+  if (!state.selectedWhisper) return;
+  const content = els.replyInput.value.trim();
+  if (!content) {
+    showToast("还没写回响", "一句轻轻的话，也会成为别人今晚的光。", true);
+    return;
+  }
 
-            const reverbTime = 4.0; 
-            const sampleRate = audioCtx.sampleRate;
-            const length = sampleRate * reverbTime;
-            const impulse = audioCtx.createBuffer(2, length, sampleRate);
-            for (let i = 0; i < length; i++) {
-                const decay = Math.exp(-i / (sampleRate * 0.8)); 
-                impulse.getChannelData(0)[i] = (Math.random() * 2 - 1) * decay;
-                impulse.getChannelData(1)[i] = (Math.random() * 2 - 1) * decay;
-            }
-            convolver = audioCtx.createConvolver();
-            convolver.buffer = impulse;
-            convolver.connect(masterGain);
+  try {
+    await api(`/api/whispers/${encodeURIComponent(state.selectedWhisper.id)}/replies`, {
+      method: "POST", body: JSON.stringify({ token: state.session.token, content })
+    });
 
-            startStellarWind();
-            isAudioInit = true;
-            document.getElementById('audioBtn').innerText = "断开俗世 (沉浸中)";
-        }
+    els.replyInput.value = "";
+    playConfirmTone();
+    await openWhisperDialog(state.selectedWhisper);
+    await refreshState();
+    await refreshLogs(false);
+    showToast("回响已送达", "你的话正在穿过这片星海。", false);
+  } catch (error) {
+    showToast("发送失败", "这句回响没能发出去，请稍后再试。", true);
+  }
+}
 
-        // 第一次点击屏幕解锁音频
-        window.addEventListener('mousedown', () => { if(!isAudioInit) initAudio(); }, {once: true});
-        window.addEventListener('touchstart', () => { if(!isAudioInit) initAudio(); }, {once: true, passive: true});
+function startMissionTimer() {
+  if (state.missionTickHandle) return;
+  // ✨ 核心修复：改用闭环防堆积心跳。每5秒仅当上一个请求完成后，才自适应安排下一个任务计数
+  state.missionTickHandle = window.setInterval(() => {
+    progressMission({ type: "listen", amount: 5 }).catch(() => { clearMissionTimer(); });
+  }, 5000);
+}
 
-        function startStellarWind() {
-            const bufferSize = audioCtx.sampleRate * 2;
-            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-            
-            const noise = audioCtx.createBufferSource();
-            noise.buffer = buffer; noise.loop = true;
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = 'lowpass'; filter.frequency.value = 150; // 沉闷的宇宙风声
-            const noiseGain = audioCtx.createGain();
-            noiseGain.gain.value = 0.03; 
+function clearMissionTimer() {
+  if (!state.missionTickHandle) return;
+  window.clearInterval(state.missionTickHandle);
+  state.missionTickHandle = null;
+}
 
-            noise.connect(filter); filter.connect(convolver); noise.start();
-        }
+function toggleAudio() {
+  if (state.audioCtx) {
+    try { state.audioNodes.noise.stop(); } catch (error) {}
+    state.audioCtx.close(); state.audioCtx = null; state.audioNodes = null;
+    els.audioBtn.textContent = "开启听泉";
+    clearMissionTimer();
+    return;
+  }
 
-        const pentatonicScale = [523.25, 587.33, 659.25, 783.99, 880.00];
-        function playValleyChime() {
-            if (!audioCtx) initAudio();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const baseFreq = pentatonicScale[Math.floor(Math.random() * pentatonicScale.length)];
-            const now = audioCtx.currentTime;
+  const AudioCtor = window.AudioContext || window.webkitAudioContext;
+  if (!AudioCtor) {
+    showToast("当前环境不支持", "这个浏览器环境不支持声音播放。", true);
+    return;
+  }
 
-            function createPartial(freq, vol, attack, decay, type='sine') {
-                const osc = audioCtx.createOscillator();
-                osc.type = type; osc.frequency.setValueAtTime(freq, now);
-                const gain = audioCtx.createGain();
-                gain.gain.setValueAtTime(0, now);
-                gain.gain.linearRampToValueAtTime(vol, now + attack);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + decay);
-                osc.connect(gain); gain.connect(convolver); 
-                osc.start(now); osc.stop(now + decay);
-            }
-            createPartial(baseFreq, 0.5, 0.05, 4.0);
-            createPartial(baseFreq * 2.01, 0.15, 0.02, 3.0);
-            createPartial(baseFreq * 2.99, 0.05, 0.01, 2.0, 'triangle');
-        }
+  const audioCtx = new AudioCtor();
+  const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 2, audioCtx.sampleRate);
+  const channel = buffer.getChannelData(0);
+  for (let i = 0; i < channel.length; i += 1) { channel[i] = Math.random() * 2 - 1; }
 
-        function toggleSpaceAudio(e) {
-            if(e) e.stopPropagation();
-            if (audioCtx && isAudioInit) {
-                audioCtx.suspend(); isAudioInit = false;
-                document.getElementById('audioBtn').innerText = "开启环境音";
-            } else {
-                initAudio(); if(audioCtx.state === 'suspended') audioCtx.resume();
-                isAudioInit = true;
-                document.getElementById('audioBtn').innerText = "断开俗世 (沉浸中)";
-            }
-        }
+  const noise = audioCtx.createBufferSource();
+  noise.buffer = buffer; noise.loop = true;
+  const filter = audioCtx.createBiquadFilter(); filter.type = "lowpass"; filter.frequency.value = 860;
+  const gain = audioCtx.createGain(); gain.gain.value = 0.06;
 
-        // =========================================
-        // 商业UI与逻辑 (原样保留)
-        // =========================================
-        let starCoins = parseInt(localStorage.getItem('star_coins_balance') || '0');
-        document.getElementById('userCoins').innerText = starCoins;
+  noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+  noise.start();
 
-        function chargeCoins(e) {
-            if(e) e.stopPropagation();
-            starCoins += 100;
-            localStorage.setItem('star_coins_balance', starCoins.toString());
-            document.getElementById('userCoins').innerText = starCoins;
-            alert("💳 充值成功：+100 星币！快去发射炫彩特效皮肤吧！");
-        }
+  state.audioCtx = audioCtx; state.audioNodes = { noise };
+  els.audioBtn.textContent = "停止听泉";
+  startMissionTimer();
+}
 
-        const localRepliesStorage = {};
-        function getOrCreateUniverseSign() {
-            let sign = localStorage.getItem('universe_soul_sign');
-            if (!sign) {
-                const prefix = ["仙女座", "猎户座", "英仙座", "天鹅座"];
-                const suffix = ["慢中子", "虚粒子", "坍缩态", "暗物质"];
-                sign = `${prefix[Math.floor(Math.random() * prefix.length)]} · ${suffix[Math.floor(Math.random() * suffix.length)]}`;
-                localStorage.setItem('universe_soul_sign', sign);
-            }
-            return sign;
-        }
-        const myUniverseSign = getOrCreateUniverseSign();
-        document.getElementById('userSignDisplay').innerText = `🌌 代号：${myUniverseSign}`;
+function playConfirmTone() {
+  if (!state.audioCtx) return;
+  const now = state.audioCtx.currentTime;
+  const freqs = [293.66, 440, 659.25];
 
-        // =========================================
-        // 悬浮交互星星 (Canvas 背景透明，露出视频)
-        // =========================================
-        const canvas = document.getElementById('spaceCanvas');
-        const ctx = canvas.getContext('2d');
-        let width = canvas.width = window.innerWidth;
-        let height = canvas.height = window.innerHeight;
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        
-        let rotationX = 0, rotationY = 0, targetRotationX = 0, targetRotationY = 0;
-        let isDragging = false, startX = 0, startY = 0, prevMouseX = 0, prevMouseY = 0, totalMoveDist = 0;
-        const starNodes = [];
+  for (let i = 0; i < freqs.length; i += 1) {
+    const osc = state.audioCtx.createOscillator();
+    const gain = state.audioCtx.createGain();
+    osc.type = "sine"; osc.frequency.value = freqs[i];
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.03 / (i + 1), now + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.4 + i * 0.2);
+    osc.connect(gain); gain.connect(state.audioCtx.destination);
+    osc.start(now); osc.stop(now + 1.5 + i * 0.2);
+  }
+}
 
-        class StarNode {
-            constructor(id, text, sign, isUserGenerated = false, isVip = false) {
-                this.id = id || Math.floor(Math.random() * 1000000);
-                const theta = Math.random() * Math.PI * 2;
-                const phi = Math.acos((Math.random() * 2) - 1);
-                const baseDist = isMobile ? 240 : 320;
-                const dist = isUserGenerated ? (baseDist * 0.4) : (baseDist + Math.random() * (baseDist * 1.2));
+function openPanel(id) {
+  const panel = document.getElementById(id);
+  if (!panel) return;
+  if (id === "whisperModal") { panel.classList.remove("hidden"); return; }
+  panel.classList.add("active");
+}
 
-                this.x = dist * Math.sin(phi) * Math.cos(theta);
-                this.y = dist * Math.sin(phi) * Math.sin(theta);
-                this.z = dist * Math.cos(phi);
-                this.text = text; this.sign = sign || "远方微尘";
-                this.isUser = isUserGenerated; this.isVip = isVip;
+function closePanel(id) {
+  const panel = document.getElementById(id);
+  if (!panel) return;
+  if (id === "whisperModal") { panel.classList.add("hidden"); return; }
+  panel.classList.remove("active");
+}
 
-                const sizeMultiplier = isMobile ? 1.5 : 1.2;
-                this.size = isVip ? (6 * sizeMultiplier) : (isUserGenerated ? (4.5 * sizeMultiplier) : ((Math.random() * 1.5 + 0.8) * sizeMultiplier));
-                this.baseAlpha = isUserGenerated ? 0.95 : (Math.random() * 0.6 + 0.3);
-            }
-            draw(rotX, rotY, pulse) {
-                let cosX = Math.cos(rotX), sinX = Math.sin(rotX), cosY = Math.cos(rotY), sinY = Math.sin(rotY);
-                let x1 = this.x * cosY - this.z * sinY, z1 = this.x * sinY + this.z * cosY;
-                let y2 = this.y * cosX - z1 * sinX, z2 = this.y * sinX + z1 * cosX;
-                const fov = 500;
-                if (z2 + fov > 0) {
-                    this.currentScale = fov / (fov + z2);
-                    this.screenX = width / 2 + x1 * this.currentScale; this.screenY = height / 2 + y2 * this.currentScale;
-                    ctx.beginPath();
-                    ctx.arc(this.screenX, this.screenY, this.size * this.currentScale, 0, Math.PI * 2);
-                    
-                    if(this.isVip) {
-                        ctx.fillStyle = `rgba(238, 130, 238, ${this.baseAlpha * pulse})`;
-                        ctx.shadowBlur = 20; ctx.shadowColor = "#da70d6"; 
-                    } else if(this.isUser) {
-                        ctx.fillStyle = `rgba(242, 226, 177, ${this.baseAlpha})`;
-                        ctx.shadowBlur = 15; ctx.shadowColor = "#eddba4"; 
-                    } else { 
-                        ctx.fillStyle = `rgba(255, 255, 255, ${this.baseAlpha * pulse})`;
-                        ctx.shadowBlur = Math.random() > 0.8 ? 10 : 0; ctx.shadowColor = "#ffffff";
-                    }
-                    ctx.fill(); ctx.shadowBlur = 0;
-                }
-            }
-        }
+function closeDialog() {
+  els.starDialog.classList.remove("active");
+  state.selectedWhisper = null;
+}
 
-        function loadLocalSeeds() {
-            const localSeeds = [
-                ["今年31岁被裁员了，瞒着父母每天在图书馆假装上班，好累。", "天琴座 · 虚粒子", false],
-                ["这是一条极具商业尊贵排面的VIP流星发言特效示例！", "仙王座 · 氪金大佬", true],
-                ["努力了三年还是考研失败，感觉自己是个废物，对不起爸妈。", "飞马座 · 慢中子", false]
-            ];
-            for(let i=0; i<120; i++) {
-                const seed = localSeeds[i % localSeeds.length];
-                starNodes.push(new StarNode(2000+i, seed[0], seed[1], false, seed[2]));
-            }
-        }
-        loadLocalSeeds();
+function detectStarHit(x, y) {
+  for (let i = starNodes.length - 1; i >= 0; i -= 1) {
+    const star = starNodes[i];
+    if (!star.visible) continue;
+    const distance = Math.hypot(star.screenX - x, star.screenY - y);
+    if (distance <= star.screenRadius) return star;
+  }
+  return null;
+}
 
-        function submitWhisper(event) {
-            if(event) event.stopPropagation();
-            const input = document.getElementById('whisperInput'); 
-            const text = input.value.trim();
-            if(!text) return;
+function bindPointerEvents() {
+  function isUiTarget(target) {
+    return !!target.closest(".side-panel, .modal-card, .star-dialog, .action-dock, .top-shell");
+  }
 
-            const wantVip = document.getElementById('vipPublishCheck').checked;
-            if(wantVip && starCoins < 10) { alert("❌ 余额不足，请充值！"); return; }
-            if(wantVip) { starCoins -= 10; localStorage.setItem('star_coins_balance', starCoins.toString()); document.getElementById('userCoins').innerText = starCoins; }
+  function startDrag(x, y) {
+    isDragging = true; dragX = x; dragY = y; tapPoint = { x, y }; dragDistance = 0;
+  }
 
-            const newStar = new StarNode(Math.floor(Math.random() * 100000), text, myUniverseSign, true, wantVip);
-            starNodes.push(newStar); 
-            closeInputPanel(); 
-            if(audioCtx) playValleyChime(); 
-            input.value = ''; document.getElementById('vipPublishCheck').checked = false;
-        }
+  function moveDrag(x, y, factor) {
+    if (!isDragging) return;
+    const deltaX = x - dragX; const deltaY = y - dragY;
+    dragX = x; dragY = y;
+    dragDistance += Math.abs(deltaX) + Math.abs(deltaY);
+    targetRotationY += deltaX * factor; targetRotationX += deltaY * factor;
+  }
 
-        // 评论与渲染逻辑 (不变)
-        function fetchRepliesForStar(whisperId, containerId) {
-            const container = document.getElementById(containerId);
-            if(!container) return;
-            let htmlContent = "";
-            if (localRepliesStorage[whisperId]) {
-                localRepliesStorage[whisperId].forEach(r => { htmlContent += `<div class="single-reply-item"><strong>${r.author_sign}:</strong> ${r.content}</div>`; });
-            }
-            container.innerHTML = htmlContent || "<span style='color:rgba(255,255,255,0.4)'>尚无回响，写下第一道回响...</span>";
-            container.scrollTop = container.scrollHeight;
-        }
+  async function endDrag() {
+    if (!isDragging) return;
+    isDragging = false;
+    if (dragDistance < 10) {
+      const star = detectStarHit(tapPoint.x, tapPoint.y);
+      if (star) await openWhisperDialog(star);
+      else closeDialog();
+    }
+  }
 
-        function sendReplyToServer(whisperId, inputId, containerId) {
-            const inputElement = document.getElementById(inputId);
-            const content = inputElement.value.trim();
-            if(!content) return;
-            if (!localRepliesStorage[whisperId]) localRepliesStorage[whisperId] = [];
-            localRepliesStorage[whisperId].push({ whisper_id: whisperId, content: content, author_sign: myUniverseSign });
-            inputElement.value = "";
-            if(audioCtx) playValleyChime(); 
-            fetchRepliesForStar(whisperId, containerId);
-        }
+  window.addEventListener("mousedown", (event) => { if (isUiTarget(event.target)) return; startDrag(event.clientX, event.clientY); });
+  window.addEventListener("mousemove", (event) => { moveDrag(event.clientX, event.clientY, 0.0033); });
+  window.addEventListener("mouseup", () => { endDrag(); });
 
-        // 交互判定
-        window.addEventListener('mousedown', (e) => { if(checkTargetInvalid(e.target)) return; isDragging = true; totalMoveDist = 0; prevMouseX = e.clientX; prevMouseY = e.clientY; });
-        window.addEventListener('mousemove', (e) => { if (isDragging) { targetRotationY += (e.clientX - prevMouseX) * 0.002; targetRotationX += (e.clientY - prevMouseY) * 0.002; prevMouseX = e.clientX; prevMouseY = e.clientY; totalMoveDist += Math.hypot(e.clientX - prevMouseX, e.clientY - prevMouseY); } });
-        window.addEventListener('mouseup', (e) => { if(!isDragging) return; isDragging = false; if(totalMoveDist < 5) checkStarInteraction(e.clientX, e.clientY); });
-        
-        window.addEventListener('touchstart', (e) => { if(checkTargetInvalid(e.target)) return; isDragging = true; totalMoveDist = 0; startX = prevMouseX = e.touches[0].clientX; startY = prevMouseY = e.touches[0].clientY; }, { passive: true });
-        window.addEventListener('touchmove', (e) => { if (!isDragging) return; targetRotationY += (e.touches[0].clientX - prevMouseX) * 0.004; targetRotationX += (e.touches[0].clientY - prevMouseY) * 0.004; prevMouseX = e.touches[0].clientX; prevMouseY = e.touches[0].clientY; totalMoveDist += Math.hypot(e.touches[0].clientX - prevMouseX, e.touches[0].clientY - prevMouseY); }, { passive: true });
-        window.addEventListener('touchend', (e) => { if(!isDragging) return; isDragging = false; if (totalMoveDist < 8) checkStarInteraction(startX, startY); });
-        
-        window.addEventListener('click', (e) => { const resBox = document.getElementById('resonanceBox'); if(!resBox.contains(e.target) && !checkTargetInvalid(e.target)) { resBox.classList.remove('active', 'mobile-center', 'vip-style'); } });
+  window.addEventListener("touchstart", (event) => {
+    if (isUiTarget(event.target)) return;
+    const touch = event.touches[0]; startDrag(touch.clientX, touch.clientY);
+  }, { passive: true });
+  window.addEventListener("touchmove", (event) => {
+    const touch = event.touches[0]; moveDrag(touch.clientX, touch.clientY, 0.0048);
+  }, { passive: true });
+  window.addEventListener("touchend", () => { endDrag(); });
+}
 
-        function checkTargetInvalid(target) { return target.tagName === 'TEXTAREA' || target.tagName === 'BUTTON' || target.tagName === 'INPUT' || target.classList.contains('whisper-trigger') || target.id === 'userSignHint' || target.classList.contains('social-reply-zone') || target.classList.contains('reply-list-container') || target.classList.contains('single-reply-item') || (target.closest && target.closest('.commercial-header')); }
-        
-        function checkStarInteraction(mx, my) {
-            let hoveredStar = null;
-            const activeRadius = isMobile ? 35 : 18;
-            for(let star of starNodes) { if(star.currentScale > 0 && Math.hypot(star.screenX - mx, star.screenY - my) < activeRadius) { hoveredStar = star; break; } }
-            if(hoveredStar) {
-                if(audioCtx) playValleyChime();
-                const containerId = `replies_${hoveredStar.id}`; const inputId = `reply_in_${hoveredStar.id}`;
-                const resBox = document.getElementById('resonanceBox');
-                if(hoveredStar.isVip) { resBox.classList.add('vip-style'); } else { resBox.classList.remove('vip-style'); }
+function bindUi() {
+  els.audioBtn.addEventListener("click", toggleAudio);
+  els.missionBtn.addEventListener("click", () => { openPanel("missionPanel"); });
+  els.logBtn.addEventListener("click", async () => { openPanel("logPanel"); await refreshLogs(true); });
+  els.openWhisperBtn.addEventListener("click", () => { openPanel("whisperModal"); });
+  els.refreshLogBtn.addEventListener("click", () => {
+    refreshLogs(true).catch(() => { showToast("同步失败", "日志暂时没有同步上，请稍后再试。", true); });
+  });
+  els.submitWhisperBtn.addEventListener("click", () => {
+    submitWhisper().catch(() => { showToast("发射失败", "宇宙连接波动，请稍后再试。", true); });
+  });
+  els.sendReplyBtn.addEventListener("click", () => {
+    sendReply().catch(() => { showToast("发送失败", "回响暂时没有发出去。", true); });
+  });
 
-                resBox.innerHTML = `
-                    <button class="reply-action-btn" style="position: absolute; right: 12px; top: 12px; padding: 2px 6px; background: transparent; border: none;" onclick="event.stopPropagation(); document.getElementById('resonanceBox').classList.remove('active', 'mobile-center', 'vip-style');">✕</button>
-                    <div style="font-style: italic; margin-top: 10px; word-break: break-all;" class="${hoveredStar.isVip ? 'vip-text' : ''}">
-                        ${hoveredStar.isVip ? '<span class="vip-tag">流星特效</span>' : ''}"${hoveredStar.text}"
-                    </div>
-                    <span class="author-sign">—— 来自【${hoveredStar.sign}】</span>
-                    <div class="social-reply-zone">
-                        <div class="reply-list-container" id="${containerId}">正在同步回响...</div>
-                        <textarea class="reply-input-mini" id="${inputId}" placeholder="写下你的共鸣..." rows="1"></textarea>
-                        <div class="reply-btn-bar">
-                            <span style="font-size:0.65rem; color:rgba(255,255,255,0.4);">代号:${myUniverseSign}</span>
-                            <button class="reply-action-btn" onclick="sendReplyToServer(${hoveredStar.id}, '${inputId}', '${containerId}')">发送共鸣</button>
-                        </div>
-                    </div>
-                `;
-                if (isMobile) { resBox.style.left = "50%"; resBox.style.top = "50%"; resBox.classList.add('mobile-center'); } 
-                else { resBox.classList.remove('mobile-center'); resBox.style.left = `${mx}px`; resBox.style.top = `${my}px`; }
-                resBox.classList.add('active');
-                fetchRepliesForStar(hoveredStar.id, containerId);
-            }
-        }
+  const closePanelButtons = document.querySelectorAll("[data-close-panel]");
+  for (let i = 0; i < closePanelButtons.length; i += 1) {
+    const button = closePanelButtons[i];
+    button.addEventListener("click", () => { closePanel(button.getAttribute("data-close-panel")); });
+  }
 
-        let globalPulse = 1, pulseDir = 1;
-        function render() {
-            // 每次渲染清空画布（透明），这样就能露出底下的视频！
-            ctx.clearRect(0, 0, width, height);
+  const closeDialogButtons = document.querySelectorAll("[data-close-dialog]");
+  for (let i = 0; i < closeDialogButtons.length; i += 1) { closeDialogButtons[i].addEventListener("click", closeDialog); }
 
-            rotationX += (targetRotationX - rotationX) * 0.05; rotationY += (targetRotationY - rotationY) * 0.05;
-            if (!isDragging) { targetRotationY += 0.00025; targetRotationX += 0.00004; }
-            globalPulse += 0.004 * pulseDir; if(globalPulse > 1.15 || globalPulse < 0.85) pulseDir *= -1;
-            for (let star of starNodes) star.draw(rotationX, rotationY, globalPulse);
-            requestAnimationFrame(render);
-        }
-        render();
+  window.addEventListener("resize", resizeCanvas);
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") { closeDialog(); closePanel("missionPanel"); closePanel("logPanel"); closePanel("whisperModal"); }
+  });
+}
 
-        function openInputPanel(e) { if(e) e.stopPropagation(); document.getElementById('userSignHint').innerText = `你的宇宙代号：【${myUniverseSign}】`; document.getElementById('inputPanel').style.display = 'flex'; document.getElementById('whisperInput').focus(); }
-        function closeInputPanel() { document.getElementById('inputPanel').style.display = 'none'; }
-        
-        const texts = ["万物自有其时。<br>你已经做得很好了，不必对自己步步紧逼。", "闭眼，听雨。<br>这一刻，世界不属于任何人，只属于你自己。"];
-        let textIndex = 0; setInterval(() => { textIndex = (textIndex + 1) % texts.length; document.getElementById('breathingText').innerHTML = texts[textIndex]; }, 15000);
+function startAmbientRotation() {
+  window.setInterval(() => {
+    state.ambientIndex = (state.ambientIndex + 1) % ambientTexts.length;
+    els.ambientText.textContent = ambientTexts[state.ambientIndex];
+  }, 9000);
+}
 
-        window.addEventListener('resize', () => { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; });
-    </script>
-</body>
-</html>
+function startPolling() {
+  state.pollHandle = window.setInterval(async () => {
+    try {
+      await refreshState();
+      if (els.logPanel.classList.contains("active")) { await refreshLogs(false); }
+    } catch (error) {}
+  }, 9000);
+}
+
+async function main() {
+  initCanvas(); bindPointerEvents(); bindUi(); startAmbientRotation();
+  await bootstrap();
+  window.requestAnimationFrame(renderScene);
+  startPolling();
+}
+
+main().catch((error) => {
+  console.error(error);
+  showToast("初始化失败", "本地宇宙没有成功启动，请刷新页面重试。", true);
+});
