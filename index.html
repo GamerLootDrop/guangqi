@@ -3,1019 +3,642 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>星海微茫 · 3.0 宇宙深空沉浸版</title>
+    <title>星海微茫 · 360°宇宙沉浸版</title>
     <style>
-        /* 基础样式复位 */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html {
             width: 100%; height: 100%; overflow: hidden;
-            background-color: #040814;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            color: #e4edff; user-select: none; -webkit-user-select: none;
+            background-color: #02050a;
+            font-family: "Noto Serif SC", "SimSun", serif;
+            user-select: none; -webkit-user-select: none;
         }
         canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
 
-        /* 顶部状态外壳 */
-        .top-shell {
+        /* 顶部商业化看板 */
+        .commercial-header {
             position: absolute; top: 20px; left: 20px; right: 20px;
             display: flex; justify-content: space-between; align-items: center;
-            z-index: 10; padding: 12px 20px;
-            background: rgba(10, 16, 32, 0.65); border: 1px solid rgba(152, 194, 255, 0.15);
+            z-index: 10; padding: 10px 15px;
+            background: rgba(10, 15, 26, 0.6); border: 1px solid rgba(166, 152, 122, 0.2);
+            border-radius: 8px; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+            color: #e6dedf; font-size: 0.85rem; letter-spacing: 1px;
+        }
+        .wallet-zone { display: flex; align-items: center; gap: 10px; }
+        .coin-num { color: #ffd700; font-weight: bold; text-shadow: 0 0 8px rgba(255, 215, 0, 0.5); }
+        .charge-btn {
+            background: linear-gradient(135deg, #ffd700, #b8860b); border: none;
+            color: #000; padding: 3px 12px; font-size: 0.75rem; font-weight: bold;
+            border-radius: 12px; cursor: pointer; transition: all 0.3s;
+        }
+        .charge-btn:hover { transform: scale(1.05); box-shadow: 0 0 10px rgba(255,215,0,0.4); }
+
+        .ambient-container {
+            position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%);
+            width: 85%; max-width: 500px; text-align: center; z-index: 2; pointer-events: none;
+        }
+        .breathing-text {
+            font-size: 1.15rem; color: rgba(196, 185, 163, 0.85); line-height: 2.2;
+            letter-spacing: 4px; font-weight: 300;
+            animation: spacePulse 15s infinite ease-in-out;
+            text-shadow: 0 0 12px rgba(196, 185, 163, 0.2);
+        }
+        @keyframes spacePulse {
+            0%, 100% { opacity: 0; transform: translateY(5px); filter: blur(1px); }
+            8%, 92% { opacity: 0.85; transform: translateY(0); filter: blur(0); }
+        }
+
+        .guide-hint {
+            position: absolute; top: 85px; left: 50%; transform: translateX(-50%);
+            font-size: 0.78rem; color: rgba(140, 135, 125, 0.5); letter-spacing: 2px; z-index: 2;
+            pointer-events: none; text-align: center; width: 90%;
+        }
+
+        .bottom-bar {
+            position: absolute; bottom: 35px; width: 100%;
+            display: flex; justify-content: space-between; padding: 0 40px; z-index: 3;
+        }
+        .action-btn {
+            background: rgba(15, 22, 35, 0.4); border: 1px solid rgba(143, 133, 112, 0.25);
+            color: rgba(184, 173, 150, 0.75); padding: 9px 20px; font-size: 0.82rem; border-radius: 20px;
+            cursor: pointer; letter-spacing: 2px; backdrop-filter: blur(8px);
+            transition: all 0.4s ease; font-family: inherit;
+        }
+        .action-btn:hover {
+            border-color: rgba(217, 201, 165, 0.6); color: rgba(242, 233, 213, 0.95);
+            box-shadow: 0 0 10px rgba(217, 201, 165, 0.15);
+        }
+
+        /* 弹出共鸣框 */
+        .resonance-box {
+            position: absolute; z-index: 10; padding: 24px 24px 20px 24px;
+            background: rgba(10, 15, 26, 0.93); border: 1px solid rgba(166, 152, 122, 0.4);
+            border-radius: 8px; color: rgba(224, 215, 195, 0.95);
+            font-size: 0.92rem; line-height: 1.8; letter-spacing: 1.5px;
+            width: 340px; max-width: 90vw; pointer-events: auto;
+            opacity: 0; transform: translate(-50%, -120%) scale(0.9);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7), inset 0 0 15px rgba(166,152,122,0.15);
             backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border-radius: 12px; font-size: 14px;
         }
-        .user-meta span { margin-right: 15px; color: #a2b7e2; }
-        .user-meta strong { color: #ffd48e; text-shadow: 0 0 8px rgba(255, 212, 142, 0.4); }
-        .ambient-box { color: #8fa7d1; font-style: italic; transition: opacity 0.5s; }
-
-        /* 侧边功能面板公用样式 */
-        .side-panel {
-            position: absolute; top: 90px; bottom: 100px; width: 360px;
-            background: rgba(8, 14, 28, 0.8); border: 1px solid rgba(152, 194, 255, 0.12);
-            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-            border-radius: 16px; z-index: 12; padding: 20px;
-            display: flex; flex-direction: column;
-            transform: translateX(-390px); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .side-panel.active { transform: translateX(0); }
-        #logPanel { right: 20px; transform: translateX(390px); }
-        #logPanel.active { transform: translateX(0); }
+        .resonance-box.active { opacity: 1; transform: translate(-50%, -120%) scale(1); }
         
-        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(152, 194, 255, 0.1); padding-bottom: 10px; }
-        .panel-header h2 { font-size: 18px; color: #b6cfff; font-weight: 500; }
-        .close-btn { background: none; border: none; color: #768ebf; cursor: pointer; font-size: 18px; }
-        .close-btn:hover { color: #e4edff; }
-
-        /* 任务条目样式 */
-        .mission-card { background: rgba(255,255,255,0.03); border-radius: 8px; padding: 15px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); }
-        .mission-card h3 { font-size: 14px; margin-bottom: 8px; color: #d0deff; }
-        .progress-box { background: rgba(0,0,0,0.3); height: 6px; border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
-        .progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #6cd6ff, #b6cfff); transition: width 0.4s; }
-        .progress-txt { font-size: 12px; color: #768ebf; text-align: right; }
-        .reward-note { font-size: 12px; color: #ffd48e; margin-top: 15px; text-align: center; line-height: 1.5; }
-
-        /* 日志墙样式 */
-        .log-scroll { flex: 1; overflow-y: auto; padding-right: 5px; }
-        .log-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(152,194,255,0.08); border-radius: 10px; padding: 15px; margin-bottom: 15px; }
-        .log-card-header { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px; }
-        .vip-glow { color: #ffd48e; text-shadow: 0 0 6px rgba(255,212,142,0.5); }
-        .log-badge { color: #6cd6ff; background: rgba(108,214,255,0.1); padding: 2px 6px; border-radius: 4px; }
-        .log-card p { font-size: 14px; line-height: 1.6; color: #d0deff; margin-bottom: 10px; word-break: break-all; }
-        .log-replies { background: rgba(0,0,0,0.2); border-radius: 6px; padding: 10px; font-size: 13px; }
-        .log-reply { margin-bottom: 8px; line-height: 1.4; }
-        .log-reply:last-child { margin-bottom: 0; }
-        .log-reply strong { color: #a2b7e2; block-size: auto; margin-right: 5px; }
-        .log-reply.self strong { color: #ffd48e; }
-        .empty-state { color: #566c96; font-style: italic; font-size: 12px; }
-
-        /* 模态弹窗（发布流星） */
-        .modal-mask {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(2, 4, 10, 0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-            z-index: 20; display: flex; justify-content: center; align-items: center;
-            opacity: 1; transition: opacity 0.3s;
+        .resonance-box.vip-style {
+            background: rgba(25, 10, 35, 0.95); border: 2px solid #da70d6;
+            box-shadow: 0 0 25px rgba(218, 112, 214, 0.4), inset 0 0 15px rgba(218, 112, 214, 0.2);
         }
-        .modal-mask.hidden { opacity: 0; pointer-events: none; }
-        .modal-card {
-            background: #0b1224; border: 1px solid rgba(152, 194, 255, 0.18); width: 420px;
-            border-radius: 16px; padding: 25px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        .vip-tag {
+            color: #ffd700; font-weight: bold; font-size: 0.75rem; 
+            border: 1px solid #ffd700; padding: 0px 4px; border-radius: 3px; margin-right: 5px;
         }
-        .modal-card h2 { font-size: 18px; margin-bottom: 15px; color: #b6cfff; font-weight: 500; }
-        .modal-card textarea {
-            width: 100%; height: 120px; background: rgba(0,0,0,0.25); border: 1px solid rgba(152,194,255,0.15);
-            border-radius: 8px; color: #e4edff; padding: 12px; resize: none; font-size: 14px; line-height: 1.5; outline: none; margin-bottom: 15px;
+        .vip-text { color: #fffbc8 !important; font-weight: bold; text-shadow: 0 0 6px rgba(255, 251, 200, 0.5); }
+        .resonance-box .author-sign {
+            display: block; text-align: right; margin-top: 12px;
+            font-size: 0.75rem; color: rgba(166, 152, 122, 0.65);
+            border-bottom: 1px dashed rgba(166, 152, 122, 0.2); padding-bottom: 8px;
         }
-        .modal-card textarea:focus { border-color: rgba(108,214,255,0.4); }
-        .ctrl-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 14px; color: #a2b7e2; }
-        .ctrl-row input[type="checkbox"] { margin-right: 6px; accent-color: #ffd48e; vertical-align: middle; }
-        .btn-group { display: flex; justify-content: flex-end; gap: 10px; }
+
+        /* 评论回响区域 */
+        .social-reply-zone { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+        .reply-input-mini {
+            width: 100%; background: rgba(5, 8, 15, 0.6); border: 1px solid rgba(166, 152, 122, 0.3);
+            border-radius: 4px; padding: 6px 10px; color: #e6dedf; font-size: 0.8rem;
+            outline: none; font-family: inherit; resize: none;
+        }
+        .reply-input-mini:focus { border-color: rgba(217, 201, 165, 0.7); }
+        .reply-btn-bar { display: flex; justify-content: space-between; align-items: center; }
+        .reply-action-btn {
+            background: rgba(143, 133, 112, 0.2); border: 1px solid rgba(143, 133, 112, 0.4);
+            color: rgba(224, 215, 195, 0.85); padding: 3px 10px; font-size: 0.75rem;
+            border-radius: 3px; cursor: pointer; transition: all 0.3s;
+        }
+        .reply-action-btn:hover { background: rgba(143, 133, 112, 0.4); color: #fff; }
         
-        /* 按钮通用 */
-        .base-btn {
-            background: rgba(152, 194, 255, 0.08); border: 1px solid rgba(152, 194, 255, 0.2);
-            color: #b6cfff; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; transition: all 0.2s;
+        .reply-list-container {
+            max-height: 100px; overflow-y: auto; font-size: 0.78rem; color: rgba(224, 215, 195, 0.7);
+            margin-top: 6px; padding-top: 4px; border-top: 1px solid rgba(166,152,122,0.1);
         }
-        .base-btn:hover { background: rgba(152, 194, 255, 0.15); color: #e4edff; border-color: rgba(152, 194, 255, 0.3); }
-        .primary-btn { background: linear-gradient(135deg, #1e3a8a, #0f172a); border: 1px solid rgba(108, 214, 255, 0.3); color: #6cd6ff; }
-        .primary-btn:hover { background: linear-gradient(135deg, #2549b0, #131e38); border-color: rgba(108, 214, 255, 0.5); }
+        .single-reply-item { margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.03); word-break: break-all; }
 
-        /* 流星对话互动弹窗 */
-        .star-dialog {
-            position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%) scale(0.9);
-            width: 460px; background: rgba(8, 14, 28, 0.85); border: 1px solid rgba(152, 194, 255, 0.2);
-            border-radius: 16px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            padding: 20px; z-index: 15; display: flex; flex-direction: column; max-height: 400px;
-            opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        /* 发射执念面板 */
+        .overlay-panel {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(3, 6, 12, 0.85); z-index: 100;
+            display: none; justify-content: center; align-items: center;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
         }
-        .star-dialog.active { opacity: 1; pointer-events: auto; transform: translateX(-50%) scale(1); }
-        .dialog-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
-        #dialogBadge { font-size: 11px; background: rgba(152,194,255,0.12); padding: 2px 6px; border-radius: 4px; color: #98c2ff; }
-        #dialogTitle { font-size: 15px; color: #e4edff; line-height: 1.5; margin-bottom: 6px; word-break: break-all; }
-        #dialogMeta { font-size: 12px; color: #6b82ae; }
-        .reply-box { flex: 1; overflow-y: auto; margin: 12px 0; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 10px; }
-        .reply-item { font-size: 13px; line-height: 1.4; margin-bottom: 10px; padding: 6px 10px; background: rgba(0,0,0,0.15); border-radius: 6px; }
-        .reply-item strong { color: #a2b7e2; margin-right: 5px; }
-        .reply-item.self { border-left: 2px solid #ffd48e; }
-        .reply-item.self strong { color: #ffd48e; }
-        .reply-item time { display: block; font-size: 11px; color: #566c96; text-align: right; margin-top: 2px; }
-        .input-row { display: flex; gap: 8px; }
-        .input-row input { flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(152,194,255,0.15); border-radius: 6px; color: #e4edff; padding: 8px 12px; font-size: 13px; outline: none; }
-        .input-row input:focus { border-color: rgba(108,214,255,0.3); }
+        .panel-content {
+            position: relative; width: 88%; max-width: 460px; background: rgba(12, 17, 28, 0.9);
+            border: 1px solid rgba(153, 140, 115, 0.3); border-radius: 12px; padding: 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+        }
+        .panel-hint { font-size: 0.8rem; color: rgba(153, 140, 115, 0.6); margin-bottom: 12px; letter-spacing: 1px; }
+        .whisper-area {
+            width: 100%; height: 110px; background: rgba(5, 8, 15, 0.7);
+            border: 1px solid rgba(153, 140, 115, 0.2); border-radius: 6px; padding: 14px;
+            color: rgba(230, 222, 207, 0.95); font-size: 0.92rem; line-height: 1.7;
+            resize: none; outline: none; font-family: inherit; margin-bottom: 12px; transition: border-color 0.3s;
+        }
+        .whisper-area:focus { border-color: rgba(217, 201, 165, 0.6); }
+        
+        .vip-checkbox-zone {
+            display: flex; align-items: center; gap: 8px; margin-bottom: 20px;
+            color: rgba(224, 215, 195, 0.85); font-size: 0.82rem; cursor: pointer;
+        }
+        .vip-checkbox-zone input { cursor: pointer; }
 
-        /* 底部交互控制台 */
-        .action-dock {
-            position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%);
-            display: flex; gap: 15px; z-index: 10;
+        .panel-buttons { display: flex; justify-content: flex-end; gap: 14px; }
+        .panel-btn {
+            padding: 8px 22px; font-size: 0.82rem; border-radius: 4px;
+            cursor: pointer; border: 1px solid transparent; letter-spacing: 2px;
+            font-family: inherit; transition: all 0.3s;
         }
-        .dock-btn {
-            background: rgba(12, 22, 45, 0.75); border: 1px solid rgba(152, 194, 255, 0.18);
-            color: #b6cfff; padding: 12px 24px; border-radius: 25px; cursor: pointer; font-size: 14px;
-            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: all 0.2s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-        .dock-btn:hover { background: rgba(18, 32, 64, 0.9); color: #e4edff; border-color: rgba(152,194,255,0.35); transform: translateY(-2px); }
-        #openWhisperBtn { background: linear-gradient(135deg, #1e3a8a, #0f172a); border-color: rgba(108,214,255,0.3); color: #6cd6ff; }
-        #openWhisperBtn:hover { border-color: rgba(108,214,255,0.5); box-shadow: 0 4px 20px rgba(108,214,255,0.2); }
+        .panel-btn.cancel { background: transparent; border-color: rgba(153, 140, 115, 0.3); color: rgba(153, 140, 115, 0.7); }
+        .panel-btn.confirm { background: rgba(143, 133, 112, 0.25); border-color: rgba(143, 133, 112, 0.4); color: rgba(230, 222, 207, 0.9); }
+        .panel-btn.confirm:hover { background: rgba(143, 133, 112, 0.4); color: #fff; }
 
-        /* 全局轻提示堆栈 */
-        .toast-stack { position: fixed; top: 90px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: none; }
-        .toast { background: rgba(13, 27, 54, 0.9); border: 1px solid rgba(108,214,255,0.25); border-radius: 8px; padding: 10px 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.4); animation: toastIn 0.3s forwards; }
-        .toast.error { border-color: rgba(239, 68, 68, 0.4); background: rgba(40, 10, 10, 0.9); }
-        .toast strong { display: block; font-size: 13px; color: #6cd6ff; margin-bottom: 2px; }
-        .toast.error strong { color: #ef4444; }
-        .toast div { font-size: 12px; color: #cbd5e1; }
-        @keyframes toastIn { from { transform: translateY(-15px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @media (max-width: 768px) {
+            .bottom-bar { padding: 0 24px; bottom: 30px; }
+            .action-btn { padding: 8px 16px; font-size: 0.78rem; }
+            .resonance-box.mobile-center {
+                position: absolute !important; width: 85% !important;
+                left: 50% !important; top: 50% !important;
+                transform: translate(-50%, -50%) scale(1) !important; pointer-events: auto;
+            }
+        }
     </style>
 </head>
 <body>
 
+    <div class="commercial-header">
+        <div id="userSignDisplay">宇宙代号：加载中...</div>
+        <div class="wallet-zone">
+            <span>💰 星币: <span class="coin-num" id="userCoins">0</span></span>
+            <button class="charge-btn" onclick="chargeCoins(event)">测试充值</button>
+        </div>
+    </div>
+
     <canvas id="spaceCanvas"></canvas>
 
-    <div class="top-shell">
-        <div class="user-meta">
-            <span>观测者: <strong id="aliasText">载入中..</strong></span>
-            <span>量子凭证: <em id="tokenText">...</em></span>
-            <span>星币余额: <strong id="coinText">0</strong></span>
-            <span>未读回响: <strong id="replyAlertText" style="color:#6cd6ff">0</strong></span>
-        </div>
-        <div class="ambient-box" id="ambientText">闭上眼，听泉。你不必在此刻向任何人证明自己。</div>
-    </div>
-
-    <div class="side-panel" id="missionPanel">
-        <div class="panel-header">
-            <h2>星海恢复力任务</h2>
-            <button class="close-btn" data-close-panel="missionPanel">✕</button>
-        </div>
-        <div class="mission-card">
-            <h3>听泉冥想打卡</h3>
-            <div class="progress-box"><div class="progress-bar" id="springBar"></div></div>
-            <div class="progress-txt" id="springText">0 / 0 秒</div>
-        </div>
-        <div class="mission-card">
-            <h3>阅读星海碎屑执念</h3>
-            <div class="progress-box"><div class="progress-bar" id="readBar"></div></div>
-            <div class="progress-txt" id="readText">0 / 0 条</div>
-        </div>
-        <div class="reward-note" id="missionRewardNote">奖励会在完成时自动注入星币。</div>
-    </div>
-
-    <div class="side-panel" id="logPanel">
-        <div class="panel-header">
-            <h2>私人观测日志</h2>
-            <button class="base-btn" id="refreshLogBtn" style="padding:4px 10px; font-size:12px;">同步</button>
-            <button class="close-btn" data-close-panel="logPanel">✕</button>
-        </div>
-        <div class="log-scroll" id="logList">
-            </div>
-    </div>
-
-    <div class="star-dialog" id="starDialog">
-        <div class="dialog-header">
-            <span id="dialogBadge">流星碎片</span>
-            <button class="close-btn" data-close-dialog>✕</button>
-        </div>
-        <div id="dialogTitle">正在打捞星海执念深处的内容...</div>
-        <div id="dialogMeta">...</div>
-        <div class="reply-box" id="replyList"></div>
-        <div class="input-row">
-            <input type="text" id="replyInput" placeholder="输入你的回响，轻轻呼唤..." maxlength="200">
-            <button class="base-btn primary-btn" id="sendReplyBtn">发出回响</button>
+    <div class="guide-hint" id="guideHint">拖拽可360°旋转星空 · 轻触星星唤醒执念</div>
+    <div class="ambient-container">
+        <div class="breathing-text" id="breathingText">
+            闭眼，听雨。<br>这一刻，世界不属于任何人，只属于你自己。
         </div>
     </div>
 
-    <div class="modal-mask hidden" id="whisperModal">
-        <div class="modal-card">
-            <h2>点亮一颗流星</h2>
-            <textarea id="whisperInput" placeholder="写下你今晚最沉重的执念，或者最想抛给宇宙的呓语...（它将化为这片星空中的一颗闪烁实体）" maxlength="600"></textarea>
-            <div class="ctrl-row">
-                <label><input type="checkbox" id="vipToggle"> 消耗50星币将其“高亮璀璨化”</label>
-            </div>
-            <div class="btn-group">
-                <button class="base-btn" data-close-panel="whisperModal">沉入心底</button>
-                <button class="base-btn primary-btn" id="submitWhisperBtn">推向深空</button>
+    <div class="resonance-box" id="resonanceBox" onclick="event.stopPropagation()"></div>
+
+    <div class="bottom-bar">
+        <button class="action-btn" id="audioBtn" onclick="toggleSpaceAudio(event)">轻触 · 听泉</button>
+        <button class="action-btn whisper-trigger" onclick="openInputPanel(event)">把执念散作星辰</button>
+    </div>
+
+    <div class="overlay-panel" id="inputPanel" onclick="closeInputPanel()">
+        <div class="panel-content" onclick="event.stopPropagation()">
+            <button class="reply-action-btn" style="position: absolute; right: 15px; top: 15px; padding: 2px 6px;" onclick="closeInputPanel()">✕</button>
+            <div class="panel-hint" id="userSignHint">你的宇宙代号：【计算中...】</div>
+            <textarea class="whisper-area" id="whisperInput" placeholder="写下一句话，打碎揉进星河里..."></textarea>
+            
+            <label class="vip-checkbox-zone">
+                <input type="checkbox" id="vipPublishCheck">
+                <span>开启【炫彩流星发言特效】（消耗 10 星币）</span>
+            </label>
+
+            <div class="panel-buttons">
+                <button class="panel-btn cancel" onclick="closeInputPanel()">收回思绪</button>
+                <button class="panel-btn confirm" onclick="submitWhisper(event)">发射执念</button>
             </div>
         </div>
     </div>
-
-    <div class="toast-stack" id="toastStack"></div>
 
     <script>
-        const state = {
-          session: null,
-          whispers: [],
-          logs: [],
-          missions: [],
-          selectedWhisper: null,
-          audioCtx: null,
-          audioNodes: null,
-          readMissionCache: new Set(),
-          missionTickHandle: null,
-          pollHandle: null,
-          ambientIndex: 0,
-          isMissionSubmitting: false // 🔐 新增：防暴击并发锁
-        };
+        // 基础钱包与代号初始化
+        let starCoins = parseInt(localStorage.getItem('star_coins_balance') || '0');
+        document.getElementById('userCoins').innerText = starCoins;
 
-        const els = {
-          canvas: document.getElementById("spaceCanvas"),
-          aliasText: document.getElementById("aliasText"),
-          tokenText: document.getElementById("tokenText"),
-          coinText: document.getElementById("coinText"),
-          replyAlertText: document.getElementById("replyAlertText"),
-          ambientText: document.getElementById("ambientText"),
-          audioBtn: document.getElementById("audioBtn"),
-          missionBtn: document.getElementById("missionBtn"),
-          logBtn: document.getElementById("logBtn"),
-          openWhisperBtn: document.getElementById("openWhisperBtn"),
-          refreshLogBtn: document.getElementById("refreshLogBtn"),
-          missionPanel: document.getElementById("missionPanel"),
-          logPanel: document.getElementById("logPanel"),
-          whisperModal: document.getElementById("whisperModal"),
-          whisperInput: document.getElementById("whisperInput"),
-          submitWhisperBtn: document.getElementById("submitWhisperBtn"),
-          vipToggle: document.getElementById("vipToggle"),
-          starDialog: document.getElementById("starDialog"),
-          dialogBadge: document.getElementById("dialogBadge"),
-          dialogTitle: document.getElementById("dialogTitle"),
-          dialogMeta: document.getElementById("dialogMeta"),
-          replyList: document.getElementById("replyList"),
-          replyInput: document.getElementById("replyInput"),
-          sendReplyBtn: document.getElementById("sendReplyBtn"),
-          springBar: document.getElementById("springBar"),
-          springText: document.getElementById("springText"),
-          readBar: document.getElementById("readBar"),
-          readText: document.getElementById("readText"),
-          missionRewardNote: document.getElementById("missionRewardNote"),
-          logList: document.getElementById("logList"),
-          toastStack: document.getElementById("toastStack")
-        };
+        function chargeCoins(e) {
+            if(e) e.stopPropagation();
+            starCoins += 100;
+            localStorage.setItem('star_coins_balance', starCoins.toString());
+            document.getElementById('userCoins').innerText = starCoins;
+            alert("💳 模拟测试充值成功：+100 星币！");
+        }
 
-        const ambientTexts = [
-          "闭上眼，听泉。你不必在此刻向任何人证明自己。",
-          "每颗星都在远处慢慢靠近，像终于被看见的情绪。",
-          "如果今晚很重，就先借这片宇宙呼吸一下。"
-        ];
+        const localRepliesStorage = {};
+        function getOrCreateUniverseSign() {
+            let sign = localStorage.getItem('universe_soul_sign');
+            if (!sign) {
+                const prefix = ["仙女座", "猎户座", "英仙座", "天鹅座", "飞马座", "巨蟹座", "天琴座", "大熊座", "半人马", "麒麟座"];
+                const suffix = ["慢中子", "虚粒子", "坍缩态", "偏振光", "白矮星", "红移线", "微波背景", "暗物质", "静止质量", "星流"];
+                sign = `${prefix[Math.floor(Math.random() * prefix.length)]} · ${suffix[Math.floor(Math.random() * suffix.length)]}`;
+                localStorage.setItem('universe_soul_sign', sign);
+            }
+            return sign;
+        }
+        const myUniverseSign = getOrCreateUniverseSign();
+        document.getElementById('userSignDisplay').innerText = `🌌 代号：${myUniverseSign}`;
 
-        let ctx = null;
-        let width = 0; let height = 0;
-        let rotationX = 0; let rotationY = 0;
-        let targetRotationX = 0; let targetRotationY = 0;
-        let isDragging = false; let dragX = 0; let dragY = 0;
-        let dragDistance = 0; let tapPoint = { x: 0, y: 0 };
-        let lastFrameTime = 0;
+        // Canvas 3D 核心重构
+        const canvas = document.getElementById('spaceCanvas');
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        // 三维旋转状态控制
+        let angleX = 0, angleY = 0;             // 当前真实旋转角度
+        let targetSpeedX = 0.0004;              // 手不动时的X轴自动旋转速度
+        let targetSpeedY = 0.0015;              // 手不动时的Y轴自动旋转速度
+        let currentSpeedX = targetSpeedX;
+        let currentSpeedY = targetSpeedY;
+
+        let isDragging = false;
+        let prevMouseX = 0, prevMouseY = 0;
+        let totalMoveDist = 0;
+        let startX = 0, startY = 0;
 
         const starNodes = [];
-        const backgroundDust = [];
+        const FOV = 400; // 视距，控制立体感透视
 
-        class WarpStar {
-          constructor(payload, index) {
-            this.applyPayload(payload, index);
-          }
+        class StarNode {
+            constructor(id, text, sign, isUserGenerated = false, isVip = false) {
+                this.id = id || Math.floor(Math.random() * 1000000);
+                
+                // 使用真正的 3D 球面随机分布，消除“下雨/扁平”感
+                const u = Math.random() * 2 - 1;
+                const phi = Math.random() * Math.PI * 2;
+                const r = 280 + Math.random() * 300; // 均匀分布在球壳内
+                
+                this.x = r * Math.sqrt(1 - u * u) * Math.cos(phi);
+                this.y = r * Math.sqrt(1 - u * u) * Math.sin(phi);
+                this.z = r * u;
 
-          applyPayload(payload, index) {
-            this.id = payload.id;
-            this.text = payload.text;
-            this.authorAlias = payload.authorAlias;
-            this.createdAt = payload.createdAt;
-            this.updatedAt = payload.updatedAt;
-            this.isVip = !!payload.isVip;
-            this.isOwn = !!payload.isOwn;
-            this.replyCount = payload.replyCount || 0;
-            this.hasNewReply = !!payload.hasNewReply;
-            this.recentReplySnippet = payload.recentReplySnippet || "";
-            this.lastReplyAt = payload.lastReplyAt || "";
-            this.seed = payload.starSeed || index * 17 + 11;
-            this.radial = 120 + (this.seed % 180);
-            this.angle = (this.seed * 0.37) % (Math.PI * 2);
-            this.vertical = ((this.seed % 21) - 10) * 17;
-            this.depth = 0.08 + ((this.seed * 19) % 100) / 100;
-            this.speed = 0.001 + (this.seed % 7) * 0.00022;
-            this.size = this.isVip ? 5.2 : this.isOwn ? 4.2 : 2.5 + (this.seed % 5) * 0.42;
-            this.screenX = 0; this.screenY = 0; this.screenRadius = 0;
-            this.visible = true;
-          }
+                this.text = text;
+                this.sign = sign || "远方微尘";
+                this.isUser = isUserGenerated;
+                this.isVip = isVip;
 
-          update(deltaMs) {
-            this.angle += this.speed * deltaMs * 0.06;
-            this.depth += deltaMs * 0.0000042 * (this.isOwn ? 1.15 : 1);
-            if (this.depth > 1.08) { this.depth = 0.06; }
-          }
-
-          draw(nowMs) {
-            const zTravel = Math.pow(this.depth, 1.85);
-            const push = 1 + zTravel * 6.9;
-            const baseX = Math.cos(this.angle + rotationY * 0.72) * this.radial * push;
-            const baseY = Math.sin(this.angle * 0.7 + rotationX * 0.92) * this.vertical + Math.sin(this.angle) * 28;
-            const swirlX = Math.sin(rotationY + this.angle) * 24;
-            const swirlY = Math.cos(rotationX + this.angle * 0.6) * 18;
-            const screenX = width * 0.5 + baseX + swirlX;
-            const screenY = height * 0.5 + baseY + swirlY;
-            const scale = 0.4 + zTravel * 2.4;
-            const radius = this.size * scale;
-            const alphaBase = this.isVip ? 0.96 : this.isOwn ? 0.9 : 0.3 + zTravel * 0.5;
-            
-            const pulse = this.hasNewReply
-              ? 0.7 + Math.sin(nowMs * 0.012 + this.seed) * 0.2 + Math.abs(Math.sin(nowMs * 0.032 + this.seed)) * 0.4
-              : 0.8 + Math.sin(nowMs * 0.0016 + this.seed) * 0.14;
-            const alpha = Math.min(1, alphaBase * pulse);
-
-            this.screenX = screenX;
-            this.screenY = screenY;
-            this.screenRadius = Math.max(12, radius + 10);
-            this.visible = screenX > -120 && screenX < width + 120 && screenY > -120 && screenY < height + 120;
-
-            if (!this.visible) return;
-
-            ctx.save();
-            ctx.translate(screenX, screenY);
-            ctx.rotate(this.angle + nowMs * 0.00006);
-            ctx.beginPath();
-            ctx.ellipse(0, 0, radius * (1 + zTravel * 2.7), radius, 0, 0, Math.PI * 2);
-
-            if (this.isVip) {
-              ctx.fillStyle = `rgba(255, 212, 142, ${alpha})`;
-              ctx.shadowBlur = 24; ctx.shadowColor = "rgba(255, 190, 120, 0.96)";
-            } else if (this.hasNewReply) {
-              ctx.fillStyle = `rgba(170, 233, 255, ${alpha})`;
-              ctx.shadowBlur = 28; ctx.shadowColor = "rgba(108, 214, 255, 1)";
-            } else if (this.isOwn) {
-              ctx.fillStyle = `rgba(228, 237, 255, ${alpha})`;
-              ctx.shadowBlur = 18; ctx.shadowColor = "rgba(182, 207, 255, 0.92)";
-            } else {
-              ctx.fillStyle = `rgba(196, 212, 255, ${alpha})`;
-              ctx.shadowBlur = 8; ctx.shadowColor = "rgba(152, 194, 255, 0.45)";
-            }
-            ctx.fill();
-
-            if (zTravel > 0.68) {
-              ctx.beginPath();
-              ctx.moveTo(-radius * 4.6, 0);
-              ctx.lineTo(radius * 0.3, 0);
-              ctx.lineWidth = Math.max(0.5, radius * 0.26);
-              ctx.strokeStyle = `rgba(173, 218, 255, ${alpha * 0.35})`;
-              ctx.stroke();
-            }
-            ctx.restore();
-          }
-        }
-
-        function getRandomId() {
-          if (window.crypto && typeof window.crypto.randomUUID === "function") {
-            return window.crypto.randomUUID();
-          }
-          return `${Date.now()}_${Math.random().toString(16).slice(2)}`;
-        }
-
-        function escapeHtml(value) {
-          return String(value || "")
-            .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-        }
-
-        function formatTime(value) {
-          if (!value) return "";
-          return new Date(value).toLocaleString("zh-CN", {
-            month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit"
-          });
-        }
-
-        function getMissionById(id) {
-          for (let i = 0; i < state.missions.length; i += 1) {
-            if (state.missions[i].id === id) return state.missions[i];
-          }
-          return null;
-        }
-
-        function initCanvas() {
-          ctx = els.canvas.getContext("2d");
-          resizeCanvas();
-          for (let i = 0; i < 220; i += 1) {
-            backgroundDust.push({
-              x: Math.random(), y: Math.random(),
-              radius: Math.random() * 1.7 + 0.4,
-              alpha: Math.random() * 0.5 + 0.08,
-              drift: Math.random() * 0.002 + 0.0002
-            });
-          }
-        }
-
-        function resizeCanvas() {
-          width = window.innerWidth; height = window.innerHeight;
-          const dpr = Math.min(window.devicePixelRatio || 1, 2);
-          els.canvas.width = Math.floor(width * dpr);
-          els.canvas.height = Math.floor(height * dpr);
-          els.canvas.style.width = `${width}px`; els.canvas.style.height = `${height}px`;
-          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        }
-
-        function syncStars() {
-          const existing = {};
-          for (let i = 0; i < starNodes.length; i += 1) { existing[starNodes[i].id] = starNodes[i]; }
-          const next = [];
-          for (let i = 0; i < state.whispers.length; i += 1) {
-            const whisper = state.whispers[i];
-            const star = existing[whisper.id] || new WarpStar(whisper, i);
-            star.applyPayload(whisper, i);
-            next.push(star);
-          }
-          starNodes.length = 0;
-          Array.prototype.push.apply(starNodes, next);
-        }
-
-        function renderScene(nowMs) {
-          if (!lastFrameTime) lastFrameTime = nowMs;
-          const deltaMs = Math.min(33, nowMs - lastFrameTime || 16);
-          lastFrameTime = nowMs;
-
-          ctx.clearRect(0, 0, width, height);
-          ctx.fillStyle = "rgba(4, 8, 20, 0.22)";
-          ctx.fillRect(0, 0, width, height);
-
-          for (let i = 0; i < backgroundDust.length; i += 1) {
-            const dust = backgroundDust[i];
-            dust.y += dust.drift;
-            if (dust.y > 1.05) { dust.y = -0.04; dust.x = Math.random(); }
-            ctx.beginPath();
-            ctx.arc(dust.x * width, dust.y * height, dust.radius, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(180, 206, 255, ${dust.alpha})`;
-            ctx.fill();
-          }
-
-          if (!isDragging) { targetRotationY += 0.00035; targetRotationX += 0.00005; }
-          rotationX += (targetRotationX - rotationX) * 0.06;
-          rotationY += (targetRotationY - rotationY) * 0.06;
-
-          for (let i = 0; i < starNodes.length; i += 1) {
-            starNodes[i].update(deltaMs); starNodes[i].draw(nowMs);
-          }
-          window.requestAnimationFrame(renderScene);
-        }
-
-        function getOrCreateDeviceId() {
-          let deviceId = localStorage.getItem("starlit_device_id");
-          if (!deviceId) {
-            deviceId = `device_${getRandomId()}`;
-            localStorage.setItem("starlit_device_id", deviceId);
-          }
-          return deviceId;
-        }
-
-        async function api(path, options) {
-          const response = await fetch(path, {
-            headers: { "Content-Type": "application/json" }, ...(options || {})
-          });
-          const data = await response.json();
-          if (!response.ok) {
-            const error = new Error(data.error || "request_failed");
-            error.code = data.error || "request_failed";
-            throw error;
-          }
-          return data;
-        }
-
-        function updateSession(session) {
-          state.session = session;
-          els.aliasText.textContent = session.alias;
-          els.tokenText.textContent = `${session.token.slice(0, 18)}...`;
-          els.coinText.textContent = String(session.coins);
-          els.replyAlertText.textContent = String(session.unreadReplyCount);
-        }
-
-        function updateMissions(missions, rewardGranted) {
-          state.missions = missions || [];
-          const spring = getMissionById("listen_spring");
-          const read = getMissionById("read_obsessions");
-
-          if (spring) {
-            els.springBar.style.width = `${Math.min(100, (spring.progress / spring.target) * 100)}%`;
-            els.springText.textContent = `${spring.progress} / ${spring.target} 秒`;
-          }
-          if (read) {
-            els.readBar.style.width = `${Math.min(100, (read.progress / read.target) * 100)}%`;
-            els.readText.textContent = `${read.progress} / ${read.target} 条`;
-          }
-
-          if (rewardGranted && rewardGranted > 0) {
-            els.missionRewardNote.textContent = `奖励到账 +${rewardGranted} 星币，宇宙在为你的恢复力鼓掌。`;
-          } else {
-            els.missionRewardNote.textContent = "奖励会在完成时自动注入星币。";
-          }
-        }
-
-        function renderLogs() {
-          if (!state.logs.length) {
-            els.logList.innerHTML = `
-              <div class="log-card">
-                <strong>还没有观测记录</strong>
-                <p>发出第一颗流星后，你的私人日志就会在这里生成。</p>
-              </div>
-            `;
-            return;
-          }
-
-          let html = "";
-          for (let i = 0; i < state.logs.length; i += 1) {
-            const entry = state.logs[i];
-            let repliesHtml = "";
-
-            if (entry.replies.length) {
-              for (let j = 0; j < entry.replies.length; j += 1) {
-                const reply = entry.replies[j];
-                repliesHtml += `
-                  <div class="log-reply ${reply.fromSelf ? "self" : ""}">
-                    <strong>${escapeHtml(reply.authorAlias)}</strong>
-                    <div>${escapeHtml(reply.content)}</div>
-                  </div>
-                `;
-              }
-            } else {
-              repliesHtml = `<div class="log-reply"><span class="empty-state">还没有回响抵达这颗流星。</span></div>`;
+                const sizeMultiplier = isMobile ? 1.4 : 1.0;
+                this.size = isVip ? (5.5 * sizeMultiplier) : (isUserGenerated ? (4.0 * sizeMultiplier) : ((Math.random() * 1.5 + 0.6) * sizeMultiplier));
+                this.baseAlpha = isUserGenerated ? 1.0 : (Math.random() * 0.5 + 0.3);
+                
+                this.screenX = 0;
+                this.screenY = 0;
+                this.visible = false;
             }
 
-            html += `
-              <article class="log-card">
-                <div class="log-card-header">
-                  <strong>${entry.isVip ? '<span class="vip-glow">高亮流星</span>' : "普通流星"}</strong>
-                  <span class="log-badge">${entry.unreadCount ? `未读 ${entry.unreadCount}` : "已读"}</span>
-                </div>
-                <p>${escapeHtml(entry.text)}</p>
-                <div class="log-replies">${repliesHtml}</div>
-              </article>
-            `;
-          }
-          els.logList.innerHTML = html;
+            // 真正的三维矩阵旋转渲染
+            draw(ax, ay, pulse) {
+                // 绕 Y 轴旋转
+                let cosY = Math.cos(ay), sinY = Math.sin(ay);
+                let x1 = this.x * cosY - this.z * sinY;
+                let z1 = this.x * sinY + this.z * cosY;
+
+                // 绕 X 轴旋转
+                let cosX = Math.cos(ax), sinX = Math.sin(ax);
+                let y2 = this.y * cosX - z1 * sinX;
+                let z2 = this.y * sinX + z1 * cosX;
+
+                // 引入近大远小的 3D 透视裁剪
+                let perspectiveZ = z2 + FOV;
+                if (perspectiveZ > 30) { 
+                    this.visible = true;
+                    const scale = FOV / perspectiveZ;
+                    this.screenX = width / 2 + x1 * scale;
+                    this.screenY = height / 2 + y2 * scale;
+                    
+                    ctx.beginPath();
+                    ctx.arc(this.screenX, this.screenY, this.size * scale, 0, Math.PI * 2);
+                    
+                    // 深度雾化效果：离得远的星星变暗，增强空间感
+                    let depthAlpha = Math.min(1, scale * 1.2);
+
+                    if(this.isVip) {
+                        ctx.fillStyle = `rgba(238, 130, 238, ${this.baseAlpha * depthAlpha * pulse})`;
+                        ctx.shadowBlur = 15; ctx.shadowColor = "#da70d6"; 
+                    } else if(this.isUser) {
+                        ctx.fillStyle = `rgba(242, 226, 177, ${this.baseAlpha * depthAlpha})`;
+                        ctx.shadowBlur = 10; ctx.shadowColor = "#eddba4"; 
+                    } else { 
+                        ctx.fillStyle = `rgba(184, 173, 150, ${this.baseAlpha * depthAlpha * pulse})`;
+                        ctx.shadowBlur = 0; 
+                    }
+                    ctx.fill();
+                    ctx.shadowBlur = 0; // 释放性能
+                } else {
+                    this.visible = false;
+                }
+            }
         }
 
-        function setWhispers(whispers) {
-          state.whispers = whispers || [];
-          syncStars();
-        }
-
-        function showToast(title, message, isError) {
-          const toast = document.createElement("div");
-          toast.className = `toast${isError ? " error" : ""}`;
-          toast.innerHTML = `<strong>${escapeHtml(title)}</strong><div>${escapeHtml(message)}</div>`;
-          els.toastStack.appendChild(toast);
-          window.setTimeout(() => { if (toast.parentNode) { toast.parentNode.removeChild(toast); } }, 3200);
-        }
-
-        async function bootstrap() {
-          const token = localStorage.getItem("starlit_soul_token") || "";
-          const deviceId = getOrCreateDeviceId();
-          // 如果缺少真实后端接口，可在此处或 api 捕获中追加静态 Mock 保证不报错崩溃
-          try {
-              const payload = await api("/api/bootstrap", {
-                method: "POST", body: JSON.stringify({ token, deviceId })
-              });
-              localStorage.setItem("starlit_soul_token", payload.session.token);
-              updateSession(payload.session);
-              updateMissions(payload.missions, 0);
-              setWhispers(payload.whispers);
-              state.logs = payload.logs || [];
-              renderLogs();
-          } catch(e) {
-              console.warn("未连接到真实宇宙后端，正在启用纯前端离线体验宇宙舱模型...");
-              mockBootstrap();
-          }
-        }
-
-        function mockBootstrap() {
-            const mockSession = { alias: "隐世观测者_" + Math.random().toString(10).slice(2,6), token: "mock_session_token_starlit_3_0_preview", coins: 280, unreadReplyCount: 1 };
-            const mockMissions = [ { id: "listen_spring", progress: 15, target: 60 }, { id: "read_obsessions", progress: 2, target: 5 } ];
-            const mockWhispers = [
-                { id: "1", text: "今晚的风很沉，还好有一片可以避风的虚拟星海。", authorAlias: "匿名碎屑", starSeed: 42, isVip: true },
-                { id: "2", text: "测试流星实体：宇宙的深处总有不期而遇的共鸣。", authorAlias: "观测站AI", starSeed: 99, isOwn: true, hasNewReply: true }
+        // 初始化数据
+        function loadLocalSeeds() {
+            const localSeeds = [
+                ["今年31岁被裁员了，瞒着父母每天在图书馆假装上班，好累。", "天琴座 · 虚粒子", false],
+                ["这是一条极具商业尊贵排面的VIP流星发言特效示例！", "仙王座 · 氪金大佬", true],
+                ["努力了三年还是考研失败，感觉自己是个废物，对不起爸妈。", "飞马座 · 慢中子", false],
+                ["大城市房租又涨了，每天加班到深夜，不知道坚持的意义是什么。", "英仙座 · 偏振光", false],
+                ["喜欢了他整整四年，今天看到他在朋友圈发了和别人的婚纱照，祝你幸福。", "巨蟹座 · 坍缩态", false]
             ];
-            updateSession(mockSession);
-            updateMissions(mockMissions, 0);
-            setWhispers(mockWhispers);
-        }
-
-        async function refreshState() {
-          if (!state.session || state.session.token.startsWith("mock")) return;
-          const data = await api(`/api/state?token=${encodeURIComponent(state.session.token)}`);
-          updateSession(data.session);
-          updateMissions(data.missions, 0);
-          setWhispers(data.whispers);
-        }
-
-        async function refreshLogs(ack) {
-          if (!state.session || state.session.token.startsWith("mock")) return;
-          const data = await api(`/api/logs?token=${encodeURIComponent(state.session.token)}&ack=${ack ? "1" : "0"}`);
-          updateSession(data.session);
-          state.logs = data.logs || [];
-          renderLogs();
-        }
-
-        async function submitWhisper() {
-          const text = els.whisperInput.value.trim();
-          if (!text) {
-            showToast("还没写内容", "先让这颗流星有一句真正想说的话。", true);
-            return;
-          }
-
-          if (state.session.token.startsWith("mock")) {
-              // 离线 Mock 逻辑
-              els.whisperInput.value = "";
-              closePanel("whisperModal");
-              state.session.coins -= els.vipToggle.checked ? 50 : 0;
-              updateSession(state.session);
-              state.whispers.push({ id: getRandomId(), text, authorAlias: state.session.alias, isOwn: true, isVip: els.vipToggle.checked, starSeed: Math.random()*100 });
-              syncStars();
-              playConfirmTone();
-              showToast("流星已发射", "离线宇宙感知到了你的心事。");
-              return;
-          }
-
-          try {
-            const data = await api("/api/whispers", {
-              method: "POST",
-              body: JSON.stringify({
-                token: state.session.token,
-                text,
-                isVip: els.vipToggle.checked
-              })
-            });
-
-            els.whisperInput.value = "";
-            els.vipToggle.checked = false;
-            closePanel("whisperModal");
-            
-            updateSession(data.session);
-            state.logs = data.logs || [];
-            renderLogs();
-            await refreshState();
-            playConfirmTone();
-            showToast("流星已发射", "它已经进入宇宙，也进入了你的个人观测日志。");
-          } catch (error) {
-            const messages = {
-              insufficient_coins: "星币不足，先完成治愈任务再回来点亮高亮流星吧。",
-              sensitive_content: "这条内容里有系统拦截词，换个表达方式试试。",
-              empty_whisper: "输入为空，宇宙暂时还接不到你的心事。"
-            };
-            showToast("发射失败", messages[error.code] || "连接宇宙时发生波动，请稍后再试。", true);
-          }
-        }
-
-        function renderStarDialog(whisper, replies) {
-          els.dialogBadge.textContent = whisper.isVip ? "高亮流星" : whisper.isOwn ? "我的流星" : "流星碎片";
-          els.dialogTitle.textContent = whisper.text;
-          els.dialogMeta.textContent = `${whisper.authorAlias} · ${formatTime(whisper.createdAt || Date.now())}`;
-
-          if (!replies.length) {
-            els.replyList.innerHTML = `
-              <div class="reply-item">
-                <span class="empty-state">还没有回响抵达。你可以成为第一个回应这颗流星的人。</span>
-              </div>
-            `;
-          } else {
-            let html = "";
-            for (let i = 0; i < replies.length; i += 1) {
-              const reply = replies[i];
-              html += `
-                <div class="reply-item ${reply.fromSelf ? "self" : ""}">
-                  <strong>${escapeHtml(reply.authorAlias)}</strong>
-                  <div>${escapeHtml(reply.content)}</div>
-                  <time>${formatTime(reply.createdAt)}</time>
-                </div>
-              `;
+            starNodes.length = 0; 
+            for(let i=0; i<200; i++) {
+                const seed = localSeeds[i % localSeeds.length];
+                starNodes.push(new StarNode(2000+i, seed[0], seed[1], false, seed[2]));
             }
-            els.replyList.innerHTML = html;
-          }
-          els.replyInput.value = "";
         }
+        loadLocalSeeds();
 
-        async function progressMission(payload) {
-          if (state.isMissionSubmitting) return;
-          state.isMissionSubmitting = true;
-
-          if (state.session.token.startsWith("mock")) {
-              state.isMissionSubmitting = false;
-              // 离线任务进度推进
-              if (payload.type === "listen") {
-                  const m = getMissionById("listen_spring");
-                  if (m && m.progress < m.target) {
-                      m.progress += 5; updateMissions(state.missions, m.progress >= m.target ? 30 : 0);
-                      if (m.progress >= m.target) state.session.coins += 30; updateSession(state.session);
-                  }
-              }
-              return;
-          }
-
-          try {
-            const data = await api("/api/missions/progress", {
-              method: "POST",
-              body: JSON.stringify({
-                token: state.session.token,
-                ...payload
-              })
-            });
-
-            updateSession(data.session);
-            updateMissions(data.missions, data.rewardGranted || 0);
-            if (data.rewardGranted) {
-              playConfirmTone();
-              showToast("任务完成", `奖励到账 +${data.rewardGranted} 星币。`, false);
-            }
-          } finally {
-            state.isMissionSubmitting = false;
-          }
-        }
-
-        async function openWhisperDialog(star) {
-          if (state.session.token.startsWith("mock")) {
-              state.selectedWhisper = star;
-              renderStarDialog(star, [{ authorAlias: "系统回响", content: "当你凝望深空，深空也会报以温柔。", createdAt: Date.now(), fromSelf: false }]);
-              els.starDialog.classList.add("active");
-              return;
-          }
-          try {
-            const data = await api(`/api/whispers/${encodeURIComponent(star.id)}/replies?token=${encodeURIComponent(state.session.token)}`);
-            state.selectedWhisper = star;
-            updateSession(data.session);
-            renderStarDialog(data.whisper, data.replies || []);
-            els.starDialog.classList.add("active");
-
-            if (!star.isOwn && !state.readMissionCache.has(star.id)) {
-              state.readMissionCache.add(star.id);
-              await progressMission({ type: "readWhisper", whisperId: star.id });
-            } else if (star.isOwn) {
-              await refreshState();
-              await refreshLogs(true);
-            }
-          } catch (error) {
-            showToast("读取失败", "这颗星星暂时接触不到，稍后再试。", true);
-          }
-        }
-
-        async function sendReply() {
-          if (!state.selectedWhisper) return;
-          const content = els.replyInput.value.trim();
-          if (!content) {
-            showToast("还没写回响", "一句轻轻的话，也会成为别人今晚的光。", true);
-            return;
-          }
-
-          if (state.session.token.startsWith("mock")) {
-              showToast("回响已送达", "单机星海已接收回响。", false);
-              els.replyInput.value = "";
-              closeDialog();
-              return;
-          }
-
-          try {
-            await api(`/api/whispers/${encodeURIComponent(state.selectedWhisper.id)}/replies`, {
-              method: "POST", body: JSON.stringify({ token: state.session.token, content })
-            });
-
-            els.replyInput.value = "";
-            playConfirmTone();
-            await openWhisperDialog(state.selectedWhisper);
-            await refreshState();
-            await refreshLogs(false);
-            showToast("回响已送达", "你的话正在穿过这片星海。", false);
-          } catch (error) {
-            showToast("发送失败", "这句回响没能发出去，请稍后再试。", true);
-          }
-        }
-
-        function startMissionTimer() {
-          if (state.missionTickHandle) return;
-          state.missionTickHandle = window.setInterval(() => {
-            progressMission({ type: "listen", amount: 5 }).catch(() => { clearMissionTimer(); });
-          }, 5000);
-        }
-
-        function clearMissionTimer() {
-          if (!state.missionTickHandle) return;
-          window.clearInterval(state.missionTickHandle);
-          state.missionTickHandle = null;
-        }
-
-        // 追加控制台“开启听泉”组件按钮注入
-        function injectAudioBtn() {
-            const dock = document.querySelector(".action-dock");
-            const btn = document.createElement("button");
-            btn.className = "dock-btn"; btn.id = "audioBtn"; btn.textContent = "开启听泉";
-            dock.insertBefore(btn, dock.firstChild);
-            els.audioBtn = btn;
-        }
-
-        function toggleAudio() {
-          if (state.audioCtx) {
-            try { state.audioNodes.noise.stop(); } catch (error) {}
-            state.audioCtx.close(); state.audioCtx = null; state.audioNodes = null;
-            els.audioBtn.textContent = "开启听泉";
-            clearMissionTimer();
-            return;
-          }
-
-          const AudioCtor = window.AudioContext || window.webkitAudioContext;
-          if (!AudioCtor) {
-            showToast("当前环境不支持", "这个浏览器环境不支持声音播放。", true);
-            return;
-          }
-
-          const audioCtx = new AudioCtor();
-          const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 2, audioCtx.sampleRate);
-          const channel = buffer.getChannelData(0);
-          for (let i = 0; i < channel.length; i += 1) { channel[i] = Math.random() * 2 - 1; }
-
-          const noise = audioCtx.createBufferSource();
-          noise.buffer = buffer; noise.loop = true;
-          const filter = audioCtx.createBiquadFilter(); filter.type = "lowpass"; filter.frequency.value = 860;
-          const gain = audioCtx.createGain(); gain.gain.value = 0.06;
-
-          noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
-          noise.start();
-
-          state.audioCtx = audioCtx; state.audioNodes = { noise };
-          els.audioBtn.textContent = "停止听泉";
-          startMissionTimer();
-        }
-
-        function playConfirmTone() {
-          if (!state.audioCtx) return;
-          const now = state.audioCtx.currentTime;
-          const freqs = [293.66, 440, 659.25];
-
-          for (let i = 0; i < freqs.length; i += 1) {
-            const osc = state.audioCtx.createOscillator();
-            const gain = state.audioCtx.createGain();
-            osc.type = "sine"; osc.frequency.value = freqs[i];
-            gain.gain.setValueAtTime(0.0001, now);
-            gain.gain.exponentialRampToValueAtTime(0.03 / (i + 1), now + 0.05);
-            gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.4 + i * 0.2);
-            osc.connect(gain); gain.connect(state.audioCtx.destination);
-            osc.start(now); osc.stop(now + 1.5 + i * 0.2);
-          }
-        }
-
-        function openPanel(id) {
-          const panel = document.getElementById(id);
-          if (!panel) return;
-          if (id === "whisperModal") { panel.classList.remove("hidden"); return; }
-          panel.classList.add("active");
-        }
-
-        function closePanel(id) {
-          const panel = document.getElementById(id);
-          if (!panel) return;
-          if (id === "whisperModal") { panel.classList.add("hidden"); return; }
-          panel.classList.remove("active");
-        }
-
-        function closeDialog() {
-          els.starDialog.classList.remove("active");
-          state.selectedWhisper = null;
-        }
-
-        function detectStarHit(x, y) {
-          for (let i = starNodes.length - 1; i >= 0; i -= 1) {
-            const star = starNodes[i];
-            if (!star.visible) continue;
-            const distance = Math.hypot(star.screenX - x, star.screenY - y);
-            if (distance <= star.screenRadius) return star;
-          }
-          return null;
-        }
-
-        function bindPointerEvents() {
-          function isUiTarget(target) {
-            return !!target.closest(".side-panel, .modal-card, .star-dialog, .action-dock, .top-shell, .toast-stack");
-          }
-
-          function startDrag(x, y) {
-            isDragging = true; dragX = x; dragY = y; tapPoint = { x, y }; dragDistance = 0;
-          }
-
-          function moveDrag(x, y, factor) {
-            if (!isDragging) return;
-            const deltaX = x - dragX; const deltaY = y - dragY;
-            dragX = x; dragY = y;
-            dragDistance += Math.abs(deltaX) + Math.abs(deltaY);
-            targetRotationY += deltaX * factor; targetRotationX += deltaY * factor;
-          }
-
-          async function endDrag() {
-            if (!isDragging) return;
-            isDragging = false;
-            if (dragDistance < 10) {
-              const star = detectStarHit(tapPoint.x, tapPoint.y);
-              if (star) await openWhisperDialog(star);
-              else closeDialog();
-            }
-          }
-
-          window.addEventListener("mousedown", (event) => { if (isUiTarget(event.target)) return; startDrag(event.clientX, event.clientY); });
-          window.addEventListener("mousemove", (event) => { moveDrag(event.clientX, event.clientY, 0.0033); });
-          window.addEventListener("mouseup", () => { endDrag(); });
-
-          window.addEventListener("touchstart", (event) => {
-            if (isUiTarget(event.target)) return;
-            const touch = event.touches[0]; startDrag(touch.clientX, touch.clientY);
-          }, { passive: true });
-          window.addEventListener("touchmove", (event) => {
-            const touch = event.touches[0]; moveDrag(touch.clientX, touch.clientY, 0.0048);
-          }, { passive: true });
-          window.addEventListener("touchend", () => { endDrag(); });
-        }
-
-        function bindUi() {
-          els.audioBtn.addEventListener("click", toggleAudio);
-          els.missionBtn.addEventListener("click", () => { openPanel("missionPanel"); });
-          els.logBtn.addEventListener("click", async () => { openPanel("logPanel"); await refreshLogs(true); });
-          els.openWhisperBtn.addEventListener("click", () => { openPanel("whisperModal"); });
-          els.refreshLogBtn.addEventListener("click", () => {
-            refreshLogs(true).catch(() => { showToast("同步失败", "日志暂时没有同步上，请稍后再试。", true); });
-          });
-          els.submitWhisperBtn.addEventListener("click", () => {
-            submitWhisper().catch(() => { showToast("发射失败", "宇宙连接波动，请稍后再试。", true); });
-          });
-          els.sendReplyBtn.addEventListener("click", () => {
-            sendReply().catch(() => { showToast("发送失败", "回响暂时没有发出去。", true); });
-          });
-
-          const closePanelButtons = document.querySelectorAll("[data-close-panel]");
-          for (let i = 0; i < closePanelButtons.length; i += 1) {
-            const button = closePanelButtons[i];
-            button.addEventListener("click", () => { closePanel(button.getAttribute("data-close-panel")); });
-          }
-
-          const closeDialogButtons = document.querySelectorAll("[data-close-dialog]");
-          for (let i = 0; i < closeDialogButtons.length; i += 1) { closeDialogButtons[i].addEventListener("click", closeDialog); }
-
-          window.addEventListener("resize", resizeCanvas);
-          window.addEventListener("keydown", (event) => {
-            if (event.key === "Escape") { closeDialog(); closePanel("missionPanel"); closePanel("logPanel"); closePanel("whisperModal"); }
-          });
-        }
-
-        function startAmbientRotation() {
-          window.setInterval(() => {
-            state.ambientIndex = (state.ambientIndex + 1) % ambientTexts.length;
-            els.ambientText.textContent = ambientTexts[state.ambientIndex];
-          }, 9000);
-        }
-
-        function startPolling() {
-          state.pollHandle = window.setInterval(async () => {
-            try {
-              await refreshState();
-              if (els.logPanel.classList.contains("active")) { await refreshLogs(false); }
-            } catch (error) {}
-          }, 9000);
-        }
-
-        // 动态追加底栏骨架
-        function injectDock() {
-            const dock = document.createElement("div");
-            dock.className = "action-dock";
-            dock.innerHTML = `
-                <button class="dock-btn" id="missionBtn">治愈任务</button>
-                <button class="dock-btn" id="openWhisperBtn">推向深空</button>
-                <button class="dock-btn" id="logBtn">观测日志</button>
-            `;
-            document.body.appendChild(dock);
-            els.missionBtn = document.getElementById("missionBtn");
-            els.openWhisperBtn = document.getElementById("openWhisperBtn");
-            els.logBtn = document.getElementById("logBtn");
-        }
-
-        async function main() {
-          injectDock();
-          injectAudioBtn();
-          initCanvas(); 
-          bindPointerEvents(); 
-          bindUi(); 
-          startAmbientRotation();
-          await bootstrap();
-          window.requestAnimationFrame(renderScene);
-          startPolling();
-        }
-
-        main().catch((error) => {
-          console.error(error);
-          showToast("初始化失败", "本地宇宙没有成功启动，请刷新页面重试。", true);
+        // 交互逻辑绑定
+        window.addEventListener('mousedown', (e) => { 
+            if(checkTargetInvalid(e.target)) return; 
+            isDragging = true; totalMoveDist = 0; 
+            prevMouseX = e.clientX; prevMouseY = e.clientY; 
         });
+        window.addEventListener('mousemove', (e) => { 
+            if (isDragging) { 
+                const deltaX = e.clientX - prevMouseX; 
+                const deltaY = e.clientY - prevMouseY; 
+                
+                // 手动拖拽直接控制角度变化
+                currentSpeedY = deltaX * 0.005;
+                currentSpeedX = -deltaY * 0.005;
+                
+                angleY += currentSpeedY;
+                angleX += currentSpeedX;
+                
+                prevMouseX = e.clientX; prevMouseY = e.clientY; 
+                totalMoveDist += Math.hypot(deltaX, deltaY); 
+            } 
+        });
+        window.addEventListener('mouseup', (e) => { 
+            if(!isDragging) return; 
+            isDragging = false; 
+            if(totalMoveDist < 5) checkStarInteraction(e.clientX, e.clientY); 
+        });
+
+        // 移动端手势事件兼容
+        window.addEventListener('touchstart', (e) => { 
+            if(checkTargetInvalid(e.target)) return; 
+            isDragging = true; totalMoveDist = 0; 
+            startX = prevMouseX = e.touches[0].clientX; 
+            startY = prevMouseY = e.touches[0].clientY; 
+        }, { passive: true });
+        window.addEventListener('touchmove', (e) => { 
+            if (!isDragging) return; 
+            const deltaX = e.touches[0].clientX - prevMouseX; 
+            const deltaY = e.touches[0].clientY - prevMouseY; 
+            
+            currentSpeedY = deltaX * 0.007;
+            currentSpeedX = -deltaY * 0.007;
+            
+            angleY += currentSpeedY;
+            angleX += currentSpeedX;
+            
+            prevMouseX = e.touches[0].clientX; prevMouseY = e.touches[0].clientY; 
+            totalMoveDist += Math.hypot(deltaX, deltaY); 
+        }, { passive: true });
+        window.addEventListener('touchend', (e) => { 
+            if(!isDragging) return; 
+            isDragging = false; 
+            if (totalMoveDist < 8) checkStarInteraction(startX, startY); 
+        });
+
+        window.addEventListener('click', (e) => {
+            if(!resBox.contains(e.target) && !checkTargetInvalid(e.target)) {
+                resBox.classList.remove('active', 'mobile-center', 'vip-style');
+            }
+        });
+
+        function checkTargetInvalid(target) { 
+            return target.tagName === 'TEXTAREA' || target.tagName === 'BUTTON' || target.tagName === 'INPUT' || 
+                   target.classList.contains('whisper-trigger') || target.id === 'userSignHint' || 
+                   target.classList.contains('social-reply-zone') || target.classList.contains('reply-list-container') || 
+                   target.classList.contains('single-reply-item') || target.closest('.commercial-header'); 
+        }
+        
+        const resBox = document.getElementById('resonanceBox');
+        function checkStarInteraction(mx, my) {
+            let hoveredStar = null;
+            const activeRadius = isMobile ? 30 : 15;
+            for(let star of starNodes) { 
+                if(star.visible) { 
+                    const dist = Math.hypot(star.screenX - mx, star.screenY - my);
+                    if(dist < activeRadius) { hoveredStar = star; break; } 
+                } 
+            }
+            if(hoveredStar) {
+                const containerId = `replies_${hoveredStar.id}`;
+                const inputId = `reply_in_${hoveredStar.id}`;
+
+                if(hoveredStar.isVip) { resBox.classList.add('vip-style'); } 
+                else { resBox.classList.remove('vip-style'); }
+
+                resBox.innerHTML = `
+                    <button class="reply-action-btn" style="position: absolute; right: 12px; top: 12px; padding: 2px 6px; border-color: rgba(166, 152, 122, 0.4); background: rgba(0,0,0,0.4);"
+                    onclick="event.stopPropagation(); document.getElementById('resonanceBox').classList.remove('active', 'mobile-center', 'vip-style');">✕</button>
+                    <div style="font-style: italic; margin-top: 10px; padding-right: 15px; word-break: break-all;" class="${hoveredStar.isVip ? 'vip-text' : ''}">
+                        ${hoveredStar.isVip ? '<span class="vip-tag">流星特效</span>' : ''}"${hoveredStar.text}"
+                    </div>
+                    <span class="author-sign">—— 来自【${hoveredStar.sign}】</span>
+                    <div class="social-reply-zone">
+                        <div class="reply-list-container" id="${containerId}">正在同步恒星轨道回响...</div>
+                        <textarea class="reply-input-mini" id="${inputId}" placeholder="写下你的共鸣..." rows="1"></textarea>
+                        <div class="reply-btn-bar">
+                            <span style="font-size:0.65rem; color:rgba(166,152,122,0.4); max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">代号:${myUniverseSign}</span>
+                            <button class="reply-action-btn" onclick="sendReplyToServer(${hoveredStar.id}, '${inputId}', '${containerId}')">发送共鸣</button>
+                        </div>
+                    </div>
+                `;
+                if (isMobile) { resBox.style.left = "50%"; resBox.style.top = "50%"; resBox.classList.add('mobile-center'); } 
+                else { resBox.classList.remove('mobile-center'); resBox.style.left = `${mx}px`; resBox.style.top = `${my}px`; }
+                resBox.classList.add('active');
+                hoveredStar.baseAlpha = 1;
+                fetchRepliesForStar(hoveredStar.id, containerId);
+            }
+        }
+
+        // 核心渲染循环：手放开时平滑切回自动巡航状态
+        let globalPulse = 1;
+        let pulseDir = 1;
+        function render() {
+            ctx.fillStyle = '#02050a'; // 纯黑底色，消除拖影bug
+            ctx.fillRect(0, 0, width, height);
+            
+            if (!isDragging) {
+                // 手不放上去的时候，平滑减速过渡到自动旋转预设速度
+                currentSpeedX += (targetSpeedX - currentSpeedX) * 0.05;
+                currentSpeedY += (targetSpeedY - currentSpeedY) * 0.05;
+                angleX += currentSpeedX;
+                angleY += currentSpeedY;
+            }
+
+            globalPulse += 0.004 * pulseDir;
+            if(globalPulse > 1.15 || globalPulse < 0.85) pulseDir *= -1;
+            
+            for (let star of starNodes) star.draw(angleX, angleY, globalPulse);
+            requestAnimationFrame(render);
+        }
+        render();
+
+        // 声音核心逻辑重构
+        let audioCtx = null; 
+        let bellInterval = null;
+
+        function toggleSpaceAudio(e) {
+            if(e) e.stopPropagation();
+            const btn = document.getElementById('audioBtn');
+            
+            // 如果已经存在音频实例，执行关闭销毁
+            if (audioCtx) { 
+                audioCtx.close(); 
+                audioCtx = null; 
+                clearInterval(bellInterval); 
+                btn.innerText = "轻触 · 听泉"; 
+                return;
+            }
+            
+            try {
+                // 实例化白噪音和星音特效
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // 核心修复：显式呼叫 resume，唤醒现代浏览器的安全限制
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+
+                btn.innerText = "断开俗世";
+                
+                // 建立白噪声下雨声环境音
+                const bufferSize = 2 * audioCtx.sampleRate; 
+                const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const output = noiseBuffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+                
+                const whiteNoise = audioCtx.createBufferSource();
+                whiteNoise.buffer = noiseBuffer; 
+                whiteNoise.loop = true;
+                
+                const filter = audioCtx.createBiquadFilter(); 
+                filter.type = 'lowpass'; 
+                filter.frequency.setValueAtTime(850, audioCtx.currentTime);
+                
+                const rainGain = audioCtx.createGain();
+                rainGain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                
+                whiteNoise.connect(filter); 
+                filter.connect(rainGain); 
+                rainGain.connect(audioCtx.destination); 
+                whiteNoise.start();
+
+                // 循环触发空灵钟声
+                bellInterval = setInterval(() => {
+                    if (!audioCtx) return;
+                    let osc = audioCtx.createOscillator(); 
+                    let bellGain = audioCtx.createGain(); 
+                    osc.type = 'sine'; 
+                    osc.frequency.setValueAtTime(800 + Math.random() * 200, audioCtx.currentTime);
+                    bellGain.gain.setValueAtTime(0, audioCtx.currentTime); 
+                    bellGain.gain.linearRampToValueAtTime(0.012, audioCtx.currentTime + 0.1); 
+                    bellGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 5.0);
+                    
+                    osc.connect(bellGain); 
+                    bellGain.connect(audioCtx.destination); 
+                    osc.start(); 
+                    osc.stop(audioCtx.currentTime + 5.0);
+                }, 8000);
+                
+                // 首次开启马上播放一次提示音确认成功
+                playValleyChime();
+
+            } catch (err) {
+                console.error("音频初始化失败: ", err);
+                alert("浏览器音频权限被拦截，请再次点击重试。");
+            }
+        }
+
+        function playValleyChime() {
+            if (!audioCtx) return;
+            const frequencies = [293.66, 440.00, 587.33, 734.16]; 
+            const now = audioCtx.currentTime;
+            frequencies.forEach((freq, index) => {
+                let osc = audioCtx.createOscillator(); 
+                let gainNode = audioCtx.createGain(); 
+                osc.type = 'sine'; 
+                osc.frequency.setValueAtTime(freq, now); 
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(0.025 / (index + 1), now + 0.06); 
+                const duration = 6.0 - (index * 0.8); 
+                gainNode.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+                osc.connect(gainNode); 
+                gainNode.connect(audioCtx.destination); 
+                osc.start(now); 
+                osc.stop(now + duration);
+            });
+        }
+
+        // 其余业务交互函数
+        function submitWhisper(event) {
+            if(event) event.stopPropagation();
+            const input = document.getElementById('whisperInput'); 
+            const text = input.value.trim();
+            if(!text) return;
+
+            if (text.includes("赌博") || text.includes("加微信") || text.includes("上门") || text.includes("兼职")) {
+                alert("⚠️ 内容包含平台禁止的敏感词！"); return;
+            }
+
+            const wantVip = document.getElementById('vipPublishCheck').checked;
+            if(wantVip && starCoins < 10) {
+                alert("❌ 余额不足！请充值。"); return;
+            }
+
+            if(wantVip) {
+                starCoins -= 10;
+                localStorage.setItem('star_coins_balance', starCoins.toString());
+                document.getElementById('userCoins').innerText = starCoins;
+            }
+
+            let mockId = Math.floor(Math.random() * 100000);
+            const newStar = new StarNode(mockId, text, myUniverseSign, true, wantVip);
+            starNodes.push(newStar); 
+            closeInputPanel(); 
+            if(audioCtx) playValleyChime(); 
+            input.value = '';
+            document.getElementById('vipPublishCheck').checked = false;
+        }
+
+        function fetchRepliesForStar(whisperId, replyContainerId) {
+            const container = document.getElementById(replyContainerId);
+            if(!container) return;
+            let htmlContent = "";
+            if (localRepliesStorage[whisperId]) {
+                localRepliesStorage[whisperId].forEach(r => {
+                    htmlContent += `<div class="single-reply-item"><strong>${r.author_sign}:</strong> ${r.content}</div>`;
+                });
+            }
+            container.innerHTML = htmlContent || "<span style='color:rgba(166,152,122,0.4)'>尚无恒星回应...</span>";
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function sendReplyToServer(whisperId, inputId, replyContainerId) {
+            const inputElement = document.getElementById(inputId);
+            const content = inputElement.value.trim();
+            if(!content) return;
+            if (!localRepliesStorage[whisperId]) localRepliesStorage[whisperId] = [];
+            localRepliesStorage[whisperId].push({ whisper_id: whisperId, content: content, author_sign: myUniverseSign });
+            inputElement.value = "";
+            if(audioCtx) playValleyChime();
+            fetchRepliesForStar(whisperId, replyContainerId);
+        }
+
+        function openInputPanel(e) { if(e) e.stopPropagation(); document.getElementById('userSignHint').innerText = `你的宇宙代号：【${myUniverseSign}】`; document.getElementById('inputPanel').style.display = 'flex'; document.getElementById('whisperInput').focus(); }
+        function closeInputPanel() { document.getElementById('inputPanel').style.display = 'none'; }
+        
+        const texts = ["万物自有其时。<br>你已经做得很好了，不必对自己步步紧逼。", "闭眼，听雨。<br>这一刻，世界不属于任何人，只属于你自己。", "红尘滚滚，总有来路。<br>停下歇歇，本就无需向任何人交代。"];
+        let textIndex = 0; 
+        setInterval(() => { textIndex = (textIndex + 1) % texts.length; document.getElementById('breathingText').innerHTML = texts[textIndex]; }, 15000);
+
+        window.addEventListener('resize', () => { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; });
     </script>
 </body>
 </html>
