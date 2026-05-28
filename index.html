@@ -3,105 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>星海微茫 · 灵魂悬浮测试</title>
+    <title>星海微茫 · 终极治愈星空</title>
     <style>
-        body { margin: 0; overflow: hidden; background: radial-gradient(circle at center, #080c16 0%, #010205 100%); }
-        canvas { display: block; }
+        body { margin: 0; overflow: hidden; background: radial-gradient(circle at center, #060913 0%, #010204 100%); }
+        canvas { display: block; position: absolute; top: 0; left: 0; }
         #hint {
-            position: absolute; bottom: 10%; left: 50%; transform: translateX(-50%);
-            color: rgba(166, 152, 122, 0.5); font-family: "Noto Serif SC", serif; 
-            letter-spacing: 4px; font-size: 13px; pointer-events: none; text-align: center;
-            line-height: 2;
+            position: absolute; bottom: 8%; left: 50%; transform: translateX(-50%);
+            color: rgba(220, 210, 190, 0.4); font-family: "Noto Serif SC", serif; 
+            letter-spacing: 6px; font-size: 12px; pointer-events: none; text-align: center;
+            line-height: 2; text-shadow: 0 0 8px rgba(0,0,0,0.8);
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
-    <div id="hint">手不动时星河缓转<br>轻轻滑动 拨动群星</div>
+    <div id="hint">静静悬浮 · 轻轻拨动星河</div>
     
     <script>
-        // 1. 创建星空舞台
+        // 1. 初始化深空舞台
         const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x010205, 0.0006);
+        scene.fog = new THREE.FogExp2(0x010204, 0.0005); // 宇宙深处迷雾
 
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 2000);
-        camera.position.z = 500; // 调整眼睛到星系中心的距离
+        const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 1, 2500);
+        camera.position.z = 600;
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         document.body.appendChild(renderer.domElement);
 
-        // 🌟 核心升级：动态用代码画一个“发光的霓虹小圆点”作为星星贴图，告别死白硬点
-        function createStarTexture() {
+        // 🌟 核心升级 1：动态绘制带高斯模糊的“治愈星云/星芒贴图”
+        function createCosmicTexture(type) {
             const canvas = document.createElement('canvas');
-            canvas.width = 32; canvas.height = 32;
+            canvas.width = 64; canvas.height = 64;
             const ctx = canvas.getContext('2d');
-            // 渐变发光
-            const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
-            gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-            gradient.addColorStop(0.2, 'rgba(200, 230, 255, 0.8)');
-            gradient.addColorStop(0.5, 'rgba(100, 150, 255, 0.2)');
-            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-            ctx.fillStyle = gradient; ctx.fillRect(0, 0, 32, 32);
+            const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+            
+            if (type === 'nebula') {
+                // 巨大的、极度稀薄散开的星云粒子
+                gradient.addColorStop(0, 'rgba(255, 255, 255, 0.05)');
+                gradient.addColorStop(0.3, 'rgba(140, 90, 255, 0.02)');
+                gradient.addColorStop(0.7, 'rgba(50, 80, 200, 0.005)');
+                gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            } else {
+                // 璀璨自带辉光的真实星芒
+                gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+                gradient.addColorStop(0.1, 'rgba(240, 245, 255, 0.8)');
+                gradient.addColorStop(0.25, 'rgba(160, 200, 255, 0.3)');
+                gradient.addColorStop(0.6, 'rgba(100, 130, 255, 0.05)');
+                gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            }
+            
+            ctx.fillStyle = gradient; ctx.fillRect(0, 0, 64, 64);
             return new THREE.CanvasTexture(canvas);
         }
 
-        // 2. 建造带有色彩梯度的星云球体
-        const starsGeometry = new THREE.BufferGeometry();
-        const starsCount = 3000; // 降低数量，提升单颗星的质感
-        const positions = new Float32Array(starsCount * 3);
-        const colors = new Float32Array(starsCount * 3);
+        const nebulaTexture = createCosmicTexture('nebula');
+        const starTexture = createCosmicTexture('star');
 
-        // 预设三种高级疗愈色调：淡暖金、极光蓝、深邃紫
-        const palette = [
-            new THREE.Color(0xfef08a), // 温暖星光
-            new THREE.Color(0xa5f3fc), // 极光幽蓝
-            new THREE.Color(0xe9d5ff)  // 疗愈淡紫
+        // 整个宇宙物体的旋转大容器
+        const universeGroup = new THREE.Group();
+        scene.add(universeGroup);
+
+        // 🌟 核心升级 2：建造三大片由巨大粒子组成的“流动星云云层”
+        const nebulaColors = [
+            new THREE.Color(0x5b21b6), // 深紫云
+            new THREE.Color(0x0369a1), // 深海幽蓝云
+            new THREE.Color(0x831843)  // 疗愈玫瑰暗粉
         ];
-
-        for(let i = 0; i < starsCount; i++) {
-            // 🌟 改变散布逻辑：不再是方块，而是把星星塞进一个半径 600 的大球体里，形成包裹感
-            const u = Math.random(); const v = Math.random();
-            const theta = u * 2.0 * Math.PI;
-            const phi = Math.acos(2.0 * v - 1.0);
-            const r = 250 + Math.random() * 350; // 让中心空出来，人仿佛悬浮在正中央
-
-            positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-            positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
-            positions[i * 3 + 2] = r * Math.cos(phi);
-
-            // 随机分配颜色
-            const pickedColor = palette[Math.floor(Math.random() * palette.length)];
-            colors[i * 3] = pickedColor.r;
-            colors[i * 3 + 1] = pickedColor.g;
-            colors[i * 3 + 2] = pickedColor.b;
-        }
-
-        starsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        starsGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-        // 星星材质材质
-        const starsMaterial = new THREE.PointsMaterial({
-            size: 4.5, // 放大星星，使其能被看清和点击
-            map: createStarTexture(),
-            vertexColors: true, // 启用随机色彩
-            transparent: true,
-            opacity: 0.8,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false
+        
+        const nebulaMeshes = [];
+        nebulaColors.forEach((color, idx) => {
+            const geom = new THREE.BufferGeometry();
+            const count = 45; // 少量巨大的粒子即可撑起星云
+            const positions = new Float32Array(count * 3);
+            for(let i=0; i<count; i++) {
+                // 星云无规则地散布在更远的身后
+                positions[i*3] = (Math.random() - 0.5) * 1500;
+                positions[i*3+1] = (Math.random() - 0.5) * 1500;
+                positions[i*3+2] = (Math.random() - 0.5) * 1200 - 200;
+            }
+            geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            
+            const mat = new THREE.PointsMaterial({
+                size: 400 + Math.random() * 300, // 巨大的尺寸才能形成雾气感
+                map: nebulaTexture,
+                color: color,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+            const mesh = new THREE.Points(geom, mat);
+            universeGroup.add(mesh);
+            nebulaMeshes.push({ mesh: mesh, speedFactor: 0.05 + idx * 0.02 });
         });
 
-        // 将群星打包放入宇宙
-        const starGroup = new THREE.Group();
-        const starMesh = new THREE.Points(starsGeometry, starsMaterial);
-        starGroup.add(starMesh);
-        scene.add(starGroup);
+        // 🌟 核心升级 3：银河带形态群星 + 异步闪烁（分三个星族）
+        const starGroups = [];
+        const starColors = [0xfff9e6, 0xe0f2fe, 0xf5f3ff]; // 暖白、冰蓝、淡紫
 
-        // 3. 丝滑的手指拨动与阻尼算法
+        for (let g = 0; g < 3; g++) {
+            const geom = new THREE.BufferGeometry();
+            const count = 1200; // 每个星族 1200 颗星
+            const positions = new Float32Array(count * 3);
+
+            for (let i = 0; i < count; i++) {
+                // 模拟银河系的盘状盘旋结构（有疏有密，形成星带）
+                const angle = Math.random() * Math.PI * 2;
+                // 让一部分星星向银河中心聚集，一部分零散在外
+                const radius = Math.pow(Math.random(), 2) * 700 + 100; 
+                
+                positions[i * 3] = Math.cos(angle) * radius;
+                // 压缩Y轴，让其扁平化，形成美丽的星河带
+                positions[i * 3 + 1] = (Math.random() - 0.5) * 200 + (Math.sin(angle) * 50); 
+                positions[i * 3 + 2] = Math.sin(angle) * radius;
+            }
+            geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+            const mat = new THREE.PointsMaterial({
+                size: g === 0 ? 3.5 : (g === 1 ? 2.0 : 5.0), // 区分远近粗细大小
+                map: starTexture,
+                color: new THREE.Color(starColors[g]),
+                transparent: true,
+                opacity: 0.85,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            });
+
+            const mesh = new THREE.Points(geom, mat);
+            universeGroup.add(mesh);
+            // 记录每个星族的独特闪烁频率和初始相位
+            starGroups.push({ mesh: mesh, freq: 1.5 + g * 0.8, phase: g * Math.PI / 3 });
+        }
+
+        // 4. 丝滑的手指拨动物理阻尼算法
         let isDragging = false;
         let previousMousePosition = { x: 0, y: 0 };
-        let rotationVelocity = { x: 0.0008, y: 0.001 }; // 初始极慢的自转速度
+        let rotationVelocity = { x: 0.0003, y: 0.0005 }; // 初始极慢、安详的旋转
 
         function onPointerDown(e) {
             isDragging = true;
@@ -118,16 +157,14 @@
             const deltaX = clientX - previousMousePosition.x;
             const deltaY = clientY - previousMousePosition.y;
 
-            // 手指带动的旋转速度
-            rotationVelocity.y = deltaX * 0.003;
-            rotationVelocity.x = deltaY * 0.003;
+            rotationVelocity.y = deltaX * 0.0025;
+            rotationVelocity.x = deltaY * 0.0025;
 
             previousMousePosition = { x: clientX, y: clientY };
         }
 
         function onPointerUp() { isDragging = false; }
 
-        // 监听鼠标与手机触屏
         window.addEventListener('mousedown', onPointerDown);
         window.addEventListener('mousemove', onPointerMove);
         window.addEventListener('mouseup', onPointerUp);
@@ -135,30 +172,37 @@
         window.addEventListener('touchmove', onPointerMove, { passive: true });
         window.addEventListener('touchend', onPointerUp);
 
-        // 4. 渲染循环
+        // 5. 宇宙动效核心引擎
         const clock = new THREE.Clock();
+        
         function animate() {
             requestAnimationFrame(animate);
+            const time = clock.getElapsedTime();
 
-            // 🌟 核心修正：应用自转。如果不去用手划，它会永远以极其温柔的底速自己旋转
+            // 恢复底速旋转（阻尼）
             if (!isDragging) {
-                // 阻尼回弹：用手松开后，速度慢慢减弱，最后恢复到微弱的自动旋转状态
-                rotationVelocity.x += (0.0002 - rotationVelocity.x) * 0.02;
-                rotationVelocity.y += (0.0005 - rotationVelocity.y) * 0.02;
+                rotationVelocity.x += (0.00005 - rotationVelocity.x) * 0.015;
+                rotationVelocity.y += (0.00015 - rotationVelocity.y) * 0.015;
             }
 
-            starGroup.rotation.y += rotationVelocity.y;
-            starGroup.rotation.x += rotationVelocity.x;
+            universeGroup.rotation.y += rotationVelocity.y;
+            universeGroup.rotation.x += rotationVelocity.x;
 
-            // 星星微微的呼吸闪烁感（随时间轻微变动大小）
-            const time = clock.getElapsedTime();
-            starsMaterial.size = 4.0 + Math.sin(time * 2) * 1.0;
+            // 🌟 核心动效：让星云产生微小的错位漂流，产生极其治愈的流动空气感
+            nebulaMeshes.forEach(item => {
+                item.mesh.rotation.z = Math.sin(time * 0.02) * item.speedFactor;
+            });
+
+            // 🌟 核心动效：让不同的星族按照各自的周期公式进行异步闪烁（呼吸感）
+            starGroups.forEach(group => {
+                group.mesh.material.opacity = 0.5 + Math.sin(time * group.freq + group.phase) * 0.4;
+            });
 
             renderer.render(scene, camera);
         }
         animate();
 
-        // 5. 自适应屏幕
+        // 6. 完美自适应屏幕
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
