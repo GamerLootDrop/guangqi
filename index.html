@@ -2,605 +2,173 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>星海微茫 · 礁湖星云终极治愈版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=no">
+    <title>时空吞噬 · 漩涡星云</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body, html {
-            width: 100%; height: 100%; overflow: hidden;
-            /* 完美融入为你定制的 4K 礁湖星云高清壁纸 */
-            background: #030509 url('bg.jpg') no-repeat center center;
-            background-size: cover;
-            font-family: "Noto Serif SC", "SimSun", serif;
-            user-select: none; -webkit-user-select: none;
-        }
-        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; background: transparent; }
-
-        /* 顶部商业化看板 */
-        .commercial-header {
-            position: absolute; top: 20px; left: 20px; right: 20px;
-            display: flex; justify-content: space-between; align-items: center;
-            z-index: 10; padding: 10px 15px;
-            background: rgba(6, 10, 18, 0.65); border: 1px solid rgba(166, 152, 122, 0.2);
-            border-radius: 8px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-            color: #e6dedf; font-size: 0.85rem; letter-spacing: 1px;
-        }
-        .wallet-zone { display: flex; align-items: center; gap: 10px; }
-        .coin-num { color: #ffd700; font-weight: bold; text-shadow: 0 0 8px rgba(255, 215, 0, 0.5); }
-        .charge-btn {
-            background: linear-gradient(135deg, #ffd700, #b8860b); border: none;
-            color: #000; padding: 3px 12px; font-size: 0.75rem; font-weight: bold;
-            border-radius: 12px; cursor: pointer; transition: all 0.3s;
-        }
-        .charge-btn:hover { transform: scale(1.05); box-shadow: 0 0 10px rgba(255,215,0,0.4); }
-
-        .ambient-container {
-            position: absolute; top: 32%; left: 50%; transform: translate(-50%, -50%);
-            width: 85%; max-width: 500px; text-align: center; z-index: 2; pointer-events: none;
-        }
-        .breathing-text {
-            font-size: 1.15rem; color: rgba(230, 220, 200, 0.9); line-height: 2.4;
-            letter-spacing: 4px; font-weight: 300;
-            animation: spacePulse 15s infinite ease-in-out;
-            text-shadow: 0 2px 15px rgba(0, 0, 0, 0.9);
-        }
-        @keyframes spacePulse {
-            0%, 100% { opacity: 0; transform: translateY(5px); filter: blur(1px); }
-            8%, 92% { opacity: 0.9; transform: translateY(0); filter: blur(0); }
-        }
-
-        .guide-hint {
-            position: absolute; top: 85px; left: 50%; transform: translateX(-50%);
-            font-size: 0.78rem; color: rgba(180, 170, 150, 0.5); letter-spacing: 2px; z-index: 2;
-            pointer-events: none; text-align: center; width: 90%; text-shadow: 0 1px 3px rgba(0,0,0,0.8);
-        }
-
-        .bottom-bar {
-            position: absolute; bottom: 35px; width: 100%;
-            display: flex; justify-content: space-between; padding: 0 40px; z-index: 3;
-        }
-        .action-btn {
-            background: rgba(10, 16, 26, 0.6); border: 1px solid rgba(143, 133, 112, 0.3);
-            color: rgba(224, 215, 195, 0.85); padding: 9px 20px; font-size: 0.82rem; border-radius: 20px;
-            cursor: pointer; letter-spacing: 2px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-            transition: all 0.4s ease; font-family: inherit;
-        }
-        .action-btn:hover { border-color: rgba(217, 201, 165, 0.6); color: rgba(242, 233, 213, 0.95); }
-
-        /* 弹出共鸣框 */
-        .resonance-box {
-            position: absolute; z-index: 10; padding: 24px;
-            background: rgba(7, 11, 20, 0.95); border: 1px solid rgba(166, 152, 122, 0.4);
-            border-radius: 8px; color: rgba(224, 215, 195, 0.95);
-            font-size: 0.92rem; line-height: 1.8; letter-spacing: 1.5px;
-            width: 340px; max-width: 90vw; pointer-events: auto;
-            opacity: 0; transform: scale(0.9);
-            transition: opacity 0.3s ease, transform 0.3s ease;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.85), inset 0 0 15px rgba(166,152,122,0.15);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            display: none;
-        }
-        .resonance-box.active { opacity: 1; transform: scale(1); display: block; }
-        
-        .resonance-box.vip-style {
-            background: rgba(25, 10, 35, 0.95); border: 2px solid #da70d6;
-            box-shadow: 0 0 25px rgba(218, 112, 214, 0.4), inset 0 0 15px rgba(218, 112, 214, 0.2);
-        }
-        .vip-tag { color: #ffd700; font-weight: bold; font-size: 0.75rem; border: 1px solid #ffd700; padding: 0px 4px; border-radius: 3px; margin-right: 5px; }
-        .vip-text { color: #fffbc8 !important; font-weight: bold; text-shadow: 0 0 6px rgba(255, 251, 200, 0.5); }
-        .resonance-box .author-sign { display: block; text-align: right; margin-top: 12px; font-size: 0.75rem; color: rgba(166, 152, 122, 0.65); border-bottom: 1px dashed rgba(166, 152, 122, 0.2); padding-bottom: 8px; }
-
-        .social-reply-zone { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
-        .reply-input-mini { width: 100%; background: rgba(5, 8, 15, 0.6); border: 1px solid rgba(166, 152, 122, 0.3); border-radius: 4px; padding: 6px 10px; color: #e6dedf; font-size: 0.8rem; outline: none; font-family: inherit; resize: none; }
-        .reply-btn-bar { display: flex; justify-content: space-between; align-items: center; }
-        .reply-action-btn { background: rgba(143, 133, 112, 0.2); border: 1px solid rgba(143, 133, 112, 0.4); color: rgba(224, 215, 195, 0.85); padding: 3px 10px; font-size: 0.75rem; border-radius: 3px; cursor: pointer; transition: all 0.3s; }
-        .reply-action-btn:hover { background: rgba(143, 133, 112, 0.4); color: #fff; }
-        .reply-list-container { max-height: 100px; overflow-y: auto; font-size: 0.78rem; color: rgba(224, 215, 195, 0.7); margin-top: 6px; padding-top: 4px; border-top: 1px solid rgba(166,152,122,0.1); }
-        .single-reply-item { margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.03); word-break: break-all; }
-
-        /* 发射执念面板 */
-        .overlay-panel { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(3, 5, 10, 0.85); z-index: 100; display: none; justify-content: center; align-items: center; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-        .panel-content { position: relative; width: 88%; max-width: 460px; background: rgba(12, 17, 28, 0.95); border: 1px solid rgba(153, 140, 115, 0.3); border-radius: 12px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.9); }
-        .panel-hint { font-size: 0.8rem; color: rgba(153, 140, 115, 0.6); margin-bottom: 12px; letter-spacing: 1px; }
-        .whisper-area { width: 100%; height: 110px; background: rgba(5, 8, 15, 0.7); border: 1px solid rgba(153, 140, 115, 0.2); border-radius: 6px; padding: 14px; color: rgba(230, 222, 207, 0.95); font-size: 0.92rem; line-height: 1.7; resize: none; outline: none; font-family: inherit; margin-bottom: 12px; }
-        .vip-checkbox-zone { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; color: rgba(224, 215, 195, 0.85); font-size: 0.82rem; cursor: pointer; }
-        .panel-buttons { display: flex; justify-content: flex-end; gap: 14px; }
-        .panel-btn { padding: 8px 22px; font-size: 0.82rem; border-radius: 4px; cursor: pointer; border: 1px solid transparent; letter-spacing: 2px; font-family: inherit; transition: all 0.3s; }
-        .panel-btn.cancel { background: transparent; border-color: rgba(153, 140, 115, 0.3); color: rgba(153, 140, 115, 0.7); }
-        .panel-btn.confirm { background: rgba(143, 133, 112, 0.25); border-color: rgba(143, 133, 112, 0.4); color: rgba(230, 222, 207, 0.9); }
-        .panel-btn.confirm:hover { background: rgba(143, 133, 112, 0.4); color: #fff; }
-
-        @media (max-width: 768px) {
-            .bottom-bar { padding: 0 24px; bottom: 30px; }
-            .action-btn { padding: 8px 16px; font-size: 0.78rem; }
-            .resonance-box.mobile-center { position: absolute !important; width: 85% !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) scale(1) !important; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background: #000; }
+        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        .hint {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            color: rgba(255,255,255,0.7); font-family: sans-serif; font-size: 14px;
+            letter-spacing: 2px; z-index: 10; pointer-events: none; text-align: center;
         }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
-
-    <div class="commercial-header">
-        <div id="userSignDisplay">宇宙代号：加载中...</div>
-        <div class="wallet-zone">
-            <span>💰 星币: <span class="coin-num" id="userCoins">0</span></span>
-            <button class="charge-btn" onclick="chargeCoins(event)">测试充值</button>
-        </div>
-    </div>
-
-    <div class="guide-hint" id="guideHint">轻触或拖拽星河 · 唤醒尘封的远方执念</div>
-    
-    <div class="ambient-container">
-        <div class="breathing-text" id="breathingText">
-            闭眼，听雨。<br>这一刻，世界不属于任何人，只属于你自己。
-        </div>
-    </div>
-
-    <div class="resonance-box" id="resonanceBox" onclick="event.stopPropagation()"></div>
-
-    <div class="bottom-bar">
-        <button class="action-btn" id="audioBtn" onclick="toggleSpaceAudio(event)">轻触 · 听泉</button>
-        <button class="action-btn" onclick="openInputPanel(event)">把执念散作星辰</button>
-    </div>
-
-    <div class="overlay-panel" id="inputPanel" onclick="closeInputPanel()">
-        <div class="panel-content" onclick="event.stopPropagation()">
-            <button class="reply-action-btn" style="position: absolute; right: 15px; top: 15px; padding: 2px 6px;" onclick="closeInputPanel()">✕</button>
-            <div class="panel-hint" id="userSignHint">你的宇宙代号：【计算中...】</div>
-            <textarea class="whisper-area" id="whisperInput" placeholder="写下一句话，打碎揉进星河里。此地无人知晓你，亦无人能评判你..."></textarea>
-            <label class="vip-checkbox-zone">
-                <input type="checkbox" id="vipPublishCheck">
-                <span>开启【炫彩流星发言特效】（消耗 10 星币，高亮且带极光外框）</span>
-            </label>
-            <div class="panel-buttons">
-                <button class="panel-btn cancel" onclick="closeInputPanel()">收回思绪</button>
-                <button class="panel-btn confirm" onclick="submitWhisper(event)">发射执念</button>
-            </div>
-        </div>
-    </div>
+    <div class="hint">请用鼠标/手指在屏幕上滑动、拖拽，加速时空扭曲</div>
+    <canvas id="nebulaCanvas"></canvas>
 
     <script>
-        // --- 1. 基础钱包与代号初始化 ---
-        let starCoins = parseInt(localStorage.getItem('star_coins_balance') || '0');
-        document.getElementById('userCoins').innerText = starCoins;
+        const canvas = document.getElementById('nebulaCanvas');
+        const gl = canvas.getContext('webgl');
 
-        function chargeCoins(e) {
-            if(e) e.stopPropagation();
-            starCoins += 100;
-            localStorage.setItem('star_coins_balance', starCoins.toString());
-            document.getElementById('userCoins').innerText = starCoins;
-            alert("💳 模拟测试充值成功：+100 星币！快去发射炫彩特效皮肤吧！");
+        if (!gl) {
+            alert('您的浏览器不支持 WebGL，请更换现代浏览器。');
         }
 
-        const localRepliesStorage = {};
-        function getOrCreateUniverseSign() {
-            let sign = localStorage.getItem('universe_soul_sign');
-            if (!sign) {
-                const prefix = ["仙女座", "猎户座", "英仙座", "天鹅座", "飞马座", "巨蟹座", "天琴座", "大熊座", "半人马", "麒麟座"];
-                const suffix = ["慢中子", "虚粒子", "坍缩态", "偏振光", "白矮星", "红移线", "微波背景", "暗物质", "静止质量", "星流"];
-                sign = `${prefix[Math.floor(Math.random() * prefix.length)]} · ${suffix[Math.floor(Math.random() * suffix.length)]}`;
-                localStorage.setItem('universe_soul_sign', sign);
+        // 顶点着色器
+        const vsSource = `
+            attribute vec2 position;
+            varying vec2 vUv;
+            void main() {
+                vUv = position * 0.5 + 0.5;
+                gl_Position = vec4(position, 0.0, 1.0);
             }
-            return sign;
-        }
-        const myUniverseSign = getOrCreateUniverseSign();
-        document.getElementById('userSignDisplay').innerText = `🌌 代号：${myUniverseSign}`;
+        `;
 
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        if(!isMobile) document.getElementById('guideHint').innerText = "拖拽可360°转动视角 · 鼠标点击璀璨星辰唤醒宇宙共鸣";
+        // 片元着色器：这里是用数学公式在显卡里直接绘制流体扭曲星云的核心
+        const fsSource = `
+            precision highp float;
+            varying vec2 vUv;
+            uniform float uTime;
+            uniform vec2 uResolution;
+            uniform vec2 uMouse;
 
-        // --- 2. Three.js 3D 礁湖星云渲染引擎 ---
-        const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x030509, 0.0006);
-
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 3000);
-        camera.position.z = 700;
-
-        // 【重磅调整】添加 alpha: true 允许 WebGL 画布半透明，从而完整展现底层的超清星云图
-        const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance", alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.setClearColor(0x000000, 0); // 将清除色透明度设为0
-        document.body.appendChild(renderer.domElement);
-
-        const universeGroup = new THREE.Group();
-        scene.add(universeGroup);
-
-        // 🌟 动态画出高斯柔和模糊的气体烟雾粒子贴图
-        function createGasTexture() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 128; canvas.height = 128;
-            const ctx = canvas.getContext('2d');
-            const gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
-            gradient.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
-            gradient.addColorStop(0.2, 'rgba(240, 240, 255, 0.5)');
-            gradient.addColorStop(0.5, 'rgba(180, 180, 255, 0.15)');
-            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-            ctx.fillStyle = gradient; ctx.fillRect(0, 0, 128, 128);
-            return new THREE.CanvasTexture(canvas);
-        }
-        const gasTexture = createGasTexture();
-
-        // 🌟 动态画出带光芒的星星贴图
-        function createStarTexture() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 64; canvas.height = 64;
-            const ctx = canvas.getContext('2d');
-            const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-            gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-            gradient.addColorStop(0.15, 'rgba(235, 245, 255, 0.9)');
-            gradient.addColorStop(0.4, 'rgba(130, 180, 255, 0.25)');
-            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-            ctx.fillStyle = gradient; ctx.fillRect(0, 0, 64, 64);
-            return new THREE.CanvasTexture(canvas);
-        }
-        const starTexture = createStarTexture();
-
-        // 🌟 重塑算法：生成一层轻量 3D 浮动气流盘，拖拽时会产生震撼的立体视差效果
-        const nebulaCount = 500; 
-        const nebulaGeom = new THREE.BufferGeometry();
-        const nebulaPositions = new Float32Array(nebulaCount * 3);
-        const nebulaColors = new Float32Array(nebulaCount * 3);
-
-        for(let i = 0; i < nebulaCount; i++) {
-            const u = Math.random();
-            const angle = Math.random() * Math.PI * 2;
-            const radius = Math.pow(u, 1.8) * 800; 
-
-            const x = Math.cos(angle) * radius + (Math.random() - 0.5) * 100;
-            const y = Math.sin(angle) * radius * 0.5 + (Math.random() - 0.5) * 100; 
-            const z = (Math.random() - 0.5) * 300 - (radius * 0.2);
-
-            nebulaPositions[i * 3] = x;
-            nebulaPositions[i * 3 + 1] = y;
-            nebulaPositions[i * 3 + 2] = z;
-
-            // 提取核心配色与背景完美融合：核心亮白淡青，两翼深蓝与粉紫
-            let r = 0, g = 0, b = 0;
-            if (radius < 120) {
-                r = 0.9; g = 0.95; b = 1.0;
-            } else if (x > 0 && y > -100) {
-                r = 0.6 + Math.random() * 0.3; 
-                g = 0.2 + Math.random() * 0.2; 
-                b = 0.9 + Math.random() * 0.1;
-            } else {
-                r = 0.9 + Math.random() * 0.1;
-                g = 0.45 + Math.random() * 0.2;
-                b = 0.1 + Math.random() * 0.1;
+            // 噪声函数，用来生成不规则的星云迷雾
+            float noise(in vec2 p) {
+                return sin(p.x)*sin(p.y);
             }
 
-            nebulaColors[i * 3] = r;
-            nebulaColors[i * 3 + 1] = g;
-            nebulaColors[i * 3 + 2] = b;
+            const mat2 m2 = mat2(0.8,  0.6, -0.6,  0.8);
+            float fbm(in vec2 p) {
+                float f = 0.0;
+                f += 0.5000*noise(p); p = m2*p*2.02;
+                f += 0.2500*noise(p); p = m2*p*2.03;
+                f += 0.1250*noise(p); p = m2*p*2.01;
+                f += 0.0625*noise(p); return f/0.9375;
+            }
+
+            void main() {
+                vec2 uv = (gl_FragCoord.xy - 0.5 * uResolution.xy) / uResolution.y;
+                
+                // 计算鼠标互动引发的引力偏移
+                vec2 m = (uMouse - 0.5 * uResolution.xy) / uResolution.y;
+                uv -= m * 0.3;
+
+                // 核心：将直角坐标系转为极坐标系，实现圆周旋转旋转
+                float r = length(uv);
+                float a = atan(uv.y, uv.x);
+
+                // 时空扭曲公式：越靠近中心（r越小），旋转速度和角度越疯狂
+                float strength = 1.5;
+                float distort = strength / (r + 0.1);
+                a += uTime * 0.4 + distort;
+
+                // 重新映射回新坐标体系
+                vec2 uvNew = vec2(r * cos(a), r * sin(a));
+
+                // 制造多层星云迷雾叠加
+                float f = fbm(uvNew * 6.0 + uTime * 0.2);
+                f += fbm(uvNew * 3.0 - uTime * 0.1);
+
+                // 计算中心黑洞的边缘吞噬感
+                float hole = smoothstep(0.05, 0.45, r);
+
+                // 星云颜色调配：星际核心绚丽的蓝紫色调
+                vec3 color1 = vec3(0.1, 0.05, 0.25); // 暗紫
+                vec3 color2 = vec3(0.2, 0.5, 0.9);   // 亮蓝
+                vec3 color3 = vec3(0.9, 0.3, 0.6);   // 玫红
+
+                vec3 finalColor = mix(color1, color2, f);
+                finalColor = mix(finalColor, color3, dot(uvNew, uvNew) * 1.2);
+                
+                // 注入核心耀眼的光芒
+                finalColor += vec3(0.12 / (r + 0.02)) * vec3(1.0, 0.9, 0.7);
+                
+                // 被黑洞吞噬掉中心
+                finalColor *= hole;
+
+                gl_FragColor = vec4(finalColor, 1.0);
+            }
+        `;
+
+        function createShader(gl, type, source) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+            return shader;
         }
 
-        nebulaGeom.setAttribute('position', new THREE.BufferAttribute(nebulaPositions, 3));
-        nebulaGeom.setAttribute('color', new THREE.BufferAttribute(nebulaColors, 3));
+        const vs = createShader(gl, gl.VERTEX_SHADER, vsSource);
+        const fs = createShader(gl, gl.FRAGMENT_SHADER, fsSource);
+        const program = gl.createProgram();
+        gl.attachShader(program, vs);
+        gl.attachShader(program, fs);
+        gl.linkProgram(program);
+        gl.useProgram(program);
 
-        const nebulaMaterial = new THREE.PointsMaterial({
-            size: isMobile ? 160 : 240, 
-            map: gasTexture,
-            vertexColors: true,
-            transparent: true,
-            opacity: 0.18, // 【调低透明度】作为浮动弱滤镜，绝不喧宾夺主导致之前的白化过曝
-            blending: THREE.AdditiveBlending,
-            depthWrite: false
+        const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]);
+        const buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+        const positionLocation = gl.getAttribLocation(program, 'position');
+        gl.enableVertexAttribArray(positionLocation);
+        gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+        const uTime = gl.getUniformLocation(program, 'uTime');
+        const uResolution = gl.getUniformLocation(program, 'uResolution');
+        const uMouse = gl.getUniformLocation(program, 'uMouse');
+
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
+        let targetMouseX = mouseX;
+        let targetMouseY = mouseY;
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            gl.viewport(0, 0, canvas.width, canvas.height);
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        window.addEventListener('mousemove', (e) => {
+            targetMouseX = e.clientX;
+            targetMouseY = window.innerHeight - e.clientY;
         });
 
-        const nebulaPoints = new THREE.Points(nebulaGeom, nebulaMaterial);
-        universeGroup.add(nebulaPoints);
-
-        // --- 3. 互动执念星辰容器群 ---
-        const interactiveStars = [];
-        const starContainer = new THREE.Group();
-        universeGroup.add(starContainer);
-
-        const localSeeds = [
-            ["今年31岁被裁员了，瞒着父母每天在图书馆假装上班，好累。", "天琴座 · 虚粒子", false],
-            ["喜欢了他整整四年，今天看到他在朋友圈发了和别人的婚纱照，祝你幸福。", "巨蟹座 · 坍缩态", false],
-            ["努力了三年还是考研失败，感觉自己是个废物，对不起爸妈。", "飞马座 · 慢中子", false],
-            ["大城市房租又涨了，每天加班到深夜，不知道坚持的意义是什么。", "英仙座 · 偏振光", false],
-            ["这是一条极具商业尊贵排面的VIP炫彩流星特权回响示例！", "仙王座 · 氪金大佬", true]
-        ];
-
-        function createWhisperStarMesh(id, text, sign, isUser = false, isVip = false) {
-            const angle = Math.random() * Math.PI * 2;
-            const radius = 150 + Math.random() * 400;
-            const x = Math.cos(angle) * radius;
-            const y = Math.sin(angle) * radius * 0.6 + (Math.random() - 0.5) * 50;
-            const z = (Math.random() - 0.5) * 200;
-
-            const pulseSpeed = 1 + Math.random() * 2;
-            const phase = Math.random() * Math.PI;
-
-            let colorStr = isVip ? 0xda70d6 : (isUser ? 0xf2e2a1 : 0xb8ad96);
-            let size = isVip ? 22 : (isUser ? 15 : (8 + Math.random() * 6));
-
-            const mat = new THREE.SpriteMaterial({
-                map: starTexture,
-                color: colorStr,
-                transparent: true,
-                opacity: 0.9,
-                blending: THREE.AdditiveBlending
-            });
-
-            const sprite = new THREE.Sprite(mat);
-            sprite.position.set(x, y, z);
-            sprite.scale.set(size, size, 1);
-
-            sprite.userData = { id, text, sign, isVip, isUser, pulseSpeed, phase, baseSize: size };
-            starContainer.add(sprite);
-            interactiveStars.push(sprite);
-        }
-
-        for(let i = 0; i < 120; i++) {
-            const seed = localSeeds[i % localSeeds.length];
-            createWhisperStarMesh(3000 + i, seed[0], seed[1], false, seed[2]);
-        }
-
-        // --- 4. 闭环交互算法 ---
-        let isDragging = false;
-        let totalMoveDist = 0;
-        let previousMousePosition = { x: 0, y: 0 };
-        let rotationVelocity = { x: 0.0001, y: 0.0003 };
-
-        function onPointerDown(e) {
-            isDragging = true; totalMoveDist = 0;
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            previousMousePosition = { x: clientX, y: clientY };
-        }
-
-        function onPointerMove(e) {
-            if (!isDragging) return;
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            
-            const deltaX = clientX - previousMousePosition.x;
-            const deltaY = clientY - previousMousePosition.y;
-
-            rotationVelocity.y = deltaX * (isMobile ? 0.004 : 0.0025);
-            rotationVelocity.x = deltaY * (isMobile ? 0.004 : 0.0025);
-
-            previousMousePosition = { x: clientX, y: clientY };
-            totalMoveDist += Math.hypot(deltaX, deltaY);
-        }
-
-        const raycaster = new THREE.Raycaster();
-        const mouse = new THREE.Vector2();
-
-        function onPointerUp(e) {
-            if (!isDragging) return;
-            isDragging = false;
-            if (totalMoveDist < (isMobile ? 8 : 5)) {
-                const clientX = previousMousePosition.x;
-                const clientY = previousMousePosition.y;
-                
-                mouse.x = (clientX / window.innerWidth) * 2 - 1;
-                mouse.y = -(clientY / window.innerHeight) * 2 + 1;
-                raycaster.setFromCamera(mouse, camera);
-                
-                raycaster.params.Sprite = { threshold: 18 };
-                const intersects = raycaster.intersectObjects(interactiveStars);
-
-                if (intersects.length > 0) {
-                    const targetStar = intersects[0].object;
-                    triggerStarInteraction(targetStar, clientX, clientY);
-                } else {
-                    document.getElementById('resonanceBox').classList.remove('active', 'mobile-center', 'vip-style');
-                }
+        window.addEventListener('touchmove', (e) => {
+            if(e.touches.length > 0) {
+                targetMouseX = e.touches[0].clientX;
+                targetMouseY = window.innerHeight - e.touches[0].clientY;
             }
-        }
-
-        window.addEventListener('mousedown', onPointerDown);
-        window.addEventListener('mousemove', onPointerMove);
-        window.addEventListener('mouseup', onPointerUp);
-        window.addEventListener('touchstart', onPointerDown, { passive: true });
-        window.addEventListener('touchmove', onPointerMove, { passive: true });
-        window.addEventListener('touchend', onPointerUp);
-
-        // --- 5. 共鸣弹窗和回响机制 ---
-        const resBox = document.getElementById('resonanceBox');
-        
-        function triggerStarInteraction(star, mx, my) {
-            const data = star.userData;
-            const containerId = `replies_${data.id}`;
-            const inputId = `reply_in_${data.id}`;
-
-            if(data.isVip) resBox.classList.add('vip-style');
-            else resBox.classList.remove('vip-style');
-
-            resBox.innerHTML = `
-                <button class="reply-action-btn" style="position: absolute; right: 12px; top: 12px; padding: 2px 6px; border-color: rgba(166, 152, 122, 0.4); background: rgba(0,0,0,0.4);"
-                    onclick="event.stopPropagation(); document.getElementById('resonanceBox').classList.remove('active', 'mobile-center', 'vip-style');">✕</button>
-                
-                <div style="font-style: italic; margin-top: 10px; padding-right: 15px; word-break: break-all;" class="${data.isVip ? 'vip-text' : ''}">
-                    ${data.isVip ? '<span class="vip-tag">流星特效</span>' : ''}"${data.text}"
-                </div>
-                <span class="author-sign">—— 来自【${data.sign}】</span>
-                <div class="social-reply-zone">
-                    <div class="reply-list-container" id="${containerId}">正在同步恒星轨道回响...</div>
-                    <textarea class="reply-input-mini" id="${inputId}" placeholder="写下你的共鸣（支持本地测试）..." rows="1"></textarea>
-                    <div class="reply-btn-bar">
-                        <span style="font-size:0.65rem; color:rgba(166,152,122,0.4); max-width:170px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">代号:${myUniverseSign}</span>
-                        <button class="reply-action-btn" onclick="sendReplyToServer(${data.id}, '${inputId}', '${containerId}')">发送共鸣</button>
-                    </div>
-                </div>
-            `;
-
-            if (isMobile) {
-                resBox.style.left = "50%"; resBox.style.top = "50%"; resBox.classList.add('mobile-center');
-            } else {
-                resBox.classList.remove('mobile-center');
-                resBox.style.left = `${Math.min(mx, window.innerWidth - 360)}px`;
-                resBox.style.top = `${Math.min(my, window.innerHeight - 300)}px`;
-            }
-            resBox.classList.add('active');
-
-            star.material.opacity = 1.0;
-            star.scale.set(data.baseSize * 1.5, data.baseSize * 1.5, 1);
-
-            fetchRepliesForStar(data.id, containerId);
-        }
-
-        function fetchRepliesForStar(whisperId, replyContainerId) {
-            const container = document.getElementById(replyContainerId);
-            if(!container) return;
-            let htmlContent = "";
-            if (localRepliesStorage[whisperId]) {
-                localRepliesStorage[whisperId].forEach(r => {
-                    htmlContent += `<div class="single-reply-item"><strong>${r.author_sign}:</strong> ${r.content}</div>`;
-                });
-            }
-            container.innerHTML = htmlContent || "<span style='color:rgba(166,152,122,0.4)'>尚无恒星回应，写下第一道回响...</span>";
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function sendReplyToServer(whisperId, inputId, replyContainerId) {
-            const inputElement = document.getElementById(inputId);
-            const content = inputElement.value.trim();
-            if(!content) return;
-
-            if (!localRepliesStorage[whisperId]) localRepliesStorage[whisperId] = [];
-            localRepliesStorage[whisperId].push({ whisper_id: whisperId, content: content, author_sign: myUniverseSign });
-
-            inputElement.value = "";
-            if(audioCtx) playValleyChime();
-            fetchRepliesForStar(whisperId, replyContainerId);
-        }
-
-        // --- 6. 发射执念拦截与生成机制 ---
-        function openInputPanel(e) { if(e) e.stopPropagation(); document.getElementById('userSignHint').innerText = `你的宇宙代号：【${myUniverseSign}】`; document.getElementById('inputPanel').style.display = 'flex'; document.getElementById('whisperInput').focus(); }
-        function closeInputPanel() { document.getElementById('inputPanel').style.display = 'none'; }
-
-        function submitWhisper(event) {
-            if(event) event.stopPropagation();
-            const input = document.getElementById('whisperInput'); 
-            const text = input.value.trim();
-            if(!text) return;
-
-            if (text.includes("赌博") || text.includes("加微信") || text.includes("上门") || text.includes("兼职")) {
-                alert("⚠️ 星河不渡杂音：内容包含敏感词，发射失败！");
-                return;
-            }
-
-            const wantVip = document.getElementById('vipPublishCheck').checked;
-            if(wantVip && starCoins < 10) {
-                alert("❌ 余额不足！请点击顶部“测试充值”获取星币解锁炫彩特效！");
-                return;
-            }
-
-            if(wantVip) {
-                starCoins -= 10;
-                localStorage.setItem('star_coins_balance', starCoins.toString());
-                document.getElementById('userCoins').innerText = starCoins;
-            }
-
-            let mockId = Math.floor(Math.random() * 100000);
-            createWhisperStarMesh(mockId, text, myUniverseSign, true, wantVip);
-            
-            closeInputPanel(); 
-            if(audioCtx) playValleyChime(); 
-            input.value = '';
-            document.getElementById('vipPublishCheck').checked = false;
-            alert("✨ 执念发射成功！你的故事已化作浩瀚礁湖星云中的一颗恒星。");
-        }
-
-        // --- 7. 文案循环呼吸转换 ---
-        const texts = [
-            "万物自有其时。<br>你已经做得很好了，不必对自己步步紧逼。",
-            "闭眼，听雨。<br>这一刻，世界不属于任何人，只属于你自己。",
-            "红尘滚滚，总有来路。<br>停下歇歇，本就无需向任何人交代。"
-        ];
-        let textIndex = 0; 
-        setInterval(() => { textIndex = (textIndex + 1) % texts.length; document.getElementById('breathingText').innerHTML = texts[textIndex]; }, 15000);
-
-        // --- 8. 全景双通道疗愈声学系统 ---
-        let audioCtx = null; let bellInterval = null;
-        function toggleSpaceAudio(e) {
-            if(e) e.stopPropagation();
-            const btn = document.getElementById('audioBtn');
-            if (audioCtx) { audioCtx.close(); audioCtx = null; clearInterval(bellInterval); btn.innerText = "轻触 · 听泉"; return; }
-            
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            btn.innerText = "断开俗世";
-            
-            const bufferSize = 2 * audioCtx.sampleRate; 
-            const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const output = noiseBuffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
-            
-            const whiteNoise = audioCtx.createBufferSource();
-            whiteNoise.buffer = noiseBuffer; whiteNoise.loop = true;
-            
-            const filter = audioCtx.createBiquadFilter(); 
-            filter.type = 'lowpass'; filter.frequency.setValueAtTime(800, audioCtx.currentTime);
-            
-            const rainGain = audioCtx.createGain();
-            rainGain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-            
-            whiteNoise.connect(filter); filter.connect(rainGain); rainGain.connect(audioCtx.destination); 
-            whiteNoise.start();
-
-            bellInterval = setInterval(() => {
-                if (!audioCtx) return;
-                let osc = audioCtx.createOscillator(); let bellGain = audioCtx.createGain(); 
-                osc.type = 'sine'; osc.frequency.setValueAtTime(700 + Math.random() * 200, audioCtx.currentTime);
-                bellGain.gain.setValueAtTime(0, audioCtx.currentTime); 
-                bellGain.gain.linearRampToValueAtTime(0.012, audioCtx.currentTime + 0.1); 
-                bellGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 5.0);
-                osc.connect(bellGain); bellGain.connect(audioCtx.destination); 
-                osc.start(); osc.stop(audioCtx.currentTime + 5.0);
-            }, 7000);
-        }
-
-        function playValleyChime() {
-            if (!audioCtx) return;
-            const frequencies = [293.66, 440.00, 587.33, 734.16]; const now = audioCtx.currentTime;
-            frequencies.forEach((freq, index) => {
-                let osc = audioCtx.createOscillator(); let gainNode = audioCtx.createGain(); 
-                osc.type = 'sine'; osc.frequency.setValueAtTime(freq, now); gainNode.gain.setValueAtTime(0, now);
-                gainNode.gain.linearRampToValueAtTime(0.022 / (index + 1), now + 0.06); 
-                const duration = 5.0 - (index * 0.7); 
-                gainNode.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-                osc.connect(gainNode); gainNode.connect(audioCtx.destination); 
-                osc.start(now); osc.stop(now + duration);
-            });
-        }
-
-        // --- 9. 全景动态渲染主循环 ---
-        const clock = new THREE.Clock();
-        
-        function animate() {
-            requestAnimationFrame(animate);
-            const time = clock.getElapsedTime();
-
-            if (!isDragging) {
-                rotationVelocity.x += (0.00003 - rotationVelocity.x) * 0.02;
-                rotationVelocity.y += (0.00012 - rotationVelocity.y) * 0.02;
-            }
-            universeGroup.rotation.y += rotationVelocity.y;
-            universeGroup.rotation.x += rotationVelocity.x;
-
-            // 🌟 呼吸动效
-            interactiveStars.forEach(star => {
-                const data = star.userData;
-                const pulse = 0.6 + Math.sin(time * data.pulseSpeed + data.phase) * 0.4;
-                star.material.opacity = pulse;
-                if (resBox.classList.contains('active') === false) {
-                    star.scale.set(data.baseSize * (0.85 + pulse * 0.15), data.baseSize * (0.85 + pulse * 0.15), 1);
-                }
-            });
-
-            renderer.render(scene, camera);
-        }
-        animate();
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
         });
+
+        function render(time) {
+            // 平滑缓动，让鼠标交互显得丝滑
+            mouseX += (targetMouseX - mouseX) * 0.08;
+            mouseY += (targetMouseY - mouseY) * 0.08;
+
+            gl.uniform1f(uTime, time * 0.002);
+            gl.uniform2f(uResolution, canvas.width, canvas.height);
+            gl.uniform2f(uMouse, mouseX, mouseY);
+
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+            requestAnimationFrame(render);
+        }
+        requestAnimationFrame(render);
     </script>
 </body>
 </html>
