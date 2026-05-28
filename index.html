@@ -3,29 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=no">
-    <title>时空吞噬 · 漩涡星云</title>
+    <title>事件视界 · 引力塌陷</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body, html { width: 100%; height: 100%; overflow: hidden; background: #000; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background: #020208; }
         canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-        .hint {
-            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-            color: rgba(255,255,255,0.7); font-family: sans-serif; font-size: 14px;
-            letter-spacing: 2px; z-index: 10; pointer-events: none; text-align: center;
+        .hud {
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            color: rgba(255,255,255,0.4); font-family: monospace; font-size: 11px;
+            letter-spacing: 3px; z-index: 10; pointer-events: none; text-align: center;
+            text-transform: uppercase; text-shadow: 0 0 5px rgba(255,255,255,0.2);
         }
     </style>
 </head>
 <body>
-    <div class="hint">请用鼠标/手指在屏幕上滑动、拖拽，加速时空扭曲</div>
-    <canvas id="nebulaCanvas"></canvas>
+    <div class="hud">SINGULARITY INVERSION // DRAG TO DISTORT SPACE-TIME FIELD</div>
+    <canvas id="singularityCanvas"></canvas>
 
     <script>
-        const canvas = document.getElementById('nebulaCanvas');
+        const canvas = document.getElementById('singularityCanvas');
         const gl = canvas.getContext('webgl');
-
-        if (!gl) {
-            alert('您的浏览器不支持 WebGL，请更换现代浏览器。');
-        }
+        if (!gl) alert('WebGL Not Supported');
 
         // 顶点着色器
         const vsSource = `
@@ -37,7 +35,7 @@
             }
         `;
 
-        // 片元着色器：这里是用数学公式在显卡里直接绘制流体扭曲星云的核心
+        // 片元着色器 - 电影级黑洞引力吸积盘着色器
         const fsSource = `
             precision highp float;
             varying vec2 vUv;
@@ -45,61 +43,92 @@
             uniform vec2 uResolution;
             uniform vec2 uMouse;
 
-            // 噪声函数，用来生成不规则的星云迷雾
-            float noise(in vec2 p) {
-                return sin(p.x)*sin(p.y);
+            // 高阶分形噪声：生成千万级星尘粒子的厚重洪流感
+            float hash(vec2 p) {
+                p = fract(p * vec2(443.8975, 397.2973));
+                p += dot(p.xy, p.yx + 19.19);
+                return fract(p.x * p.y);
             }
 
-            const mat2 m2 = mat2(0.8,  0.6, -0.6,  0.8);
+            float noise(in vec2 p) {
+                vec2 i = floor(p);
+                vec2 f = fract(p);
+                vec2 u = f * f * (3.0 - 2.0 * f);
+                return mix(mix(hash(i + vec2(0.0,0.0)), hash(i + vec2(1.0,0.0)), u.x),
+                           mix(hash(i + vec2(0.0,1.0)), hash(i + vec2(1.0,1.0)), u.x), u.y);
+            }
+
+            // 叠加生成厚重的宇宙星云密度
             float fbm(in vec2 p) {
-                float f = 0.0;
-                f += 0.5000*noise(p); p = m2*p*2.02;
-                f += 0.2500*noise(p); p = m2*p*2.03;
-                f += 0.1250*noise(p); p = m2*p*2.01;
-                f += 0.0625*noise(p); return f/0.9375;
+                float v = 0.0;
+                float a = 0.5;
+                vec2 shift = vec2(100.0);
+                mat2 rot = mat2(cos(0.5), sin(0.5), -sin(0.5), cos(0.50));
+                for (int i = 0; i < 6; ++i) {
+                    v += a * noise(p);
+                    p = rot * p * 2.0 + shift;
+                    a *= 0.5;
+                }
+                return v;
             }
 
             void main() {
+                // 归一化坐标，修复拉伸变形
                 vec2 uv = (gl_FragCoord.xy - 0.5 * uResolution.xy) / uResolution.y;
                 
-                // 计算鼠标互动引发的引力偏移
+                // 交互重心：模拟鼠标对视界的质量引力偏折
                 vec2 m = (uMouse - 0.5 * uResolution.xy) / uResolution.y;
-                uv -= m * 0.3;
+                uv -= m * 0.4;
 
-                // 核心：将直角坐标系转为极坐标系，实现圆周旋转旋转
+                // 转为极端极坐标体系
                 float r = length(uv);
                 float a = atan(uv.y, uv.x);
 
-                // 时空扭曲公式：越靠近中心（r越小），旋转速度和角度越疯狂
-                float strength = 1.5;
-                float distort = strength / (r + 0.1);
-                a += uTime * 0.4 + distort;
-
-                // 重新映射回新坐标体系
-                vec2 uvNew = vec2(r * cos(a), r * sin(a));
-
-                // 制造多层星云迷雾叠加
-                float f = fbm(uvNew * 6.0 + uTime * 0.2);
-                f += fbm(uvNew * 3.0 - uTime * 0.1);
-
-                // 计算中心黑洞的边缘吞噬感
-                float hole = smoothstep(0.05, 0.45, r);
-
-                // 星云颜色调配：星际核心绚丽的蓝紫色调
-                vec3 color1 = vec3(0.1, 0.05, 0.25); // 暗紫
-                vec3 color2 = vec3(0.2, 0.5, 0.9);   // 亮蓝
-                vec3 color3 = vec3(0.9, 0.3, 0.6);   // 玫红
-
-                vec3 finalColor = mix(color1, color2, f);
-                finalColor = mix(finalColor, color3, dot(uvNew, uvNew) * 1.2);
+                // --- 核心：天体物理级引力透视弯曲公式 ---
+                // 越接近绝对中心（r越小），空间被拉扯和剥离得越恐怖
+                float gravity = 0.35 / (r + 0.015);
                 
-                // 注入核心耀眼的光芒
-                finalColor += vec3(0.12 / (r + 0.02)) * vec3(1.0, 0.9, 0.7);
-                
-                // 被黑洞吞噬掉中心
-                finalColor *= hole;
+                // 制造多重差速旋转：外圈慢、内圈快，形成剧烈的速度剪切带来的粒子撕裂感
+                float speed1 = uTime * 0.45 + gravity * 1.8;
+                float speed2 = -uTime * 0.15 + gravity * 0.9;
 
-                gl_FragColor = vec4(finalColor, 1.0);
+                // 计算星尘粒子层的分布
+                float density1 = fbm(vec2(r * 4.5 - uTime * 0.3, a * 5.0 + speed1));
+                float density2 = fbm(vec2(r * 9.0 + uTime * 0.1, a * 12.0 + speed2));
+                
+                // 深度混合两层粒子风暴，提取超细腻的密集星粒线条纹理
+                float stars = pow(density1, 3.5) * 4.0;
+                stars += pow(density2, 4.5) * 2.0;
+                stars *= smoothstep(0.08, 0.4, r); // 边缘淡出
+
+                // --- 电影级色彩调配 ---
+                // 完美还原你上传的星空大片中的深邃暗紫、极光幽蓝与核心耀眼高光
+                vec3 spaceBg  = vec3(0.02, 0.01, 0.05); 
+                vec3 nebulaPurple = vec3(0.35, 0.08, 0.55) * density1;
+                vec3 nebulaBlue   = vec3(0.12, 0.45, 0.85) * density2;
+                vec3 gasGlow      = vec3(0.95, 0.65, 0.45) * (pow(density1 * density2, 2.0) * 1.5);
+
+                // 综合色彩基调
+                vec3 color = spaceBg + nebulaPurple * 1.5 + nebulaBlue * 2.0 + gasGlow;
+                
+                // 叠加极高密度的亮白色星粒洪流
+                color += vec3(stars) * vec3(0.9, 0.95, 1.0);
+
+                // --- 奇点视界（黑洞核心）的极端虚无感 ---
+                // 模拟光线无法逃脱的视界线（Event Horizon），核心必须深邃且边缘带有强烈的光晕折射
+                float horizon = smoothstep(0.07, 0.082, r);
+                
+                // 核心吸积盘耀眼夺目的极光环（爱因斯坦环光效）
+                float einsteinRing = 0.012 / (abs(r - 0.09) + 0.005);
+                color += vec3(einsteinRing) * vec3(1.0, 0.92, 0.85) * (0.4 + density1 * 0.6);
+
+                // 吞噬黑洞中心区域的万物
+                color *= horizon;
+
+                // 画面整体润色与防过曝
+                color = img = 1.0 - exp(-color * 1.4);
+
+                gl_FragColor = vec4(color, 1.0);
             }
         `;
 
@@ -107,6 +136,9 @@
             const shader = gl.createShader(type);
             gl.shaderSource(shader, source);
             gl.compileShader(shader);
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                console.error(gl.getShaderInfoLog(shader));
+            }
             return shader;
         }
 
@@ -154,14 +186,13 @@
                 targetMouseX = e.touches[0].clientX;
                 targetMouseY = window.innerHeight - e.touches[0].clientY;
             }
-        });
+        }, { passive: true });
 
         function render(time) {
-            // 平滑缓动，让鼠标交互显得丝滑
-            mouseX += (targetMouseX - mouseX) * 0.08;
-            mouseY += (targetMouseY - mouseY) * 0.08;
+            mouseX += (targetMouseX - mouseX) * 0.05;
+            mouseY += (targetMouseY - mouseY) * 0.05;
 
-            gl.uniform1f(uTime, time * 0.002);
+            gl.uniform1f(uTime, time * 0.001);
             gl.uniform2f(uResolution, canvas.width, canvas.height);
             gl.uniform2f(uMouse, mouseX, mouseY);
 
